@@ -30,143 +30,131 @@
   </head>
 
   <body>
-    <!-- Mobile tab bar (visible on small screens) -->
-    <nav class="tabbar" aria-label="Primary">
-      <button class="tabbar__btn is-active" data-route="home" aria-current="page">
-        <span class="ico" aria-hidden="true">🏠</span>
-        <span class="lbl">Home</span>
+  <!-- Sidebar (desktop) / Drawer (mobile) -->
+  <aside id="sidebar" class="sidebar" aria-label="Main">
+    <a class="brand" href="#/home">
+      <img class="brand__logo" src="icons/icon-192.png" alt="" />
+      <span class="brand__name">BashaLanka</span>
+    </a>
+
+    <nav class="side-nav" role="navigation">
+      <button class="side-item" data-route="learn">
+        <span aria-hidden="true">🏠</span><span>Learn</span>
       </button>
-      <button class="tabbar__btn" data-route="quests">
-        <span class="ico" aria-hidden="true">🗺️</span>
-        <span class="lbl">Quests</span>
+      <button class="side-item" data-route="characters">
+        <span aria-hidden="true">あ</span><span>Characters</span>
       </button>
-      <button class="tabbar__btn" data-route="profile">
-        <span class="ico" aria-hidden="true">👤</span>
-        <span class="lbl">Profile</span>
+      <button class="side-item" data-route="practice">
+        <span aria-hidden="true">🧩</span><span>Practice</span>
+      </button>
+      <button class="side-item" data-route="quests">
+        <span aria-hidden="true">🗺️</span><span>Quests</span>
+      </button>
+      <button class="side-item" data-route="profile">
+        <span aria-hidden="true">👤</span><span>Profile</span>
+      </button>
+      <button class="side-item" data-route="settings">
+        <span aria-hidden="true">⚙️</span><span>Settings</span>
       </button>
     </nav>
+  </aside>
 
-    <!-- Top header (desktop HUD; collapses on mobile) -->
-    <header class="topbar" role="banner">
-      <div class="topbar__left">
-        <img src="assets/logo.svg" alt="" class="logo" />
-        <a class="brand" href="#" data-route="home">BashaLanka</a>
+  <!-- Topbar (mobile) -->
+  <header class="topbar" role="banner">
+    <button id="menuButton" class="icon-btn" aria-label="Menu" aria-expanded="false" aria-controls="drawer">☰</button>
+    <div class="topbar__spacer"></div>
+    <button id="themeToggle" class="icon-btn" title="Toggle theme">🌓</button>
+  </header>
+
+  <!-- Mobile drawer -->
+  <div id="drawer" class="drawer" aria-hidden="true">
+    <button id="drawerClose" class="icon-btn close" aria-label="Close">✕</button>
+    <nav class="side-nav drawer-nav">
+      <!-- same buttons as sidebar will be cloned by JS -->
+    </nav>
+  </div>
+  <div id="drawerScrim" class="scrim" hidden></div>
+
+  <!-- Main content area -->
+  <main id="app" class="main" role="main">
+    <!-- HOME / LEARN -->
+    <section id="view-learn" class="view" hidden aria-labelledby="learn-title">
+      <h1 id="learn-title" class="section-title">Section 1 — Foundations</h1>
+      <p class="muted">Work through units to unlock the next path checkpoint.</p>
+
+      <div class="hero__cta">
+        <button class="btn btn--primary" data-action="continue">Continue</button>
+        <button class="btn btn--ghost" data-action="practice">Practice</button>
       </div>
 
-      <div class="topbar__center">
-        <button class="btn btn--ghost" data-action="toggle-theme" aria-pressed="false" title="Toggle theme">
-          <span class="only-icons" aria-hidden="true">🌙</span>
-          <span class="sr-only">Toggle theme</span>
-        </button>
+      <h2 class="section-subtitle">Units</h2>
+      <div id="courseGrid" class="card-grid" aria-live="polite"></div>
+    </section>
+
+    <!-- CHARACTERS -->
+    <section id="view-characters" class="view" hidden aria-labelledby="characters-title">
+      <h1 id="characters-title" class="section-title">Characters</h1>
+      <p class="muted">Learn Sinhala script step by step.</p>
+      <div id="charGrid" class="card-grid"></div>
+    </section>
+
+    <!-- PRACTICE -->
+    <section id="view-practice" class="view" hidden aria-labelledby="practice-title">
+      <h1 id="practice-title" class="section-title">Practice</h1>
+      <div class="card">Custom practice sessions coming soon.</div>
+    </section>
+
+    <!-- QUESTS -->
+    <section id="view-quests" class="view" hidden aria-labelledby="quests-title">
+      <h1 id="quests-title" class="section-title">Quests</h1>
+      <div id="questsList" class="card-list"></div>
+    </section>
+
+    <!-- PROFILE -->
+    <section id="view-profile" class="view" hidden aria-labelledby="profile-title">
+      <h1 id="profile-title" class="section-title">Profile</h1>
+      <div class="card">
+        <h3 class="card__title">Your stats</h3>
+        <ul class="stats">
+          <li><strong id="stat-streak">0</strong> day streak</li>
+          <li><strong id="stat-xp">0</strong> XP total</li>
+          <li><strong id="stat-crown">0</strong> crowns</li>
+        </ul>
       </div>
+    </section>
 
-      <div class="topbar__right" aria-label="Player HUD">
-        <div class="hud">
-          <div class="hud__item" title="Hearts">
-            <span class="ico" aria-hidden="true">❤️</span>
-            <span id="hearts" class="hud__val" aria-live="polite">5</span>
+    <!-- SETTINGS -->
+    <section id="view-settings" class="view" hidden aria-labelledby="settings-title">
+      <h1 id="settings-title" class="section-title">Settings</h1>
+
+      <form id="settingsForm" class="prefs">
+        <fieldset>
+          <legend>Preferences</legend>
+          <label class="toggle"><input type="checkbox" name="sfx"> <span>Sound effects</span></label>
+          <label class="toggle"><input type="checkbox" name="anim"> <span>Animations</span></label>
+          <label class="toggle"><input type="checkbox" name="motivate"> <span>Motivational messages</span></label>
+          <label class="toggle"><input type="checkbox" name="listen"> <span>Listening exercises</span></label>
+        </fieldset>
+
+        <fieldset>
+          <legend>Appearance</legend>
+          <div class="radio-row">
+            <label><input type="radio" name="appearance" value="system"> System Default</label>
+            <label><input type="radio" name="appearance" value="dark"> Dark</label>
+            <label><input type="radio" name="appearance" value="light"> Light</label>
           </div>
-          <div class="hud__item" title="XP">
-            <span class="ico" aria-hidden="true">⭐</span>
-            <span id="xp" class="hud__val" aria-live="polite">0</span>
-          </div>
-          <div class="hud__item" title="Streak">
-            <span class="ico" aria-hidden="true">🔥</span>
-            <span id="streak" class="hud__val" aria-live="polite">0</span>
-          </div>
-        </div>
-        <button class="btn btn--ghost only-mobile" data-action="toggle-sidebar" aria-expanded="false" aria-controls="sidebar">
-          ☰ <span class="sr-only">Menu</span>
-        </button>
-      </div>
-    </header>
+        </fieldset>
 
-    <!-- App layout: sidebar (collapsible) + main content -->
-    <div class="layout">
-      <aside id="sidebar" class="sidebar" aria-label="Sections">
-        <h2 class="sidebar__title">Course</h2>
-        <nav class="sidebar__nav">
-          <button class="chip is-active" data-section="1">Section 1</button>
-          <button class="chip" data-section="2">Section 2</button>
-          <button class="chip" data-section="3">Section 3</button>
-        </nav>
+        <fieldset>
+          <legend>Japanese (example)</legend>
+          <label class="toggle"><input type="checkbox" name="romanized"> <span>Show pronunciation (Romanized)</span></label>
+        </fieldset>
 
-        <div class="card card--muted promo">
-          <h3 class="card__title">Daily Goal</h3>
-          <p>Earn 10+ XP today to keep your streak alive 🔥</p>
-          <button class="btn btn--primary" data-action="start-lesson">Start</button>
-        </div>
-      </aside>
+        <button class="btn btn--primary" type="submit">Save</button>
+      </form>
+    </section>
+  </main>
 
-      <main id="app" class="main" role="main">
-        <!-- HOME VIEW -->
-        <section id="view-home" class="view is-active" aria-labelledby="home-title">
-          <div class="hero">
-            <div>
-              <h1 id="home-title" class="hero__title">Section 1 — Foundations</h1>
-              <p class="hero__subtitle">Work through units to unlock the next path checkpoint.</p>
-            </div>
-            <div class="hero__cta">
-              <button class="btn btn--primary" data-action="continue">Continue</button>
-              <button class="btn btn--ghost" data-action="practice">Practice</button>
-            </div>
-          </div>
-
-          <!-- Path grid; auto-rearranges for mobile via CSS grid -->
-          <div id="pathGrid" class="path-grid" aria-live="polite">
-            <!-- nodes are rendered by app.js from data/course.index.json -->
-          </div>
-
-          <!-- Checkpoint -->
-          <div class="checkpoint" role="group" aria-label="Checkpoint">
-            <div class="checkpoint__line" aria-hidden="true"></div>
-            <button class="checkpoint__btn" data-action="checkpoint" title="Checkpoint test">🎯</button>
-            <div class="checkpoint__line" aria-hidden="true"></div>
-          </div>
-
-          <!-- More units (lazy loaded) -->
-          <h2 class="section-title">Next up</h2>
-          <div id="moreGrid" class="path-grid path-grid--compact"></div>
-        </section>
-
-        <!-- QUESTS VIEW (placeholder) -->
-        <section id="view-quests" class="view" aria-labelledby="quests-title">
-          <h1 id="quests-title" class="section-title">Quests</h1>
-          <div class="card-list" id="questsList"></div>
-        </section>
-
-        <!-- PROFILE VIEW (placeholder) -->
-        <section id="view-profile" class="view" aria-labelledby="profile-title">
-          <h1 id="profile-title" class="section-title">Profile</h1>
-          <div class="profile">
-            <div class="card">
-              <h3 class="card__title">Your stats</h3>
-              <ul class="stats">
-                <li><strong id="stat-streak">0</strong> day streak</li>
-                <li><strong id="stat-xp">0</strong> XP total</li>
-                <li><strong id="stat-crown">0</strong> crowns</li>
-              </ul>
-            </div>
-          </div>
-        </section>
-      </main>
-    </div>
-
-    <!-- Toasts -->
-    <div class="toasts" aria-live="assertive" aria-atomic="true"></div>
-
-    <!-- Scripts -->
-    <script src="app.js" defer></script>
-    <script>
-      // Register SW (optional — safe to leave if served over file://; will no-op)
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('sw.js').catch(() => {});
-        });
-      }
-    </script>
-
-    <!-- Accessibility helpers -->
-    <span class="sr-only" id="announce"></span>
+  <script src="app.js" defer></script>
   </body>
 </html>
