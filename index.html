@@ -10,9 +10,9 @@
 
     <!-- App identity -->
     <meta name="description" content="BashaLanka — learn Sinhala with quick, game-like lessons." />
-    <link rel="icon" href="assets/PNG/tab_icon.png" />
-    <link rel="apple-touch-icon" href="assets/PNG/tab_icon.png" />
-    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="icon" href="./assets/PNG/tab_icon.png" />
+    <link rel="apple-touch-icon" href="./assets/PNG/tab_icon.png" />
+    <link rel="manifest" href="./manifest.webmanifest" />
 
     <!-- Fonts (system stack for speed; swap later if desired) -->
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -23,17 +23,17 @@
     />
 
     <!-- Styles -->
-    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="./styles.css" />
     <!-- Include fixed sidebar overrides -->
-    <link rel="stylesheet" href="sidebar-fixed.override.css" />
+    <link rel="stylesheet" href="./sidebar-fixed.override.css" />
 
     <!-- PWA / Theming -->
     <meta name="theme-color" content="#0f1720" />
 
     <!-- Fonts: local WOFF2 with preloads -->
-    <link rel="preload" href="assets/fonts/Feather-Bold.woff2" as="font" type="font/woff2" crossorigin>
-    <link rel="preload" href="assets/fonts/DINNextRounded-Regular.woff2" as="font" type="font/woff2" crossorigin>
-    <link rel="preload" href="assets/fonts/DINNextRounded-Medium.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="./assets/fonts/Feather-Bold.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="./assets/fonts/DINNextRounded-Regular.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="./assets/fonts/DINNextRounded-Medium.woff2" as="font" type="font/woff2" crossorigin>
   </head>
 
   <body>
@@ -49,8 +49,8 @@
     <aside id="sidebar" class="sidebar" aria-label="Main">
       <a class="brand" href="#/home">
         <picture>
-          <source srcset="assets/SVG/Bashalinka_top_left.svg" type="image/svg+xml" />
-          <img class="brand__logo" src="assets/PNG/Bashalinka_top_left.png" alt="BashaLanka home" loading="lazy" decoding="async" />
+          <source srcset="./assets/SVG/Bashalinka_top_left.svg" type="image/svg+xml" />
+          <img class="brand__logo" src="./assets/PNG/Bashalinka_top_left.png" alt="BashaLanka home" loading="lazy" decoding="async" />
         </picture>
         <span class="brand__name">BashaLanka</span>
       </a>
@@ -136,6 +136,7 @@
           <label class="toggle"><input type="checkbox" name="sfx"> <span>Sound effects</span></label>
           <label class="toggle"><input type="checkbox" name="anim"> <span>Animations</span></label>
           <label class="toggle"><input type="checkbox" name="motivate"> <span>Motivational messages</span></label>
+           <label class="toggle"><input type="checkbox" name="motivate"> <span>Motivational messages</span></label>
           <label class="toggle"><input type="checkbox" name="listen"> <span>Listening exercises</span></label>
         </fieldset>
 
@@ -160,6 +161,6 @@
   </div>
   <div id="drawerScrim" class="scrim" hidden></div>
 
-  <script src="app.js" defer></script>
+    <script src="./app.js" defer></script>
   </body>
 </html>
