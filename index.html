@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en" dir="ltr" data-theme="dark">
   <head>
-    <meta charset="utf-8" />
+   <meta charset="utf-8" />
      <meta
       name="viewport"
       content="width=device-width, initial-scale=1, viewport-fit=cover"
@@ -26,6 +26,7 @@
     <link rel="stylesheet" href="./styles.css" />
     <!-- Include fixed sidebar overrides -->
     <link rel="stylesheet" href="./sidebar-fixed.override.css" />
+    <link rel="stylesheet" href="./styles.learn.css" />
 
     <!-- PWA / Theming -->
     <meta name="theme-color" content="#0f1720" />
@@ -55,7 +56,7 @@
         <span class="brand__name">BashaLanka</span>
       </a>
 
-      <nav class="side-nav" role="navigation">
+       <nav class="side-nav" role="navigation">
         <button class="sidebar__link" data-route="learn">
           <span aria-hidden="true">🏠</span><span>Learn</span>
         </button>
@@ -80,19 +81,8 @@
 
     <!-- Main content area -->
     <main id="app" class="main" role="main">
-    <!-- HOME / LEARN -->
-    <section id="view-learn" class="view" hidden aria-labelledby="learn-title">
-      <h1 id="learn-title" class="section-title">Section 1 — Foundations</h1>
-      <p class="muted">Work through units to unlock the next path checkpoint.</p>
-
-      <div class="hero__cta">
-        <button class="btn btn--primary" data-action="continue">Continue</button>
-        <button class="btn btn--ghost" data-action="practice">Practice</button>
-      </div>
-
-      <h2 class="section-subtitle">Units</h2>
-      <div id="courseGrid" class="card-grid" aria-live="polite"></div>
-    </section>
+    <!-- LEARN -->
+    <section id="view-learn" class="view" hidden></section>
 
     <!-- CHARACTERS -->
     <section id="view-characters" class="view" hidden aria-labelledby="characters-title">
@@ -162,5 +152,6 @@
   <div id="drawerScrim" class="scrim" hidden></div>
 
     <script src="./app.js" defer></script>
+    <script src="./app.learn.js" defer></script>
   </body>
 </html>
