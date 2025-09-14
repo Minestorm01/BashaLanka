@@ -9,21 +9,20 @@ const RUNTIME  = `runtime-${VERSION}`;
 // List everything you want guaranteed offline.
 // Keep paths relative to the SW scope.
 const PRECACHE_URLS = [
-  './',                          // start_url
-  './index.html',                // if you deploy as "index.html"
-  './index (1).html',            // included since your file is named this right now
-  './styles.css',
-  './app.js',
-  './data/course.index.json',
-  './manifest.webmanifest',
-  './assets/PNG/tab_icon.png',
-  './assets/SVG/app_logo.svg',
-  './assets/SVG/Bashalinka_top_left.svg',
-  './assets/SVG/welcome.svg',
-  './assets/SVG/failed.svg',
-  './assets/SVG/next_lession.svg',
-  // README is not needed in the app shell; add it if you really want it:
-  // './README.md'
+    './',                          // start_url
+    './index.html',                // if you deploy as "index.html"
+    './styles.css',
+    './app.js',
+    './data/course.index.json',
+    './manifest.webmanifest',
+    './assets/PNG/tab_icon.png',
+    './assets/SVG/app_logo.svg',
+    './assets/SVG/Bashalinka_top_left.svg',
+    './assets/SVG/welcome.svg',
+    './assets/SVG/failed.svg',
+    './assets/SVG/next_lession.svg',
+    // README is not needed in the app shell; add it if you really want it:
+    // './README.md'
 ];
 
 /* ====== INSTALL ====== */
@@ -64,7 +63,7 @@ self.addEventListener('activate', event => {
 
 /* ====== FETCH ====== */
 self.addEventListener('fetch', event => {
-  const { request } = event;
+   const { request } = event;
 
   // Only handle same-origin GETs
   if (request.method !== 'GET' || new URL(request.url).origin !== self.location.origin) {
@@ -89,7 +88,6 @@ self.addEventListener('fetch', event => {
         const cache = await caches.open(PRECACHE);
         return (
           (await cache.match('./index.html')) ||
-          (await cache.match('./index (1).html')) ||
           (await cache.match('./')) ||
           new Response('Offline', { status: 503, statusText: 'Offline' })
         );
@@ -135,8 +133,7 @@ async function fallbackFor(request) {
   // Default: try the precache (last resort)
   const cache = await caches.open(PRECACHE);
   const hit =
-    (await cache.match(request)) ||
-    (await cache.match('./index.html')) ||
-    (await cache.match('./index (1).html'));
+      (await cache.match(request)) ||
+      (await cache.match('./index.html'));
   return hit || new Response('Offline', { status: 503, statusText: 'Offline' });
 }
