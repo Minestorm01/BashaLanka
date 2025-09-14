@@ -33,71 +33,73 @@
     <div class="section-card__img">
       <div class="character">
         <img src="${sec.img}" alt="Section ${sec.id} mascot" class="character__img" />
-        <div class="speech-bubble" role="note" aria-label="Section phrase">
-          <p class="speech-line romanised">${sec.phrase.romanised}</p>
-          <p class="speech-line sinhala">${sec.phrase.si}</p>
-        </div>
-      </div>
-    </div>
-    </article>`;
-  }
+       position: relative;
+  width: clamp(120px, 20vw, 180px);
+  flex: 0 0 auto;
+}
 
-  function renderSection(id){
-    const sec = sections.find(s => String(s.id) === String(id));
-    if(!sec){ container.innerHTML = '<p>Not found</p>'; return; }
-    const pct = Math.round(sec.progress * 100);
-    const trophy = trophySrc(sec.progress);
-    container.innerHTML = `<div class="section-page">
-      <button class="btn-back" data-action="back">← Back</button>
-      <h2>${sec.title}</h2>
-      <div class="phrase-wrap">
-        <div class="character">
-          <img src="${sec.img}" alt="Section mascot" class="character__img" />
-          <div class="speech-bubble" role="note" aria-label="Section phrase">
-            <p class="speech-line romanised">${sec.phrase.romanised}</p>
-            <p class="speech-line sinhala">${sec.phrase.si}</p>
-          </div>
-        </div>
-      </div>
-      <div class="progress" role="progressbar" aria-valuemin="0" aria-valuemax="${sec.lessonsTotal}" aria-valuenow="${sec.lessonsDone}">
-        <div class="progress__fill" style="width:${pct}%"></div>
-        <div class="progress__nums">${sec.lessonsDone} / ${sec.lessonsTotal}</div>
-        <img class="progress__trophy" src="${trophy}" onerror="this.onerror=null;this.src='${trophy.replace('assets','assest')}'" alt="" />
-      </div>
-    </div>`;
-  }
+.character {
+  position: relative;
+  width: 100%;
+  display: grid;
+  place-items: center;
+}
 
-  function handleClick(e){
-    const continueBtn = e.target.closest('.btn-continue');
-    if(continueBtn){
-      const id = continueBtn.dataset.id;
-      const sec = sections.find(s=>s.id==id);
-      if(sec && sec.status==='unlocked') location.hash = `#/section/${id}`;
-      return;
-    }
-    const detailBtn = e.target.closest('.btn-details');
-    if(detailBtn){
-      const id = detailBtn.dataset.id;
-      location.hash = `#/section/${id}`;
-      return;
-    }
-    const backBtn = e.target.closest('[data-action="back"]');
-    if(backBtn){
-      location.hash = '#/learn';
-    }
-  }
+.character__img {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-width: 100%;
+}
 
-  function router(){
-    const hash = location.hash || '#/learn';
-    const m = hash.match(/^#\/section\/(\d+)/);
-    if(m){
-      renderSection(m[1]);
-    }else{
-      renderLearn();
-    }
-  }
+/* ============ Speech bubble ============ */
+.speech-bubble {
+  position: absolute;
+  top: -12%;
+  left: -12%;
+  transform: translate(0, 0);
+  background: #1a6460;
+  color: #e6f1ff;
+  border: 1px solid #3d7b78;
+  border-radius: 14px;
+  padding: clamp(8px, 1.8vw, 12px) clamp(10px, 2.2vw, 14px);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.25);
+  max-width: min(80vw, 220px);
+  z-index: 2;
+}
 
-  container.addEventListener('click', handleClick);
-  fetch('data/learn.sections.json').then(r=>r.json()).then(data=>{sections = data.sections || []; router();});
-  window.addEventListener('hashchange', router);
-})();
+.speech-bubble::after {
+  content: "";
+  position: absolute;
+  bottom: -10px;
+  left: 28px;
+  width: 0;
+  height: 0;
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-top: 10px solid #1a6460;
+  filter: drop-shadow(0 2px 2px rgba(0,0,0,.25));
+}
+
+.speech-line {
+  margin: 0;
+  line-height: 1.15;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.speech-line.romanised {
+  font-weight: 600;
+  font-size: clamp(11px, 2.3vw, 13px);
+  color: #9db8ff;
+  letter-spacing: 0.3px;
+}
+
+.speech-line.sinhala {
+  font-weight: 700;
+  font-size: clamp(14px, 3vw, 18px);
+  color: #e6f1ff;
+}
+
+@media (max-width: 480px) {
