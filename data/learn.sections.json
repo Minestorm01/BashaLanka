@@ -1,0 +1,76 @@
+{
+  "sections": [
+    {
+      "id": 1,
+      "title": "Section 1",
+      "phrase": { "romanised": "kohomada?", "si": "කොහොමද?" },
+      "img": "assets/section1/section-1.svg",
+      "progress": 0.2,
+      "lessonsDone": 1,
+      "lessonsTotal": 9,
+      "status": "unlocked",
+      "trophy": "silver",
+      "cta": "Continue"
+    },
+    {
+      "id": 2,
+      "title": "Section 2",
+      "phrase": { "romanised": "mama hondai", "si": "මම හොඳයි" },
+      "img": "assets/section1/section-2.svg",
+      "progress": 0.0,
+      "lessonsDone": 0,
+      "lessonsTotal": 30,
+      "status": "locked",
+      "trophy": "silver",
+      "cta": "Jump to Section 2"
+    },
+    {
+      "id": 3,
+      "title": "Section 3",
+      "phrase": { "romanised": "oyāge nama monawada?", "si": "ඔයාගේ නම මොනවද?" },
+      "img": "assets/section1/section-3.svg",
+      "progress": 0.0,
+      "lessonsDone": 0,
+      "lessonsTotal": 30,
+      "status": "locked",
+      "trophy": "silver",
+      "cta": "Jump to Section 3"
+    },
+    {
+      "id": 4,
+      "title": "Section 4",
+      "phrase": { "romanised": "kōheda yanne?", "si": "කොහේද යන්නේ?" },
+      "img": "assets/section1/section-4.svg",
+      "progress": 0.0,
+      "lessonsDone": 0,
+      "lessonsTotal": 60,
+      "status": "locked",
+      "trophy": "silver",
+      "cta": "Jump to Section 4"
+    },
+    {
+      "id": 5,
+      "title": "Section 5",
+      "phrase": { "romanised": "mata bāt tikak dēnna", "si": "මට බත් ටිකක් දෙන්න" },
+      "img": "assets/section1/section-5.svg",
+      "progress": 0.0,
+      "lessonsDone": 0,
+      "lessonsTotal": 50,
+      "status": "locked",
+      "trophy": "silver",
+      "cta": "Jump to Section 5"
+    },
+    {
+      "id": 6,
+      "title": "Section 6",
+      "phrase": { "romanised": "mata hitenavā…", "si": "මට හිතෙනවා…" },
+      "img": "assets/section1/section-6.svg",
+      "progress": 0.0,
+      "lessonsDone": 0,
+      "lessonsTotal": 42,
+      "status": "locked",
+      "trophy": "silver",
+      "cta": "Jump to Section 6"
+    }
+  ]
+}
