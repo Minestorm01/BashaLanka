@@ -1,7 +1,6 @@
 /*
   app.js — responsive UI + data loading + PWA hooks
   Framework-free, accessible, and mobile-first.
-  Every feature checks for element existence so it’s safe across pages.
 */
 
 /* -------------------------
@@ -10,20 +9,13 @@
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
 const on = (el, ev, fn, opts) => el && el.addEventListener(ev, fn, opts);
-const debounce = (fn, ms = 150) => {
-  let t;
-  return (...args) => {
-    clearTimeout(t);
-    t = setTimeout(() => fn.apply(null, args), ms);
-  };
-};
+const debounce = (fn, ms = 150) => { let t; return (...args) => { clearTimeout(t); t = setTimeout(() => fn.apply(null, args), ms); }; };
 
 // Trap focus inside a container (for modals/drawers)
 function trapFocus(container) {
   if (!container) return () => {};
   const sel = 'a, button, input, textarea, select, [tabindex]:not([tabindex="-1"])';
   const focusables = () => $$(sel, container).filter(el => !el.disabled && el.offsetParent !== null);
-
   function handle(e) {
     if (e.key !== 'Tab') return;
     const f = focusables();
@@ -31,16 +23,17 @@ function trapFocus(container) {
     const first = f[0];
     const last = f[f.length - 1];
     if (e.shiftKey && document.activeElement === first) {
-      last.focus();
-      e.preventDefault();
+      last.focus(); e.preventDefault();
     } else if (!e.shiftKey && document.activeElement === last) {
-      first.focus();
-      e.preventDefault();
+      first.focus(); e.preventDefault();
     }
   }
   document.addEventListener('keydown', handle);
   return () => document.removeEventListener('keydown', handle);
 }
+
+// -------- Router targets --------
+const ROUTES = ['home','learn','characters','practice','quests','profile','settings'];
 
 /* -------------------------
    State
@@ -48,127 +41,190 @@ function trapFocus(container) {
 const AppState = {
   courses: [],
   filtered: [],
-  layout: localStorage.getItem('layoutMode') || 'auto',   // 'auto' | 'mobile' | 'desktop'
-  theme: localStorage.getItem('theme') || 'system',       // 'system' | 'dark' | 'light'
   installPromptEvt: null,
+  prefs: {
+    sfx: true, anim: true, motivate: true, listen: true,
+    appearance: localStorage.getItem('theme') || 'system',
+    romanized: false
+  }
 };
 
-/* -------------------------
-   Init
-------------------------- */
-window.addEventListener('DOMContentLoaded', () => {
-  initTheme();
-  initLayoutControls();
-  initNavDrawer();
-  initSearch();
-  initInstall();
-  initServiceWorker();
-  loadCourses();
-  exposeForDebug();
-});
+// Load prefs
+function loadPrefs(){
+  try{
+    const saved = JSON.parse(localStorage.getItem('prefs')||'{}');
+    AppState.prefs = {...AppState.prefs, ...saved};
+  }catch{}
+}
+function savePrefs(){
+  localStorage.setItem('prefs', JSON.stringify(AppState.prefs));
+  localStorage.setItem('theme', AppState.prefs.appearance);
+  applyTheme(AppState.prefs.appearance);
+}
 
-/* -------------------------
-   Theme handling (optional)
-------------------------- */
-function initTheme() {
-  const btn = $('#themeToggle');
+// Apply theme now + when toggled
+function applyTheme(val){
   const root = document.documentElement;
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  const theme = val === 'system' ? (prefersDark ? 'dark' : 'light') : val;
+  root.setAttribute('data-theme', theme);
+}
 
-  const apply = (val) => {
-    AppState.theme = val;
-    localStorage.setItem('theme', val);
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const theme = val === 'system' ? (prefersDark ? 'dark' : 'light') : val;
-    root.setAttribute('data-theme', theme);
-  };
-
-  apply(AppState.theme);
-
-  on(btn, 'click', () => {
-    const next = AppState.theme === 'light' ? 'dark'
-               : AppState.theme === 'dark'  ? 'system'
-               : 'light';
-    apply(next);
+// Init Theme toggle (cycles)
+function initTheme(){
+  const btn = $('#themeToggle');
+  loadPrefs();
+  applyTheme(AppState.prefs.appearance);
+  on(btn,'click',()=>{
+    const order = ['light','dark','system'];
+    const i = order.indexOf(AppState.prefs.appearance);
+    AppState.prefs.appearance = order[(i+1)%order.length];
+    savePrefs();
   });
 }
 
-/* -------------------------
-   Layout handling
-------------------------- */
-function initLayoutControls() {
-  const select = $('#layoutMode'); // <select id="layoutMode"> auto | desktop | mobile
-  const root = document.documentElement;
+// Sidebar + Drawer
+function initSidebar(){
+  const sidebar = $('.side-nav');
+  const drawer = $('#drawer');
+  const drawerNav = $('.drawer-nav');
+  const scrim = $('#drawerScrim');
+  const menuBtn = $('#menuButton');
+  const closeBtn = $('#drawerClose');
 
-  const apply = (mode) => {
-    AppState.layout = mode;
-    localStorage.setItem('layoutMode', mode);
-    root.setAttribute('data-layout', mode);
-  };
-
-  if (select) {
-    select.value = AppState.layout;
-    on(select, 'change', (e) => apply(e.target.value));
+  // Build nav items (if not present)
+  if (sidebar && !sidebar.dataset.built){
+    sidebar.dataset.built = '1';
+    const items = [
+      ['learn','🏠','Learn'],
+      ['characters','あ','Characters'],
+      ['practice','🧩','Practice'],
+      ['quests','🗺️','Quests'],
+      ['profile','👤','Profile'],
+      ['settings','⚙️','Settings']
+    ];
+    sidebar.innerHTML = items.map(([r,ico,txt]) =>
+      `<button class="side-item" data-route="${r}"><span aria-hidden="true">${ico}</span><span>${txt}</span></button>`
+    ).join('');
   }
 
-  apply(AppState.layout);
+  // Clone to drawer
+  if (drawerNav && sidebar) drawerNav.innerHTML = sidebar.innerHTML;
+
+  const allNavButtons = [...$$('.side-item', sidebar), ...$$('.side-item', drawer)];
+
+  allNavButtons.forEach(btn=>{
+    on(btn,'click',()=>{
+      const route = btn.dataset.route;
+      location.hash = `/${route}`;
+      if (drawer) closeDrawer();
+    });
+    on(btn,'keydown',e=>{
+      if (e.key==='Enter' || e.key===' ') { e.preventDefault(); btn.click(); }
+    });
+  });
+
+  function openDrawer(){
+    drawer.classList.add('open'); scrim.hidden=false; trapFocus(drawer);
+    menuBtn.setAttribute('aria-expanded','true');
+  }
+  function closeDrawer(){
+    drawer.classList.remove('open'); scrim.hidden=true;
+    menuBtn.setAttribute('aria-expanded','false');
+  }
+  on(menuBtn,'click',openDrawer);
+  on(closeBtn,'click',closeDrawer);
+  on(scrim,'click',closeDrawer);
+
+  function setActive(route){
+    allNavButtons.forEach(b=>{
+      const active = b.dataset.route===route;
+      b.toggleAttribute('aria-current', active);
+      b.classList.toggle('is-active', active);
+    });
+  }
+  return { setActive };
 }
 
-/* -------------------------
-   Drawer / Nav (mobile first)
-------------------------- */
-function initNavDrawer() {
-  const openBtn = $('#menuButton');
-  const closeBtn = $('#drawerClose');
-  const drawer = $('#drawer');
-  const scrim = $('#drawerScrim');
-  let untrap = () => {};
+// Views
+const views = {
+  home:   $('#view-learn'),
+  learn:  $('#view-learn'),
+  characters: $('#view-characters'),
+  practice:   $('#view-practice'),
+  quests:     $('#view-quests'),
+  profile:    $('#view-profile'),
+  settings:   $('#view-settings')
+};
 
-  const open = () => {
-    if (!drawer) return;
-    drawer.classList.add('open');
-    if (scrim) scrim.classList.add('show');
-    drawer.setAttribute('aria-hidden', 'false');
-    untrap = trapFocus(drawer);
-    const firstButton = $('button, a, [tabindex]:not([tabindex="-1"])', drawer);
-    if (firstButton) firstButton.focus();
-  };
-
-  const close = () => {
-    if (!drawer) return;
-    drawer.classList.remove('open');
-    if (scrim) scrim.classList.remove('show');
-    drawer.setAttribute('aria-hidden', 'true');
-    untrap();
-    if (openBtn) openBtn.focus();
-  };
-
-  on(openBtn, 'click', open);
-  on(closeBtn, 'click', close);
-  on(scrim, 'click', close);
-  on(document, 'keydown', (e) => e.key === 'Escape' && drawer?.classList.contains('open') && close());
+function show(route){
+  Object.values(views).forEach(v=>v && (v.hidden = true));
+  const el = views[route] || views.home;
+  if (el) el.hidden = false;
 }
 
-/* -------------------------
-   Course loading + rendering
-------------------------- */
-async function loadCourses() {
+// Hash router
+function parseHash(){
+  const h = location.hash.replace(/^#\/?/,'').toLowerCase();
+  const route = ROUTES.includes(h) ? h : (h.split('?')[0]||'home');
+  return route;
+}
+function initRouter(sidebarCtl){
+  function apply(){
+    const r = parseHash();
+    show(r);
+    sidebarCtl.setActive(r);
+  }
+  window.addEventListener('hashchange', apply);
+  apply();
+}
+
+// Settings form
+function initSettingsForm(){
+  const form = $('#settingsForm');
+  if (!form) return;
+  // hydrate
+  form.sfx.checked = !!AppState.prefs.sfx;
+  form.anim.checked = !!AppState.prefs.anim;
+  form.motivate.checked = !!AppState.prefs.motivate;
+  form.listen.checked = !!AppState.prefs.listen;
+  form.romanized.checked = !!AppState.prefs.romanized;
+  [...form.appearance].forEach(r => r.checked = (r.value === AppState.prefs.appearance));
+
+  on(form,'submit',e=>{
+    e.preventDefault();
+    AppState.prefs = {
+      ...AppState.prefs,
+      sfx: form.sfx.checked,
+      anim: form.anim.checked,
+      motivate: form.motivate.checked,
+      listen: form.listen.checked,
+      romanized: form.romanized.checked,
+      appearance: form.appearance.value
+    };
+    savePrefs();
+  });
+}
+
+// Courses (point to data/)
+async function loadCourses(){
   const grid = $('#courseGrid');
   if (!grid) return;
-
-  try {
-    const res = await fetch('data/course.index.json', { cache: 'no-cache' });
-    if (!res.ok) throw new Error('Failed to fetch course.index.json');
+  try{
+    const res = await fetch('data/course.index.json',{cache:'no-cache'});
     const data = await res.json();
     AppState.courses = Array.isArray(data) ? data : (data.courses || []);
     AppState.filtered = [...AppState.courses];
     renderCourses(AppState.filtered, grid);
-  } catch (err) {
-    console.error(err);
-    grid.innerHTML = `<div class="card error" role="alert">Couldn't load courses. You're likely offline or the JSON is missing.</div>`;
+  }catch(e){
+    grid.innerHTML = `<div class="card" role="alert">Couldn’t load courses (offline?).</div>`;
   }
 }
 
-function renderCourses(items, grid) {
+// Keep existing renderCourses() + courseCard()
+const COURSE_FALLBACK = 'icons/icon-192.png';
+
+function renderCourses(items, grid){
   grid.innerHTML = '';
   if (!items.length) {
     grid.innerHTML = '<p class="muted">No courses match your filters.</p>';
@@ -179,17 +235,15 @@ function renderCourses(items, grid) {
   grid.appendChild(frag);
 }
 
-function courseCard(course) {
+function courseCard(course){
   const { id, title, lang, level, progress, cover } = course;
   const card = document.createElement('article');
   card.className = 'course-card card';
   card.tabIndex = 0;
   card.setAttribute('data-id', id);
-
-const fallbackCover = 'icons/icon-192.png';
   card.innerHTML = `
     <div class="media">
-      <img loading="lazy" decoding="async" src="${cover || fallbackCover}" alt="${title || 'Course'} cover"/>
+      <img loading="lazy" decoding="async" src="${cover || COURSE_FALLBACK}" alt="${title || 'Course'} cover"/>
     </div>
     <div class="content">
       <header class="row between">
@@ -260,9 +314,7 @@ function openCourseDetails(course) {
   on(document, 'keydown', (e) => { if (e.key === 'Escape') close(); }, { once: true });
 }
 
-/* -------------------------
-   Search + filters
-------------------------- */
+// Search + filters (optional)
 function initSearch() {
   const input = $('#searchInput');
   const grid = $('#courseGrid');
@@ -280,9 +332,7 @@ function initSearch() {
   on(input, 'input', debounce(apply, 120));
 }
 
-/* -------------------------
-   Install (PWA)
-------------------------- */
+// Install (PWA)
 function initInstall() {
   const btn = $('#installBtn');
   if (btn) btn.hidden = true;
@@ -297,32 +347,22 @@ function initInstall() {
     const evt = AppState.installPromptEvt;
     if (!evt) return;
     evt.prompt();
-    const { outcome } = await evt.userChoice;
-    console.log('PWA install outcome:', outcome);
+    await evt.userChoice;
     if (btn) btn.hidden = true;
   });
 
   window.addEventListener('appinstalled', () => {
-    console.log('PWA installed');
     if (btn) btn.hidden = true;
     AppState.installPromptEvt = null;
   });
 }
 
-/* -------------------------
-   Service worker
-------------------------- */
+// Service worker
 function initServiceWorker() {
   if (!('serviceWorker' in navigator)) return;
 
-   navigator.serviceWorker.register('sw.js').then((reg) => {
-    console.log('SW registered:', reg.scope);
-
-    // Listen for updates
-    if (reg.update) {
-      // Try to pick up new SW on page load
-      reg.update();
-    }
+  navigator.serviceWorker.register('sw.js').then((reg) => {
+    if (reg.update) reg.update();
     reg.addEventListener('updatefound', () => {
       const newWorker = reg.installing;
       if (!newWorker) return;
@@ -332,38 +372,29 @@ function initServiceWorker() {
         }
       });
     });
-
-    // When a new SW takes control
     navigator.serviceWorker.addEventListener('controllerchange', () => {
       console.log('SW controller changed');
     });
   }).catch((err) => console.warn('SW registration failed', err));
 }
 
-/* -------------------------
-   Resize observer (optional)
-------------------------- */
-(function initResizeDebug() {
-  const badge = $('#breakpointBadge');
-  if (!badge) return;
-  const update = () => {
-    const w = window.innerWidth;
-    let label = 'auto';
-    const dl = document.documentElement.getAttribute('data-layout');
-    if (dl === 'mobile') label = 'mobile (forced)';
-    else if (dl === 'desktop') label = 'desktop (forced)';
-    else label = w < 640 ? 'sm' : w < 768 ? 'md' : w < 1024 ? 'lg' : 'xl+';
-    badge.textContent = `${label} • ${w}px`;
-  };
-  update();
-  window.addEventListener('resize', debounce(update, 100));
-})();
-
-/* -------------------------
-   Debug helpers
-------------------------- */
+// Debug helpers
 function exposeForDebug() {
   window.__APP__ = { AppState, renderCourses };
 }
 
+// Init
+window.addEventListener('DOMContentLoaded', () => {
+  initTheme();
+  const sidebarCtl = initSidebar();
+  initInstall();
+  initServiceWorker();
+  initSettingsForm();
+  initSearch();     // optional
+  loadCourses();    // populates Learn view
+  initRouter(sidebarCtl);
+  exposeForDebug();
+});
+
 typeof module !== 'undefined' && (module.exports = { debounce, trapFocus });
+
