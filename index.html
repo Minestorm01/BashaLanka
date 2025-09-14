@@ -1,4 +1,4 @@
-Z<!doctype html>
+<!doctype html>
 <html lang="en" dir="ltr" data-theme="dark">
   <head>
     <meta charset="utf-8" />
@@ -10,8 +10,8 @@ Z<!doctype html>
 
     <!-- App identity -->
     <meta name="description" content="BashaLanka — learn Sinhala with quick, game-like lessons." />
-    <link rel="icon" href="icons/icon-192.png" />
-    <link rel="apple-touch-icon" href="icons/icon-192.png" />
+    <link rel="icon" href="assets/PNG/tab_icon.png" />
+    <link rel="apple-touch-icon" href="assets/PNG/tab_icon.png" />
     <link rel="manifest" href="manifest.webmanifest" />
 
     <!-- Fonts (system stack for speed; swap later if desired) -->
@@ -46,7 +46,10 @@ Z<!doctype html>
     <!-- Sidebar -->
     <aside id="sidebar" class="sidebar" aria-label="Main">
       <a class="brand" href="#/home">
-        <img class="brand__logo" src="icons/icon-192.png" alt="" />
+        <picture>
+          <source srcset="assets/SVG/Bashalinka_top_left.svg" type="image/svg+xml" />
+          <img class="brand__logo" src="assets/PNG/Bashalinka_top_left.png" alt="BashaLanka home" loading="lazy" decoding="async" />
+        </picture>
         <span class="brand__name">BashaLanka</span>
       </a>
 
@@ -71,6 +74,7 @@ Z<!doctype html>
         </button>
       </nav>
     </aside>
+
 
     <!-- Main content area -->
     <main id="app" class="main" role="main">
