@@ -10,7 +10,7 @@
 
   function renderLearn(){
     const cards = sections.map(sec => sectionCard(sec)).join('');
-    container.innerHTML = `<div class="learn-wrap"><div class="sections-list">${cards}</div><aside class="right-rail"><p class=\"muted\">Coming soon</p></aside></div>`;
+    container.innerHTML = `<div class="learn-wrap"><div class="sections-list">${cards}</div><aside class="learn-rail hide-mobile"><h3>Coming soon</h3></aside></div>`;
   }
 
   function sectionCard(sec){
@@ -19,7 +19,7 @@
     const trophy = trophySrc(sec.progress);
     const note = locked ? '<small class="locked-note">Finish previous to unlock</small>' : '';
     const btnLabel = locked ? 'Locked' : sec.cta;
-    return `<article class="section-card"><div class="card-info">
+    return `<article class="section-card"><div class="section-card__left">
       <button class="btn-details" data-id="${sec.id}">see details</button>
       <h3>${sec.title}</h3>
       <div class="progress" role="progressbar" aria-valuemin="0" aria-valuemax="${sec.lessonsTotal}" aria-valuenow="${sec.lessonsDone}">
@@ -30,12 +30,14 @@
       ${note}
       <button class="btn-continue" data-id="${sec.id}" ${locked?'disabled':''}>${btnLabel}</button>
     </div>
-    <div class="mascot-wrap">
-      <div class="speech-bubble">
-        <img src="assets/general/speech-bubble.svg" onerror="this.onerror=null;this.src='assest/general/speech-bubble.svg'" alt="" />
-        <div class="speech-text"><div class="roman">${sec.phrase.romanised}</div><div class="si">${sec.phrase.si}</div></div>
+    <div class="section-card__img">
+      <div class="character">
+        <img src="${sec.img}" alt="Section ${sec.id} mascot" class="character__img" />
+        <div class="speech-bubble" role="note" aria-label="Section phrase">
+          <p class="speech-line romanised">${sec.phrase.romanised}</p>
+          <p class="speech-line sinhala">${sec.phrase.si}</p>
+        </div>
       </div>
-      <img class="mascot" src="${sec.img}" onerror="this.onerror=null;this.src='${sec.img.replace('assets','assest')}'" alt="" />
     </div>
     </article>`;
   }
@@ -49,11 +51,13 @@
       <button class="btn-back" data-action="back">← Back</button>
       <h2>${sec.title}</h2>
       <div class="phrase-wrap">
-        <div class="speech-bubble">
-          <img src="assets/general/speech-bubble.svg" onerror="this.onerror=null;this.src='assest/general/speech-bubble.svg'" alt="" />
-          <div class="speech-text"><div class="roman">${sec.phrase.romanised}</div><div class="si">${sec.phrase.si}</div></div>
+        <div class="character">
+          <img src="${sec.img}" alt="Section mascot" class="character__img" />
+          <div class="speech-bubble" role="note" aria-label="Section phrase">
+            <p class="speech-line romanised">${sec.phrase.romanised}</p>
+            <p class="speech-line sinhala">${sec.phrase.si}</p>
+          </div>
         </div>
-        <img class="mascot" src="${sec.img}" onerror="this.onerror=null;this.src='${sec.img.replace('assets','assest')}'" alt="" />
       </div>
       <div class="progress" role="progressbar" aria-valuemin="0" aria-valuemax="${sec.lessonsTotal}" aria-valuenow="${sec.lessonsDone}">
         <div class="progress__fill" style="width:${pct}%"></div>
