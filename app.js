@@ -58,7 +58,7 @@ function loadPrefs(){
 }
 function savePrefs(){
   localStorage.setItem('prefs', JSON.stringify(AppState.prefs));
-  localStorage.setItem('theme', AppState.prefs.appearance);
+ localStorage.setItem('theme', AppState.prefs.appearance);
   applyTheme(AppState.prefs.appearance);
 }
 
@@ -83,18 +83,17 @@ function initTheme(){
   });
 }
 
-// Sidebar + Drawer
+// Sidebar / Drawer
 function initSidebar(){
-  const sidebar = $('.side-nav');
-  const drawer = $('#drawer');
-  const drawerNav = $('.drawer-nav');
+  const sidebar = $('#sidebar');
+  const nav = $('.side-nav', sidebar);
   const scrim = $('#drawerScrim');
-  const menuBtn = $('#menuButton');
-  const closeBtn = $('#drawerClose');
+  const toggleBtn = document.querySelector('[data-action="toggle-sidebar"]');
+  let untrap = null;
 
   // Build nav items (if not present)
-  if (sidebar && !sidebar.dataset.built){
-    sidebar.dataset.built = '1';
+  if (nav && !nav.dataset.built){
+    nav.dataset.built = '1';
     const items = [
       ['learn','🏠','Learn'],
       ['characters','ම','Characters'],
@@ -103,41 +102,46 @@ function initSidebar(){
       ['profile','👤','Profile'],
       ['settings','⚙️','Settings']
     ];
-    sidebar.innerHTML = items.map(([r,ico,txt]) =>
-      `<button class="side-item" data-route="${r}"><span aria-hidden="true">${ico}</span><span>${txt}</span></button>`
+    nav.innerHTML = items.map(([r,ico,txt]) =>
+      `<button class="sidebar__link" data-route="${r}"><span aria-hidden="true">${ico}</span><span>${txt}</span></button>`
     ).join('');
   }
 
-  // Clone to drawer
-  if (drawerNav && sidebar) drawerNav.innerHTML = sidebar.innerHTML;
+  const navButtons = $$('.sidebar__link', nav);
 
-  const allNavButtons = [...$$('.side-item', sidebar), ...$$('.side-item', drawer)];
-
-  allNavButtons.forEach(btn=>{
+  navButtons.forEach(btn=>{
     on(btn,'click',()=>{
       const route = btn.dataset.route;
       location.hash = `/${route}`;
-      if (drawer) closeDrawer();
+      close();
     });
     on(btn,'keydown',e=>{
       if (e.key==='Enter' || e.key===' ') { e.preventDefault(); btn.click(); }
     });
   });
 
-  function openDrawer(){
-    drawer.classList.add('open'); scrim.hidden=false; trapFocus(drawer);
-    menuBtn.setAttribute('aria-expanded','true');
+  function open(){
+    sidebar.classList.add('open');
+    scrim.hidden = false;
+    document.body.classList.add('drawer-open');
+    toggleBtn && toggleBtn.setAttribute('aria-expanded','true');
+    untrap = trapFocus(sidebar);
   }
-  function closeDrawer(){
-    drawer.classList.remove('open'); scrim.hidden=true;
-    menuBtn.setAttribute('aria-expanded','false');
+  function close(){
+    sidebar.classList.remove('open');
+    scrim.hidden = true;
+    document.body.classList.remove('drawer-open');
+    toggleBtn && toggleBtn.setAttribute('aria-expanded','false');
+    untrap && untrap();
   }
-  on(menuBtn,'click',openDrawer);
-  on(closeBtn,'click',closeDrawer);
-  on(scrim,'click',closeDrawer);
+
+  on(toggleBtn,'click',()=>{
+    if (sidebar.classList.contains('open')) close(); else open();
+  });
+  on(scrim,'click',close);
 
   function setActive(route){
-    allNavButtons.forEach(b=>{
+    navButtons.forEach(b=>{
       const active = b.dataset.route===route;
       b.toggleAttribute('aria-current', active);
       b.classList.toggle('is-active', active);
@@ -162,6 +166,7 @@ function show(route){
   const el = views[route] || views.home;
   if (el) el.hidden = false;
 }
+
 
 // Hash router
 function parseHash(){
