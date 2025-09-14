@@ -186,8 +186,7 @@ function courseCard(course) {
   card.tabIndex = 0;
   card.setAttribute('data-id', id);
 
-  const fallbackCover = 'assets/icons/icon-192.png';
-
+const fallbackCover = 'icons/icon-192.png';
   card.innerHTML = `
     <div class="media">
       <img loading="lazy" decoding="async" src="${cover || fallbackCover}" alt="${title || 'Course'} cover"/>
@@ -223,9 +222,7 @@ function courseCard(course) {
 }
 
 function navigateToCourse(id) {
-  const url = new URL(window.location.href);
-  url.searchParams.set('course', id);
-  window.location.href = url.toString();
+  location.hash = `course=${encodeURIComponent(id)}`;
 }
 
 function openCourseDetails(course) {
@@ -244,7 +241,7 @@ function openCourseDetails(course) {
 
   const img = panel.querySelector('img.details-cover');
   if (img) {
-    img.src = course.cover || 'assets/icons/icon-512.png';
+    img.src = course.cover || 'icons/icon-512.png';
     img.alt = (course.title || 'Course') + ' cover';
   }
 
@@ -318,10 +315,7 @@ function initInstall() {
 function initServiceWorker() {
   if (!('serviceWorker' in navigator)) return;
 
-  // Register relative to current path so it works in subfolders too.
-  const swUrl = new URL('sw.js', window.location.href).href;
-
-  navigator.serviceWorker.register(swUrl).then((reg) => {
+   navigator.serviceWorker.register('sw.js').then((reg) => {
     console.log('SW registered:', reg.scope);
 
     // Listen for updates
