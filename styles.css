@@ -1,3 +1,39 @@
+/* === Fonts =================================================== */
+@font-face {
+  font-family: "Feather";
+  src: url("assets/fonts/Feather-Bold.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "DIN Next Rounded";
+  src: url("assets/fonts/DINNextRounded-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "DIN Next Rounded";
+  src: url("assets/fonts/DINNextRounded-Medium.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Font stacks (with reliable fallbacks) */
+:root {
+  --font-heading: "Feather", "DIN Next Rounded", ui-rounded, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
+  --font-body: "DIN Next Rounded", ui-rounded, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
+
+  /* Optional optical adjustments */
+  --heading-letterspacing: 0.2px;
+  --heading-weight: 700;
+  --body-weight: 400;
+  --ui-weight: 500;
+}
 /* ==========================================================================
    App Stylesheet
    - Mobile-first, fully responsive
