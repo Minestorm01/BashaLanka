@@ -1,0 +1,13 @@
+<svg width="128" height="128" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#26D19A"/>
+      <stop offset="100%" stop-color="#149E72"/>
+    </linearGradient>
+  </defs>
+  <rect width="128" height="128" rx="24" fill="url(#g)"/>
+  <circle cx="42" cy="50" r="10" fill="#fff"/>
+  <circle cx="86" cy="50" r="10" fill="#fff"/>
+  <path d="M28 84c16 18 56 18 72 0" stroke="#fff" stroke-width="10" stroke-linecap="round" fill="none"/>
+  <text x="64" y="120" font-family="Arial, Helvetica, sans-serif" font-size="16" text-anchor="middle" fill="#e6fff6">BashaLanka</text>
+</svg>

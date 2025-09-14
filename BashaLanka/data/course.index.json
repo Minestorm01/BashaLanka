@@ -1,0 +1,36 @@
+{
+  "courseId": "sinhala",
+  "title": "BashaLanka",
+  "sections": [
+    {
+      "id": "sec1",
+      "title": "Foundations",
+      "units": [
+        {
+          "id": "s1u1",
+          "title": "Greetings 1",
+          "lessons": 3,
+          "status": "unlocked"
+        },
+        {
+          "id": "s1u2",
+          "title": "Introduce Yourself",
+          "lessons": 3,
+          "status": "locked"
+        },
+        {
+          "id": "s1u3",
+          "title": "Script Basics A",
+          "lessons": 4,
+          "status": "locked"
+        },
+        {
+          "id": "s1u4",
+          "title": "Word Order",
+          "lessons": 3,
+          "status": "locked"
+        }
+      ]
+    }
+  ]
+}
