@@ -62,9 +62,9 @@
   top: -12%;
   left: -12%;
   transform: translate(0, 0);
-  background: #18202b;
+  background: #1a6460;
   color: #e6f1ff;
-  border: 1px solid #2b3a4a;
+  border: 1px solid #3d7b78;
   border-radius: 14px;
   padding: clamp(8px, 1.8vw, 12px) clamp(10px, 2.2vw, 14px);
   box-shadow: 0 6px 14px rgba(0, 0, 0, 0.25);
@@ -81,7 +81,7 @@
   height: 0;
   border-left: 10px solid transparent;
   border-right: 10px solid transparent;
-  border-top: 10px solid #18202b;
+  border-top: 10px solid #1a6460;
   filter: drop-shadow(0 2px 2px rgba(0,0,0,.25));
 }
 
