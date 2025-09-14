@@ -1,15 +1,29 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>BashaLanka — Learn Sinhala</title>
-  <link rel="manifest" href="manifest.webmanifest">
-  <link rel="icon" href="assets/icon-192.png">
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>BashaLanka</title>
   <link rel="stylesheet" href="styles.css">
+  <link rel="manifest" href="manifest.json">
 </head>
 <body>
-  <div id="app" class="app"></div>
+  <header class="topbar">
+    <div class="logo">🦉 BashaLanka</div>
+    <div class="hud">
+      <span id="hearts">❤️❤️❤️❤️❤️</span>
+      <span id="xp">0 XP</span>
+      <span id="streak">🔥 0</span>
+    </div>
+  </header>
+
+  <main>
+    <section id="home" class="view active">
+      <h2 class="section">Section 1 — Foundations</h2>
+      <div id="homeGrid" class="grid"></div>
+    </section>
+  </main>
+
   <script src="app.js"></script>
 </body>
 </html>
