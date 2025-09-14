@@ -28,13 +28,17 @@
   padding: clamp(12px, 2vw, 16px) clamp(14px, 2.4vw, 18px);
 }
 
-.section-card__left { flex: 1 1 auto; }
+.section-card__left {
+  flex: 1 1 auto;
+  position: relative;
+  min-height: 180px;
+}
 
 .section-card h3 { margin: 0 0 8px; font-size: var(--fs-500); }
 
 .section-card__img {
   position: relative;
-  width: clamp(120px, 20vw, 180px);
+  width: clamp(60px, 10vw, 90px);
   flex: 0 0 auto;
 }
 
@@ -104,7 +108,7 @@
 
 @media (max-width: 480px) {
   .section-card { align-items: stretch; }
-  .section-card__img { width: clamp(110px, 32vw, 150px); }
+  .section-card__img { width: clamp(55px, 16vw, 75px); }
   .speech-bubble { top: -8%; left: -8%; max-width: 82%; }
 }
 
@@ -151,6 +155,9 @@
   border-radius: 14px;
   cursor: pointer;
   font-size: clamp(12px, 2.2vw, 14px);
+  position: absolute;
+  top: 33%;
+  left: 0;
 }
 
 .btn-continue[disabled] {
