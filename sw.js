@@ -16,9 +16,12 @@ const PRECACHE_URLS = [
   './app.js',
   './data/course.index.json',
   './manifest.webmanifest',
-  './assets/logo.svg',
-  './icons/icon-192.png',
-  './icons/icon-512.png'
+  './assets/PNG/tab_icon.png',
+  './assets/SVG/app_logo.svg',
+  './assets/SVG/Bashalinka_top_left.svg',
+  './assets/SVG/welcome.svg',
+  './assets/SVG/failed.svg',
+  './assets/SVG/next_lession.svg',
   // README is not needed in the app shell; add it if you really want it:
   // './README.md'
 ];
