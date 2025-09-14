@@ -1,68 +1,24 @@
-Bashalanka
+# BashaLanka — Starter
 
-Bashalanka is a simple, gamified web app that helps you learn to speak Sinhala.
-The name comes from:
+Minimal scaffold for the BashaLanka Sinhala learning app.
 
-Basha = “language/speech”
+## Run locally
+Use any static server (hash routing works):
+- Python: `python3 -m http.server 8080`
+- Node: `npx serve .`
 
-Lanka = Sri Lanka
+Then open: `http://localhost:8080/#/home`
 
-Together: “The Language of Lanka.”
+## Structure
+- `index.html` — shell
+- `styles.css` — base styles + tokens
+- `app.js` — minimal router + Home / lesson stub
+- `data/course.index.json` — Section 1 preview
+- `assets/` — logo + PWA icons
+- `manifest.webmanifest` — PWA manifest
+- `sw.js` — service worker (no caching yet)
 
-✨ Features
-
-🎙️ Speak & Check – say Sinhala phrases into your mic, get instant feedback.
-
-📝 Hints & Translations – see English, Sinhala script, and phonetic hints.
-
-❤️ Lives (Hearts) – lose a heart for wrong answers, refill over time.
-
-⭐ XP & Levels – earn XP for each correct phrase, level up as you learn.
-
-🔥 Streaks – track your daily practice streak.
-
-📚 Lessons – structured by units (Greetings, Introductions, etc.).
-
-🚀 How It Works
-
-Pick a lesson from the home screen.
-
-See the English prompt, Sinhala phrase, and hint.
-
-Hit Speak 🎙️ to practice pronunciation.
-
-The app records, transcribes, and scores your attempt.
-
-Earn XP, complete lessons, and progress through sections.
-
-⚙️ Tech Stack
-
-Frontend: HTML, CSS, JavaScript
-
-Speech: Browser Web Speech API for text-to-speech
-
-Recognition: Custom Sinhala STT proxy (Google Cloud run)
-
-Progress Storage: Browser localStorage
-
-Offline Ready: PWA with service worker
-
-📂 Project Structure
-
-index.html – main UI
-
-app.js – lesson logic, HUD, routing
-
-sw.js – service worker for PWA support
-
-manifest.json – PWA manifest
-
-🌍 Why Bashalanka?
-
-Because learning Sinhala should feel:
-
-Authentic – rooted in the local language (basha).
-
-Welcoming – anyone can say it easily.
-
-Playful – fits in with Duolingo, Ling, and uTalk.
+## Next steps
+- Implement lesson renderer at `#/lesson/:id`
+- Add schema + real lessons in `data/`
+- Cache shell & data in `sw.js` for offline
