@@ -638,7 +638,7 @@ img, svg, video { max-width: 100%; height: auto; display: block; }
 .icon-btn:focus-visible{outline:var(--ring)}
 
 .layout{display:grid;grid-template-columns:minmax(240px,280px) 1fr;min-height:100vh;gap:0}
-.sidebar{width:100%;height:100dvh;position:sticky;top:0;overflow-y:auto;display:flex;flex-direction:column;padding:1rem .75rem;background:linear-gradient(180deg,#0d1324,#0b1220)}
+.sidebar{width:100%;height:100dvh;position:sticky;top:0;overflow-y:auto;display:flex;flex-direction:column;padding:1rem .75rem;background:linear-gradient(180deg,#8D153A,#690e1e)}
 .brand{display:flex;align-items:center;gap:.6rem;text-decoration:none;color:var(--text);margin-bottom:1rem}
 .brand__logo{width:40px;height:40px;border-radius:12px}
 .brand__name{font-weight:800;letter-spacing:.2px}
