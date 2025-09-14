@@ -60,7 +60,7 @@
 .speech-bubble {
   position: absolute;
   top: -12%;
-  left: -12%;
+  left: 0;
   transform: translate(0, 0);
   background: #1a6460;
   color: #e6f1ff;
@@ -109,7 +109,7 @@
 @media (max-width: 480px) {
   .section-card { align-items: stretch; }
   .section-card__img { width: clamp(55px, 16vw, 75px); }
-  .speech-bubble { top: -8%; left: -8%; max-width: 82%; }
+  .speech-bubble { top: -8%; left: 0; max-width: 82%; }
 }
 
 /* ============ Progress bar / buttons scale ============ */
