@@ -202,6 +202,7 @@ function initSettingsForm(){
       ...AppState.prefs,
       sfx: form.sfx.checked,
       anim: form.anim.checked,
+
       motivate: form.motivate.checked,
       listen: form.listen.checked,
       romanized: form.romanized.checked,
@@ -227,7 +228,13 @@ async function loadCourses(){
 }
 
 // Keep existing renderCourses() + courseCard()
-const COURSE_FALLBACK = 'icons/icon-192.png';
+
+function appLogoPicture(alt){
+  return `<picture>
+    <source srcset="assets/SVG/app_logo.svg" type="image/svg+xml" />
+    <img src="assets/PNG/app_logo.png" alt="${alt}" loading="lazy" decoding="async" />
+  </picture>`;
+}
 
 function renderCourses(items, grid){
   grid.innerHTML = '';
@@ -246,9 +253,12 @@ function courseCard(course){
   card.className = 'course-card card';
   card.tabIndex = 0;
   card.setAttribute('data-id', id);
+  const imgMarkup = cover
+    ? `<img loading="lazy" decoding="async" src="${cover}" alt="${title || 'Course'} cover" />`
+    : appLogoPicture(`${title || 'Course'} cover`);
   card.innerHTML = `
     <div class="media">
-      <img loading="lazy" decoding="async" src="${cover || COURSE_FALLBACK}" alt="${title || 'Course'} cover"/>
+      ${imgMarkup}
     </div>
     <div class="content">
       <header class="row between">
@@ -298,10 +308,11 @@ function openCourseDetails(course) {
   const levelEl = panel.querySelector('.details-level');
   if (levelEl) levelEl.textContent = String(course.level ?? '—');
 
-  const img = panel.querySelector('img.details-cover');
-  if (img) {
-    img.src = course.cover || 'icons/icon-512.png';
-    img.alt = (course.title || 'Course') + ' cover';
+  const imgWrap = panel.querySelector('.details-cover');
+  if (imgWrap) {
+    imgWrap.innerHTML = course.cover
+      ? `<img src="${course.cover}" alt="${(course.title || 'Course')} cover" loading="lazy" decoding="async" />`
+      : appLogoPicture(`${course.title || 'Course'} cover`);
   }
 
   panel.classList.add('open');
