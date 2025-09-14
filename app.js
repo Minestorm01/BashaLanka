@@ -97,7 +97,7 @@ function initSidebar(){
     sidebar.dataset.built = '1';
     const items = [
       ['learn','🏠','Learn'],
-      ['characters','あ','Characters'],
+      ['characters','ම','Characters'],
       ['practice','🧩','Practice'],
       ['quests','🗺️','Quests'],
       ['profile','👤','Profile'],
