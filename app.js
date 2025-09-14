@@ -1,13 +1,12 @@
 /*
   app.js — responsive UI + data loading + PWA hooks
-  This file is framework‑free, fully accessible, and mobile‑first.
-  It auto‑initializes, but every feature checks for element existence so
-  it’s safe across pages.
+  Framework-free, accessible, and mobile-first.
+  Every feature checks for element existence so it’s safe across pages.
 */
 
-// -------------------------
-// Helpers
-// -------------------------
+/* -------------------------
+   Helpers
+------------------------- */
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
 const on = (el, ev, fn, opts) => el && el.addEventListener(ev, fn, opts);
@@ -19,11 +18,12 @@ const debounce = (fn, ms = 150) => {
   };
 };
 
-// Small utility: trap focus in a container (for modals/drawers)
+// Trap focus inside a container (for modals/drawers)
 function trapFocus(container) {
   if (!container) return () => {};
   const sel = 'a, button, input, textarea, select, [tabindex]:not([tabindex="-1"])';
   const focusables = () => $$(sel, container).filter(el => !el.disabled && el.offsetParent !== null);
+
   function handle(e) {
     if (e.key !== 'Tab') return;
     const f = focusables();
@@ -42,20 +42,20 @@ function trapFocus(container) {
   return () => document.removeEventListener('keydown', handle);
 }
 
-// -------------------------
-// State
-// -------------------------
+/* -------------------------
+   State
+------------------------- */
 const AppState = {
   courses: [],
   filtered: [],
-  layout: localStorage.getItem('layoutMode') || 'auto', // 'auto' | 'mobile' | 'desktop'
-  theme: localStorage.getItem('theme') || 'system', // 'system' | 'dark' | 'light'
+  layout: localStorage.getItem('layoutMode') || 'auto',   // 'auto' | 'mobile' | 'desktop'
+  theme: localStorage.getItem('theme') || 'system',       // 'system' | 'dark' | 'light'
   installPromptEvt: null,
 };
 
-// -------------------------
-// Init
-// -------------------------
+/* -------------------------
+   Init
+------------------------- */
 window.addEventListener('DOMContentLoaded', () => {
   initTheme();
   initLayoutControls();
@@ -67,9 +67,9 @@ window.addEventListener('DOMContentLoaded', () => {
   exposeForDebug();
 });
 
-// -------------------------
-// Theme handling (optional)
-// -------------------------
+/* -------------------------
+   Theme handling (optional)
+------------------------- */
 function initTheme() {
   const btn = $('#themeToggle');
   const root = document.documentElement;
@@ -82,18 +82,19 @@ function initTheme() {
     root.setAttribute('data-theme', theme);
   };
 
-  // apply at start
   apply(AppState.theme);
 
   on(btn, 'click', () => {
-    const next = AppState.theme === 'light' ? 'dark' : AppState.theme === 'dark' ? 'system' : 'light';
+    const next = AppState.theme === 'light' ? 'dark'
+               : AppState.theme === 'dark'  ? 'system'
+               : 'light';
     apply(next);
   });
 }
 
-// -------------------------
-// Layout handling (desktop/mobile/auto)
-// -------------------------
+/* -------------------------
+   Layout handling
+------------------------- */
 function initLayoutControls() {
   const select = $('#layoutMode'); // <select id="layoutMode"> auto | desktop | mobile
   const root = document.documentElement;
@@ -102,8 +103,6 @@ function initLayoutControls() {
     AppState.layout = mode;
     localStorage.setItem('layoutMode', mode);
     root.setAttribute('data-layout', mode);
-    // In CSS you can target [data-layout="mobile"] or [data-layout="desktop"].
-    // When mode === 'auto', layout is purely responsive via media queries.
   };
 
   if (select) {
@@ -114,9 +113,9 @@ function initLayoutControls() {
   apply(AppState.layout);
 }
 
-// -------------------------
-// Drawer / Nav (mobile first)
-// -------------------------
+/* -------------------------
+   Drawer / Nav (mobile first)
+------------------------- */
 function initNavDrawer() {
   const openBtn = $('#menuButton');
   const closeBtn = $('#drawerClose');
@@ -127,20 +126,20 @@ function initNavDrawer() {
   const open = () => {
     if (!drawer) return;
     drawer.classList.add('open');
-    scrim && scrim.classList.add('show');
+    if (scrim) scrim.classList.add('show');
     drawer.setAttribute('aria-hidden', 'false');
     untrap = trapFocus(drawer);
     const firstButton = $('button, a, [tabindex]:not([tabindex="-1"])', drawer);
-    firstButton && firstButton.focus();
+    if (firstButton) firstButton.focus();
   };
 
   const close = () => {
     if (!drawer) return;
     drawer.classList.remove('open');
-    scrim && scrim.classList.remove('show');
+    if (scrim) scrim.classList.remove('show');
     drawer.setAttribute('aria-hidden', 'true');
     untrap();
-    openBtn && openBtn.focus();
+    if (openBtn) openBtn.focus();
   };
 
   on(openBtn, 'click', open);
@@ -149,24 +148,23 @@ function initNavDrawer() {
   on(document, 'keydown', (e) => e.key === 'Escape' && drawer?.classList.contains('open') && close());
 }
 
-// -------------------------
-// Course loading + rendering
-// -------------------------
+/* -------------------------
+   Course loading + rendering
+------------------------- */
 async function loadCourses() {
   const grid = $('#courseGrid');
-  if (!grid) return; // page has no grid
+  if (!grid) return;
 
   try {
-    const res = await fetch('course.index.json', { cache: 'no-store' });
+    const res = await fetch('course.index.json', { cache: 'no-cache' });
     if (!res.ok) throw new Error('Failed to fetch course.index.json');
     const data = await res.json();
-    // Expect an array of { id, title, lang, level, progress, cover }
     AppState.courses = Array.isArray(data) ? data : (data.courses || []);
     AppState.filtered = [...AppState.courses];
     renderCourses(AppState.filtered, grid);
   } catch (err) {
     console.error(err);
-    grid.innerHTML = `<div class="card error" role="alert">Couldn\'t load courses. You\'re likely offline or the JSON is missing.</div>`;
+    grid.innerHTML = `<div class="card error" role="alert">Couldn't load courses. You're likely offline or the JSON is missing.</div>`;
   }
 }
 
@@ -176,7 +174,6 @@ function renderCourses(items, grid) {
     grid.innerHTML = '<p class="muted">No courses match your filters.</p>';
     return;
   }
-
   const frag = document.createDocumentFragment();
   items.forEach((c) => frag.appendChild(courseCard(c)));
   grid.appendChild(frag);
@@ -189,9 +186,11 @@ function courseCard(course) {
   card.tabIndex = 0;
   card.setAttribute('data-id', id);
 
+  const fallbackCover = 'assets/icons/icon-192.png';
+
   card.innerHTML = `
     <div class="media">
-      <img loading="lazy" src="${cover || 'icon-192.png'}" alt="${title} cover"/>
+      <img loading="lazy" decoding="async" src="${cover || fallbackCover}" alt="${title || 'Course'} cover"/>
     </div>
     <div class="content">
       <header class="row between">
@@ -199,7 +198,7 @@ function courseCard(course) {
         <span class="badge">${lang || ''}</span>
       </header>
       <p class="muted">Level ${level ?? '—'}</p>
-      <div class="progress">
+      <div class="progress" aria-label="Progress">
         <div class="bar" style="width:${Math.max(0, Math.min(100, Number(progress) || 0))}%"></div>
       </div>
       <footer class="row gap">
@@ -209,7 +208,6 @@ function courseCard(course) {
     </div>
   `;
 
-  // Actions
   on(card, 'click', (e) => {
     const btn = e.target.closest('button[data-action]');
     if (!btn) return;
@@ -225,8 +223,6 @@ function courseCard(course) {
 }
 
 function navigateToCourse(id) {
-  // Swap with a real router or navigation later
-  console.log('Navigate to course', id);
   const url = new URL(window.location.href);
   url.searchParams.set('course', id);
   window.location.href = url.toString();
@@ -237,30 +233,39 @@ function openCourseDetails(course) {
   const scrim = $('#detailsScrim');
   if (!panel) return;
 
-  panel.querySelector('.details-title')!.textContent = course.title || 'Course';
-  panel.querySelector('.details-lang')!.textContent = course.lang || '';
-  panel.querySelector('.details-level')!.textContent = String(course.level ?? '—');
+  const titleEl = panel.querySelector('.details-title');
+  if (titleEl) titleEl.textContent = course.title || 'Course';
+
+  const langEl = panel.querySelector('.details-lang');
+  if (langEl) langEl.textContent = course.lang || '';
+
+  const levelEl = panel.querySelector('.details-level');
+  if (levelEl) levelEl.textContent = String(course.level ?? '—');
+
   const img = panel.querySelector('img.details-cover');
-  if (img) img.src = course.cover || 'icon-512.png';
+  if (img) {
+    img.src = course.cover || 'assets/icons/icon-512.png';
+    img.alt = (course.title || 'Course') + ' cover';
+  }
 
   panel.classList.add('open');
-  scrim && scrim.classList.add('show');
+  if (scrim) scrim.classList.add('show');
   const untrap = trapFocus(panel);
 
   const close = () => {
     panel.classList.remove('open');
-    scrim && scrim.classList.remove('show');
+    if (scrim) scrim.classList.remove('show');
     untrap();
   };
 
   on($('#detailsClose'), 'click', close, { once: true });
   on(scrim, 'click', close, { once: true });
-  on(document, 'keydown', (e) => e.key === 'Escape' && close(), { once: true });
+  on(document, 'keydown', (e) => { if (e.key === 'Escape') close(); }, { once: true });
 }
 
-// -------------------------
-// Search + filters
-// -------------------------
+/* -------------------------
+   Search + filters
+------------------------- */
 function initSearch() {
   const input = $('#searchInput');
   const grid = $('#courseGrid');
@@ -268,29 +273,27 @@ function initSearch() {
 
   const apply = () => {
     const q = input.value.trim().toLowerCase();
-    AppState.filtered = AppState.courses.filter((c) => {
-      return (
-        (c.title || '').toLowerCase().includes(q) ||
-        (c.lang || '').toLowerCase().includes(q)
-      );
-    });
+    AppState.filtered = AppState.courses.filter((c) =>
+      (c.title || '').toLowerCase().includes(q) ||
+      (c.lang || '').toLowerCase().includes(q)
+    );
     renderCourses(AppState.filtered, grid);
   };
 
   on(input, 'input', debounce(apply, 120));
 }
 
-// -------------------------
-// Install (PWA)
-// -------------------------
+/* -------------------------
+   Install (PWA)
+------------------------- */
 function initInstall() {
   const btn = $('#installBtn');
-  if (btn) btn.style.display = 'none';
+  if (btn) btn.hidden = true;
 
   window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
     AppState.installPromptEvt = e;
-    if (btn) btn.style.display = '';
+    if (btn) btn.hidden = false;
   });
 
   on(btn, 'click', async () => {
@@ -299,49 +302,74 @@ function initInstall() {
     evt.prompt();
     const { outcome } = await evt.userChoice;
     console.log('PWA install outcome:', outcome);
-    if (btn) btn.style.display = 'none';
+    if (btn) btn.hidden = true;
+  });
+
+  window.addEventListener('appinstalled', () => {
+    console.log('PWA installed');
+    if (btn) btn.hidden = true;
+    AppState.installPromptEvt = null;
   });
 }
 
-// -------------------------
-// Service worker
-// -------------------------
+/* -------------------------
+   Service worker
+------------------------- */
 function initServiceWorker() {
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker
-      .register('/sw.js')
-      .then((reg) => {
-        console.log('SW registered', reg.scope);
-      })
-      .catch((err) => console.warn('SW registration failed', err));
-  }
+  if (!('serviceWorker' in navigator)) return;
+
+  // Register relative to current path so it works in subfolders too.
+  const swUrl = new URL('sw.js', window.location.href).href;
+
+  navigator.serviceWorker.register(swUrl).then((reg) => {
+    console.log('SW registered:', reg.scope);
+
+    // Listen for updates
+    if (reg.update) {
+      // Try to pick up new SW on page load
+      reg.update();
+    }
+    reg.addEventListener('updatefound', () => {
+      const newWorker = reg.installing;
+      if (!newWorker) return;
+      newWorker.addEventListener('statechange', () => {
+        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+          console.log('New content available; it will be used on next reload.');
+        }
+      });
+    });
+
+    // When a new SW takes control
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      console.log('SW controller changed');
+    });
+  }).catch((err) => console.warn('SW registration failed', err));
 }
 
-// -------------------------
-// Resize observer (optional)
-// -------------------------
+/* -------------------------
+   Resize observer (optional)
+------------------------- */
 (function initResizeDebug() {
   const badge = $('#breakpointBadge');
   if (!badge) return;
   const update = () => {
     const w = window.innerWidth;
     let label = 'auto';
-    if (document.documentElement.getAttribute('data-layout') === 'mobile') label = 'mobile (forced)';
-    else if (document.documentElement.getAttribute('data-layout') === 'desktop') label = 'desktop (forced)';
+    const dl = document.documentElement.getAttribute('data-layout');
+    if (dl === 'mobile') label = 'mobile (forced)';
+    else if (dl === 'desktop') label = 'desktop (forced)';
     else label = w < 640 ? 'sm' : w < 768 ? 'md' : w < 1024 ? 'lg' : 'xl+';
-    badge.textContent = label + ' • ' + w + 'px';
+    badge.textContent = `${label} • ${w}px`;
   };
   update();
   window.addEventListener('resize', debounce(update, 100));
 })();
 
-// -------------------------
-// Debug helpers
-// -------------------------
+/* -------------------------
+   Debug helpers
+------------------------- */
 function exposeForDebug() {
-  // So you can play in devtools easily
   window.__APP__ = { AppState, renderCourses };
 }
 
 typeof module !== 'undefined' && (module.exports = { debounce, trapFocus });
-
