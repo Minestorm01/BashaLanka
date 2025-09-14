@@ -568,8 +568,10 @@ img, svg, video { max-width: 100%; height: auto; display: block; }
   .sidebar {
     position: sticky;
     top: calc(var(--topbar-h) + 12px);
-    max-height: calc(100dvh - var(--topbar-h) - 24px);
+    min-height: calc(100dvh - var(--topbar-h) - 24px);
+    height: 100%;
     overflow: auto;
+    align-self: stretch;
   }
 }
 
