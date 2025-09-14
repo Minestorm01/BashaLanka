@@ -377,7 +377,7 @@ function initInstall() {
 function initServiceWorker() {
   if (!('serviceWorker' in navigator)) return;
 
-  navigator.serviceWorker.register('sw.js').then((reg) => {
+  navigator.serviceWorker.register('./sw.js').then((reg) => {
     if (reg.update) reg.update();
     reg.addEventListener('updatefound', () => {
       const newWorker = reg.installing;
