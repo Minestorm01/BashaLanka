@@ -156,7 +156,7 @@ async function loadCourses() {
   if (!grid) return;
 
   try {
-    const res = await fetch('course.index.json', { cache: 'no-cache' });
+    const res = await fetch('data/course.index.json', { cache: 'no-cache' });
     if (!res.ok) throw new Error('Failed to fetch course.index.json');
     const data = await res.json();
     AppState.courses = Array.isArray(data) ? data : (data.courses || []);
