@@ -625,7 +625,7 @@ img, svg, video { max-width: 100%; height: auto; display: block; }
 }
 
 :root{
-  --bg: #0b1220; --bg-2:#0f172a;
+  --bg: #00534E; --bg-2:#0f172a;
   --surface:#111827; --surface-2:#0f172a;
   --text:#e5e7eb; --muted:#9ca3af; --brand:#60a5fa; --brand-2:#93c5fd;
   --accent:#22d3ee; --ring: 2px solid #60a5fa55;
