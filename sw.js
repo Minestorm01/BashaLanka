@@ -14,11 +14,11 @@ const PRECACHE_URLS = [
   './index (1).html',            // included since your file is named this right now
   './styles.css',
   './app.js',
-  './course.index.json',
+  './data/course.index.json',
   './manifest.webmanifest',
-  './logo.svg',
-  './icon-192.png',
-  './icon-512.png'
+  './assets/logo.svg',
+  './icons/icon-192.png',
+  './icons/icon-512.png'
   // README is not needed in the app shell; add it if you really want it:
   // './README.md'
 ];
