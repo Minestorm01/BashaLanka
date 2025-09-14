@@ -30,53 +30,45 @@
   </head>
 
   <body>
-  <!-- Sidebar (desktop) / Drawer (mobile) -->
-  <aside id="sidebar" class="sidebar" aria-label="Main">
-    <a class="brand" href="#/home">
-      <img class="brand__logo" src="icons/icon-192.png" alt="" />
-      <span class="brand__name">BashaLanka</span>
-    </a>
-
-    <nav class="side-nav" role="navigation">
-      <button class="side-item" data-route="learn">
-        <span aria-hidden="true">🏠</span><span>Learn</span>
-      </button>
-      <button class="side-item" data-route="characters">
-        <span aria-hidden="true">ම</span><span>Characters</span>
-      </button>
-      <button class="side-item" data-route="practice">
-        <span aria-hidden="true">🧩</span><span>Practice</span>
-      </button>
-      <button class="side-item" data-route="quests">
-        <span aria-hidden="true">🗺️</span><span>Quests</span>
-      </button>
-      <button class="side-item" data-route="profile">
-        <span aria-hidden="true">👤</span><span>Profile</span>
-      </button>
-      <button class="side-item" data-route="settings">
-        <span aria-hidden="true">⚙️</span><span>Settings</span>
-      </button>
-    </nav>
-  </aside>
-
-  <!-- Topbar (mobile) -->
+  <!-- Topbar -->
   <header class="topbar" role="banner">
-    <button id="menuButton" class="icon-btn" aria-label="Menu" aria-expanded="false" aria-controls="drawer">☰</button>
+    <button class="icon-btn" aria-label="Menu" aria-expanded="false" data-action="toggle-sidebar" aria-controls="sidebar">☰</button>
     <div class="topbar__spacer"></div>
     <button id="themeToggle" class="icon-btn" title="Toggle theme">🌓</button>
   </header>
 
-  <!-- Mobile drawer -->
-  <div id="drawer" class="drawer" aria-hidden="true">
-    <button id="drawerClose" class="icon-btn close" aria-label="Close">✕</button>
-    <nav class="side-nav drawer-nav">
-      <!-- same buttons as sidebar will be cloned by JS -->
-    </nav>
-  </div>
-  <div id="drawerScrim" class="scrim" hidden></div>
+  <div class="layout">
+    <!-- Sidebar -->
+    <aside id="sidebar" class="sidebar" aria-label="Main">
+      <a class="brand" href="#/home">
+        <img class="brand__logo" src="icons/icon-192.png" alt="" />
+        <span class="brand__name">BashaLanka</span>
+      </a>
 
-  <!-- Main content area -->
-  <main id="app" class="main" role="main">
+      <nav class="side-nav" role="navigation">
+        <button class="sidebar__link" data-route="learn">
+          <span aria-hidden="true">🏠</span><span>Learn</span>
+        </button>
+        <button class="sidebar__link" data-route="characters">
+          <span aria-hidden="true">ම</span><span>Characters</span>
+        </button>
+        <button class="sidebar__link" data-route="practice">
+          <span aria-hidden="true">🧩</span><span>Practice</span>
+        </button>
+        <button class="sidebar__link" data-route="quests">
+          <span aria-hidden="true">🗺️</span><span>Quests</span>
+        </button>
+        <button class="sidebar__link" data-route="profile">
+          <span aria-hidden="true">👤</span><span>Profile</span>
+        </button>
+        <button class="sidebar__link" data-route="settings">
+          <span aria-hidden="true">⚙️</span><span>Settings</span>
+        </button>
+      </nav>
+    </aside>
+
+    <!-- Main content area -->
+    <main id="app" class="main" role="main">
     <!-- HOME / LEARN -->
     <section id="view-learn" class="view" hidden aria-labelledby="learn-title">
       <h1 id="learn-title" class="section-title">Section 1 — Foundations</h1>
@@ -128,7 +120,7 @@
       <h1 id="settings-title" class="section-title">Settings</h1>
 
       <form id="settingsForm" class="prefs">
-        <fieldset>
+  <fieldset>
           <legend>Preferences</legend>
           <label class="toggle"><input type="checkbox" name="sfx"> <span>Sound effects</span></label>
           <label class="toggle"><input type="checkbox" name="anim"> <span>Animations</span></label>
@@ -153,7 +145,9 @@
         <button class="btn btn--primary" type="submit">Save</button>
       </form>
     </section>
-  </main>
+    </main>
+  </div>
+  <div id="drawerScrim" class="scrim" hidden></div>
 
   <script src="app.js" defer></script>
   </body>
