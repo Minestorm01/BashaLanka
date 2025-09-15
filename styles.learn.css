@@ -40,6 +40,7 @@
   position: relative;
   width: clamp(60px, 10vw, 90px);
   flex: 0 0 auto;
+  overflow: visible;
 }
 
 .character {
@@ -54,15 +55,15 @@
   width: 100%;
   height: auto;
   max-width: 100%;
- margin-top: 70px;
+  margin-top: clamp(40px, 8vw, 70px);
 }
 
 /* ============ Speech bubble ============ */
 .speech-bubble {
   position: absolute;
   top: -5%;
-  left: -150%;
-  transform: translate(0, 0);
+  left: 0;
+  transform: translate(-150%, -10%);
   background: #1a6460;
   color: #e6f1ff;
   border: 1px solid #3d7b78;
@@ -77,7 +78,7 @@
   content: "";
   position: absolute;
   bottom: -10px;
-  left: 80px;
+  left: 25%;
   width: 0;
   height: 0;
   border-left: 10px solid transparent;
@@ -110,7 +111,13 @@
 @media (max-width: 480px) {
   .section-card { align-items: stretch; }
   .section-card__img { width: clamp(55px, 16vw, 75px); }
-  .speech-bubble { top: -8%; left: 0; max-width: 82%; }
+  .speech-bubble {
+    top: -8%;
+    left: 0;
+    transform: translate(-100%, -10%);
+    max-width: 82%;
+  }
+  .speech-bubble::after { left: 30%; }
 }
 
 /* ============ Progress bar / buttons scale ============ */
