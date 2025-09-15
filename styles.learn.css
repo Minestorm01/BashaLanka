@@ -150,8 +150,8 @@
   top: 50%;
   right: 4px;
   transform: translateY(-50%);
-  height: clamp(14px, 2.2vw, 16px);
-  width: clamp(14px, 2.2vw, 16px);
+  height: clamp(16px, 2.5vw, 20px);
+  width: clamp(16px, 2.5vw, 20px);
 }
 
 .btn-continue {
