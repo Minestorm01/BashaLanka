@@ -60,7 +60,7 @@
 .speech-bubble {
   position: absolute;
   top: -12%;
-  left: 30%;
+  left: -100%;
   transform: translate(0, 0);
   background: #1a6460;
   color: #e6f1ff;
