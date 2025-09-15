@@ -49,7 +49,7 @@
   aspect-ratio: 1 / 1;
   display: grid;
   place-items: end centre;
-  transform: translateY(30px); /* move mascot down */
+  transform: translateY(70px); /* move mascot down */
 }
 
 .character__img {
