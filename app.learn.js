@@ -4,7 +4,7 @@
   let sections = [];
 
   function trophySrc(progress){
-    const file = progress === 1 ? 'trophy-gold.svg' : 'trophy-silver.svg';
+    const file = progress === 1 ? 'trophy-gold_1.svg' : 'trophy-silver_1.svg';
     return `assets/general/${file}`;
   }
 
