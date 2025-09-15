@@ -13,7 +13,7 @@
 .learn-rail { background: var(--color-elev); border-radius: var(--radius-md); padding: 16px; }
 
 @media (max-width: 700px) {
-  .learn-wrap { grid-template-columns: 1fr; }
+ .learn-wrap { grid-template-columns: 1fr; }
   .hide-mobile { display: none !important; }
 }
 
@@ -38,7 +38,7 @@
 
 .section-card__img {
   position: relative;
-  width: clamp(60px, 10vw, 90px);
+  width: clamp(80px, 11vw, 100px);
   flex: 0 0 auto;
   overflow: visible;
 }
@@ -46,39 +46,47 @@
 .character {
   position: relative;
   width: 100%;
+  aspect-ratio: 1 / 1;
   display: grid;
-  place-items: center;
+  place-items: end center;
 }
 
 .character__img {
-  display: block;
+  position: absolute;
+  bottom: 0;
+  left: 0;
   width: 100%;
   height: auto;
-  max-width: 100%;
-  margin-top: clamp(40px, 8vw, 70px);
+  margin-top: 0;
 }
 
 /* ============ Speech bubble ============ */
 .speech-bubble {
   position: absolute;
-  top: -5%;
-  left: 0;
-  transform: translate(-150%, -10%);
+  right: 0;
+  bottom: 100%;
+  transform: translateY(-10px);
+
+  display: inline-block;
+  width: max-content;
+  max-width: min(46ch, 60vw);
+  white-space: normal;
+  overflow-wrap: break-word;
+
   background: #1a6460;
   color: #e6f1ff;
   border: 1px solid #3d7b78;
   border-radius: 14px;
   padding: clamp(8px, 1.8vw, 12px) clamp(10px, 2.2vw, 14px);
-  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.25);
-  max-width: min(80vw, 220px);
+  box-shadow: 0 6px 14px rgba(0,0,0,.25);
   z-index: 2;
 }
 
 .speech-bubble::after {
   content: "";
   position: absolute;
-  bottom: -10px;
-  left: 25%;
+  top: 100%;
+  right: 22px;
   width: 0;
   height: 0;
   border-left: 10px solid transparent;
@@ -90,9 +98,8 @@
 .speech-line {
   margin: 0;
   line-height: 1.15;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  white-space: normal;
+  overflow-wrap: break-word;
 }
 
 .speech-line.romanised {
@@ -110,14 +117,8 @@
 
 @media (max-width: 480px) {
   .section-card { align-items: stretch; }
-  .section-card__img { width: clamp(55px, 16vw, 75px); }
-  .speech-bubble {
-    top: -8%;
-    left: 0;
-    transform: translate(-100%, -10%);
-    max-width: 82%;
-  }
-  .speech-bubble::after { left: 30%; }
+  .section-card__img { width: clamp(70px, 18vw, 90px); }
+  .speech-bubble { max-width: min(40ch, 82vw); }
 }
 
 /* ============ Progress bar / buttons scale ============ */
