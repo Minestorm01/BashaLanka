@@ -8,10 +8,11 @@
     return `assets/general/${file}`;
   }
 
-  function speechBubble(phrase){
-    return `<div class="speech-bubble" role="note" aria-label="Section phrase">
-        <p class="speech-line romanised">${phrase.romanised}</p>
-        <p class="speech-line sinhala">${phrase.si}</p>
+  function speechBubble({ romanised, si }){
+    return `
+      <div class="speech-bubble" role="note" aria-label="Section phrase">
+        <p class="speech-line romanised">${romanised}</p>
+        <p class="speech-line sinhala">${si}</p>
       </div>`;
   }
 
