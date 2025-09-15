@@ -60,7 +60,7 @@
 /* ============ Speech bubble ============ */
 .speech-bubble {
   position: absolute;
-  top: 20%;
+  top: 5%;
   left: -150%;
   transform: translate(0, 0);
   background: #1a6460;
