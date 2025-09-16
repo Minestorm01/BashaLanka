@@ -1,4 +1,7 @@
 /* ============ Layout fixes ============ */
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body { overflow-x: hidden; }
 .learn-wrap {
   display: grid;
   grid-template-columns: 1fr minmax(280px, 360px);
@@ -12,11 +15,6 @@
 
 .learn-rail { background: var(--color-elev); border-radius: var(--radius-md); padding: 16px; }
 
-@media (max-width: 700px) {
-  .learn-wrap { grid-template-columns: 1fr; }
-  .hide-mobile { display: none !important; }
-}
-
 /* ============ Section card + character ============ */
 .section-card {
   display: flex;
@@ -26,7 +24,8 @@
   border: 1px solid #1a2635;
   border-radius: 18px;
   padding: clamp(12px, 2vw, 16px) clamp(14px, 2.4vw, 18px);
-  width: min(100%, var(--section-card-max, 100%));
+  width: 100%;
+  max-width: var(--section-card-max, 100%);
 }
 
 .section-card__left {
@@ -43,6 +42,7 @@
   width: clamp(80px, 11vw, 100px);
   flex: 0 0 auto;
   overflow: visible;
+  padding-top: 70px;
 }
 
 .character {
@@ -50,8 +50,7 @@
   width: 100%;
   aspect-ratio: 1 / 1;
   display: grid;
-  place-items: end centre;
-  transform: translateY(70px); /* move mascot down */
+  place-items: end center;
 }
 
 .character__img {
@@ -119,8 +118,26 @@
 }
 
 @media (max-width: 700px) {
+  :root { --mob-gutter: 6px; }
+
+  .learn-wrap {
+    grid-template-columns: 1fr;
+    margin: 0;
+  }
+  .hide-mobile { display: none !important; }
+
+  #view-learn,
+  .learn-wrap,
+  .sections-list {
+    padding-inline: var(--mob-gutter);
+    max-width: 100%;
+  }
+
+  .sections-list { gap: clamp(12px, 3vw, 18px); }
+
   .section-card {
-    --section-card-max: clamp(300px, 98vw, 720px);
+    --section-card-max: none;
+    max-width: calc(100% - (var(--mob-gutter) * 2));
     margin-inline: auto;
   }
   .section-card__left {
@@ -128,6 +145,7 @@
   }
   .section-card__img {
     width: clamp(80px, 22vw, 120px);
+    padding-top: clamp(48px, 16vw, 72px);
   }
   .speech-bubble {
     max-width: min(46ch, 94vw);
@@ -210,61 +228,3 @@
 .section-page h2 { margin-top: 0; margin-bottom: 20px; }
 .section-page .phrase-wrap { display: flex; align-items: flex-end; gap: 20px; margin-bottom: 20px; }
 .btn-back { background: none; border: none; color: var(--color-accent); margin-bottom: 10px; cursor: pointer; }
-
-/* === Mobile widen: shrink outer gutters & let cards grow === */
-@media (max-width: 700px) {
-  :root { --mob-gutter: 6px; }
-
-  /* Collapse side padding on wrappers */
-  #view-learn,
-  .learn-wrap,
-  .sections-list {
-    padding-left: var(--mob-gutter) !important;
-    padding-right: var(--mob-gutter) !important;
-  }
-
-  /* Ensure single-column grid and no extra margins */
-  .learn-wrap {
-    grid-template-columns: 1fr;
-    margin: 0;
-  }
-
-  /* Optional: slightly adjust vertical spacing if needed */
-  .sections-list { gap: clamp(12px, 3vw, 18px); }
-
-  /* Let each card nearly fill the viewport, leaving equal gutters */
-  .section-card {
-    width: auto !important;
-    max-width: calc(100vw - (var(--mob-gutter) * 2)) !important;
-    margin-inline: auto !important;
-  }
-}
-
-@media (max-width: 700px) {
-  html,
-  body {
-    margin: 0;
-    padding: 0;
-    overflow-x: hidden;
-  }
-
-  .sections-list,
-  #view-learn,
-  .learn-wrap {
-    max-width: 100vw !important;
-  }
-
-  .page,
-  main,
-  .container {
-    padding-left: var(--mob-gutter, 6px) !important;
-    padding-right: var(--mob-gutter, 6px) !important;
-    max-width: none !important;
-  }
-}
-
-@media (max-width: 700px) {
-  #view-learn .learn-wrap .sections-list .section-card {
-    max-width: calc(100vw - (var(--mob-gutter) * 2)) !important;
-  }
-}
