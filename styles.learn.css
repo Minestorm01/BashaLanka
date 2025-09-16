@@ -1,4 +1,4 @@
-/* ============ Layout fixes ballsS ============ */
+/* ============ Layout fixes ============ */
 .learn-wrap {
   display: grid;
   grid-template-columns: 1fr minmax(280px, 360px);
@@ -120,7 +120,7 @@
 
 @media (max-width: 700px) {
   .section-card {
-    --section-card-max: clamp(280px, 96vw, 640px);
+    --section-card-max: clamp(300px, 98vw, 720px);
     margin-inline: auto;
   }
   .section-card__left {
@@ -130,14 +130,14 @@
     width: clamp(80px, 22vw, 120px);
   }
   .speech-bubble {
-    max-width: min(46ch, 90vw);
+    max-width: min(46ch, 94vw);
   }
 }
 
 @media (max-width: 480px) {
   .section-card { align-items: stretch; }
   .section-card__img { width: clamp(76px, 26vw, 110px); }
-  .speech-bubble { max-width: min(40ch, 96vw); }
+  .speech-bubble { max-width: min(40ch, 98vw); }
 }
 
 /* ============ Progress bar / buttons scale ============ */
