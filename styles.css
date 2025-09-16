@@ -451,7 +451,7 @@ background: var(--color-surface);
 .mt-sm { margin-top: var(--space-sm); } .mt-md { margin-top: var(--space-md); } .mt-lg { margin-top: var(--space-lg); }
 .mb-sm { margin-bottom: var(--space-sm); } .mb-md { margin-bottom: var(--space-md); } .mb-lg { margin-bottom: var(--space-lg); }
 
-/* -----------------------------
+* -----------------------------
    15) Animations & Motion Prefs
 ------------------------------ */
 @media (prefers-reduced-motion: reduce) {
@@ -475,6 +475,11 @@ background: var(--color-surface);
 .cards {
   display: grid; gap: var(--space-lg);
   grid-template-columns: repeat(1, minmax(0, 1fr));
+}
+@media (max-width: 599px) {
+  .main { padding-inline: var(--space-lg); }
+  .cards { gap: var(--space-xl); }
+  .card { margin-inline: var(--space-md); }
 }
 @media (min-width: 560px) { .cards { grid-template-columns: repeat(2, 1fr); } }
 @media (min-width: 960px) { .cards { grid-template-columns: repeat(3, 1fr); } }
