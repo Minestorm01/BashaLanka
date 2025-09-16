@@ -477,9 +477,9 @@ background: var(--color-surface);
   grid-template-columns: repeat(1, minmax(0, 1fr));
 }
 @media (max-width: 599px) {
-  .main { padding-inline: var(--space-lg); }
-  .cards { gap: var(--space-xl); }
-  .card { margin-inline: var(--space-md); }
+  .main { padding-inline: var(--space-sm); }   /* less side padding */
+  .cards { gap: var(--space-lg); }             /* keep spacing reasonable */
+  .card  { margin-inline: var(--space-xs); }   /* less card margin */
 }
 @media (min-width: 560px) { .cards { grid-template-columns: repeat(2, 1fr); } }
 @media (min-width: 960px) { .cards { grid-template-columns: repeat(3, 1fr); } }
