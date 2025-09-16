@@ -211,31 +211,6 @@
 .section-page .phrase-wrap { display: flex; align-items: flex-end; gap: 20px; margin-bottom: 20px; }
 .btn-back { background: none; border: none; color: var(--color-accent); margin-bottom: 10px; cursor: pointer; }
 
-}
-
-.btn-continue[disabled] {
-  opacity: .5;
-  cursor: not-allowed;
-}
-
-.btn-details {
-  background: none;
-  border: none;
-  color: var(--color-accent);
-  font-size: 0.875rem;
-  padding: 0;
-  margin-bottom: 4px;
-  cursor: pointer;
-}
-
-.locked-note { font-size: 0.75rem; color: var(--color-muted); margin-top: 4px; }
-
-/* Section detail page */
-.section-page { padding: 20px; }
-.section-page h2 { margin-top: 0; margin-bottom: 20px; }
-.section-page .phrase-wrap { display: flex; align-items: flex-end; gap: 20px; margin-bottom: 20px; }
-.btn-back { background: none; border: none; color: var(--color-accent); margin-bottom: 10px; cursor: pointer; }
-
 /* === Mobile widen: shrink outer gutters & let cards grow === */
 @media (max-width: 700px) {
   /* Collapse side padding on wrappers */
@@ -255,7 +230,7 @@
 
   /* Let each card nearly fill the viewport, leaving 8px gutters */
   .section-card {
-    width: calc(100vw - 16px); /* 8px on both sides */
+    width: 100%;               /* use container width to avoid overflow */
     max-width: none;           /* ignore any custom --section-card-max caps on mobile */
     margin-inline: auto;       /* center in case of wider parents */
   }
