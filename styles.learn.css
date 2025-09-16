@@ -120,7 +120,7 @@
 
 @media (max-width: 700px) {
   .section-card {
-    --section-card-max: clamp(280px, 96vw, 640px);
+    --section-card-max: clamp(300px, 98vw, 680px); 
     margin-inline: auto;
   }
   .section-card__left {
