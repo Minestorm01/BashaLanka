@@ -1,4 +1,4 @@
-/* ============ Layout fixes ============ */
+/* ============ Layout fixes ballsS ============ */
 .learn-wrap {
   display: grid;
   grid-template-columns: 1fr minmax(280px, 360px);
