@@ -213,13 +213,14 @@
 
 /* === Mobile widen: shrink outer gutters & let cards grow === */
 @media (max-width: 700px) {
+  :root { --mob-gutter: 6px; }
+
   /* Collapse side padding on wrappers */
   #view-learn,
   .learn-wrap,
   .sections-list {
-    padding-left: 8px;
-    padding-right: 8px;
-    max-width: none; /* remove any cap that might constrain width */
+    padding-left: var(--mob-gutter) !important;
+    padding-right: var(--mob-gutter) !important;
   }
 
   /* Ensure single-column grid and no extra margins */
@@ -228,22 +229,42 @@
     margin: 0;
   }
 
-  /* Let each card nearly fill the viewport, leaving 8px gutters */
-  .section-card {
-    width: 100%;               /* use container width to avoid overflow */
-    max-width: none;           /* ignore any custom --section-card-max caps on mobile */
-    margin-inline: auto;       /* center in case of wider parents */
-  }
-
   /* Optional: slightly adjust vertical spacing if needed */
   .sections-list { gap: clamp(12px, 3vw, 18px); }
+
+  /* Let each card nearly fill the viewport, leaving equal gutters */
+  .section-card {
+    width: auto !important;
+    max-width: calc(100vw - (var(--mob-gutter) * 2)) !important;
+    margin-inline: auto !important;
+  }
 }
 
-/* If a global wrapper exists (e.g., .page, main, .container), relax its gutters on mobile too */
 @media (max-width: 700px) {
-  .page, main, .container {
-    padding-left: 8px !important;
-    padding-right: 8px !important;
+  html,
+  body {
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+  }
+
+  .sections-list,
+  #view-learn,
+  .learn-wrap {
+    max-width: 100vw !important;
+  }
+
+  .page,
+  main,
+  .container {
+    padding-left: var(--mob-gutter, 6px) !important;
+    padding-right: var(--mob-gutter, 6px) !important;
     max-width: none !important;
+  }
+}
+
+@media (max-width: 700px) {
+  #view-learn .learn-wrap .sections-list .section-card {
+    max-width: calc(100vw - (var(--mob-gutter) * 2)) !important;
   }
 }
