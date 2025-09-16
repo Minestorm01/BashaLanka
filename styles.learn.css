@@ -23,7 +23,11 @@ html, body { overflow-x: hidden; }
   background: #0d1420;
   border: 1px solid #1a2635;
   border-radius: 18px;
-  padding: clamp(12px, 2vw, 16px) clamp(14px, 2.4vw, 18px);
+  --section-card-block-padding: clamp(12px, 2vw, 16px);
+  --bubble-buffer: 0px;
+  padding-block: var(--section-card-block-padding);
+  padding-block-start: calc(var(--section-card-block-padding) + var(--bubble-buffer));
+  padding-inline: clamp(14px, 2.4vw, 18px);
   width: 100%;
   max-width: var(--section-card-max, 100%);
 }
@@ -112,7 +116,7 @@ html, body { overflow-x: hidden; }
 }
 
 .speech-line.sinhala {
-  font-weight: 700;
+ font-weight: 700;
   font-size: clamp(14px, 3vw, 18px);
   color: #e6f1ff;
 }
@@ -137,6 +141,7 @@ html, body { overflow-x: hidden; }
 
   .section-card {
     --section-card-max: none;
+    --bubble-buffer: clamp(28px, 10vw, 48px);
     max-width: calc(100% - (var(--mob-gutter) * 2));
     margin-inline: auto;
   }
