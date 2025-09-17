@@ -1,0 +1,34 @@
+{
+  "id": "section-3",
+  "number": 3,
+  "title": "Section 3",
+  "status": "locked",
+  "cta": "Jump to Section 3",
+  "phrase": { "romanised": "oyāge nama monawada?", "si": "ඔයාගේ නම මොනවද?" },
+  "mascot": "assets/sections/section-3/mascot.svg",
+  "description": "Master introductions and sharing personal details.",
+  "units": [
+    {
+      "id": "unit-1",
+      "title": "Introduce Yourself",
+      "status": "locked",
+      "icon": "🙋",
+      "lessons": [
+        { "id": "lesson-1", "title": "Names", "status": "locked" },
+        { "id": "lesson-2", "title": "Where You're From", "status": "locked" },
+        { "id": "lesson-3", "title": "What You Do", "status": "locked" }
+      ]
+    },
+    {
+      "id": "unit-2",
+      "title": "Meet New People",
+      "status": "locked",
+      "icon": "🤝",
+      "lessons": [
+        { "id": "lesson-1", "title": "Introduce Others", "status": "locked" },
+        { "id": "lesson-2", "title": "Ask Follow-up Questions", "status": "locked" },
+        { "id": "lesson-3", "title": "Goodbyes", "status": "locked" }
+      ]
+    }
+  ]
+}
