@@ -22,3 +22,8 @@ Then open: `http://localhost:8080/#/home`
 - Implement lesson renderer at `#/lesson/:id`
 - Add schema + real lessons in `data/`
 - Cache shell & data in `sw.js` for offline
+
+## Section assets
+- Each course section lives in its own folder inside this directory.
+- Create a folder named `section-N` with a `units.json` file and any
+- supporting art or overrides to add a new section to the learn page.
