@@ -1,7 +1,4 @@
 /* ============ Layout fixes ============ */
-*, *::before, *::after { box-sizing: border-box; }
-
-html, body { overflow-x: hidden; }
 .learn-wrap {
   display: grid;
   grid-template-columns: 1fr minmax(280px, 360px);
@@ -15,83 +12,72 @@ html, body { overflow-x: hidden; }
 
 .learn-rail { background: var(--color-elev); border-radius: var(--radius-md); padding: 16px; }
 
+@media (max-width: 700px) {
+  .learn-wrap { grid-template-columns: 1fr; }
+  .hide-mobile { display: none !important; }
+}
+
 /* ============ Section card + character ============ */
 .section-card {
   display: flex;
   gap: clamp(12px, 2vw, 18px);
   align-items: flex-start;
   background: #0d1420;
-border: 1px solid #1a2635;
+  border: 1px solid #1a2635;
   border-radius: 18px;
-  --section-card-block-padding: clamp(12px, 2vw, 16px);
-  --bubble-buffer: 0px;
-  padding-block: var(--section-card-block-padding);
-  padding-block-start: calc(var(--section-card-block-padding) + var(--bubble-buffer));
-  padding-inline: clamp(14px, 2.4vw, 18px);
-  width: 100%;
-  max-width: var(--section-card-max, 100%);
+  padding: clamp(12px, 2vw, 16px) clamp(14px, 2.4vw, 18px);
 }
 
 .section-card__left {
   flex: 1 1 auto;
   position: relative;
   min-height: 180px;
-  min-width: 0;
 }
 
 .section-card h3 { margin: 0 0 8px; font-size: var(--fs-500); }
 
 .section-card__img {
   position: relative;
-  width: clamp(80px, 11vw, 100px);
+  width: clamp(60px, 10vw, 90px);
   flex: 0 0 auto;
-  overflow: visible;
 }
 
 .character {
   position: relative;
   width: 100%;
-  aspect-ratio: 1 / 1;
   display: grid;
-  place-items: end center;
+  place-items: center;
 }
 
 .character__img {
-  position: absolute;
-  bottom: 0;
-  left: 0;
+  display: block;
   width: 100%;
   height: auto;
-  margin-top: 0;
+  max-width: 100%;
+ margin-top: 70px;
 }
 
 /* ============ Speech bubble ============ */
 .speech-bubble {
   position: absolute;
-  right: 0;
-  bottom: 100%;
-  transform: translateY(-15px);
-
-  display: inline-block;
-  width: max-content;
-  max-width: min(46ch, 60vw);
-  white-space: normal;
-  overflow-wrap: break-word;
-
+  top: 5%;
+  left: -150%;
+  transform: translate(0, 0);
   background: #1a6460;
   color: #e6f1ff;
   border: 1px solid #3d7b78;
   border-radius: 14px;
   padding: clamp(8px, 1.8vw, 12px) clamp(10px, 2.2vw, 14px);
-  box-shadow: 0 6px 14px rgba(0,0,0,.25);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.25);
+  max-width: min(80vw, 220px);
   z-index: 2;
 }
 
 .speech-bubble::after {
   content: "";
   position: absolute;
-  top: 100%;
-  right: 22px;
+  bottom: -10px;
+  left: 80px;
   width: 0;
   height: 0;
   border-left: 10px solid transparent;
@@ -103,8 +89,9 @@ border: 1px solid #1a2635;
 .speech-line {
   margin: 0;
   line-height: 1.15;
-  white-space: normal;
-  overflow-wrap: break-word;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .speech-line.romanised {
@@ -120,40 +107,11 @@ border: 1px solid #1a2635;
   color: #e6f1ff;
 }
 
-@media (max-width: 700px) {
-  .hide-mobile { display: none !important; }
-  .learn-wrap { grid-template-columns: 1fr; }
-
-  .sections-list { gap: clamp(12px, 3vw, 18px); }
-
-  .section-card {
-    margin-inline: auto;
-    --section-card-max: clamp(320px, 94vw, 640px);
-    width: 100%;
-    max-width: var(--section-card-max);
-  }
-  .section-card__left {
-    min-height: clamp(180px, 52vw, 240px);
-  }
-  .section-card__img {
-    width: clamp(80px, 22vw, 120px);
-  }
-  .speech-bubble {
-    max-width: min(46ch, 94vw);
-  }
-}
-
 @media (max-width: 480px) {
   .section-card { align-items: stretch; }
-  .section-card__img { width: clamp(76px, 26vw, 110px); }
-  .speech-bubble { max-width: min(40ch, 98vw); }
+  .section-card__img { width: clamp(55px, 16vw, 75px); }
+  .speech-bubble { top: -8%; left: 0; max-width: 82%; }
 }
-
-/* ============ Progress bar / buttons scale ============ */
-.progress {
-  position: relative;
-  height: clamp(12px, 2.2vw, 18px);
-  background: #111927;
 
 /* ============ Progress bar / buttons scale ============ */
 .progress {
@@ -174,7 +132,7 @@ border: 1px solid #1a2635;
 .progress__nums {
   position: absolute;
   inset: 0;
- display: grid;
+  display: grid;
   place-items: center;
   font-size: clamp(10px, 2vw, 12px);
   color: #a8b3c7;
@@ -185,8 +143,8 @@ border: 1px solid #1a2635;
   top: 50%;
   right: 4px;
   transform: translateY(-50%);
-  height: clamp(40px, 8vw, 60px);
-  width: clamp(40px, 8vw, 60px);
+  height: clamp(14px, 2.2vw, 16px);
+  width: clamp(14px, 2.2vw, 16px);
 }
 
 .btn-continue {
