@@ -21,7 +21,7 @@ html, body { overflow-x: hidden; }
   gap: clamp(12px, 2vw, 18px);
   align-items: flex-start;
   background: #0d1420;
-  border: 1px solid #1a2635;
+border: 1px solid #1a2635;
   border-radius: 18px;
   --section-card-block-padding: clamp(12px, 2vw, 16px);
   --bubble-buffer: 0px;
@@ -46,7 +46,6 @@ html, body { overflow-x: hidden; }
   width: clamp(80px, 11vw, 100px);
   flex: 0 0 auto;
   overflow: visible;
-  padding-top: 70px;
 }
 
 .character {
@@ -111,6 +110,10 @@ html, body { overflow-x: hidden; }
 .speech-line.romanised {
   font-weight: 600;
   font-size: clamp(11px, 2.3vw, 13px);
+  color: #9db8ff;
+  letter-spacing: 0.3px;
+}
+
 .speech-line.sinhala {
   font-weight: 700;
   font-size: clamp(14px, 3vw, 18px);
@@ -118,34 +121,22 @@ html, body { overflow-x: hidden; }
 }
 
 @media (max-width: 700px) {
-  :root { --mob-gutter: 6px; }
-
-  .learn-wrap {
-    grid-template-columns: 1fr;
-    margin: 0;
-  }
   .hide-mobile { display: none !important; }
-
-  #view-learn,
-  .learn-wrap,
-  .sections-list {
-    padding-inline: var(--mob-gutter);
-    max-width: 100%;
-  }
+  .learn-wrap { grid-template-columns: 1fr; }
 
   .sections-list { gap: clamp(12px, 3vw, 18px); }
 
   .section-card {
-    --section-card-max: none;
-    max-width: calc(100% - (var(--mob-gutter) * 2));
     margin-inline: auto;
+    --section-card-max: clamp(320px, 94vw, 640px);
+    width: 100%;
+    max-width: var(--section-card-max);
   }
   .section-card__left {
     min-height: clamp(180px, 52vw, 240px);
   }
   .section-card__img {
     width: clamp(80px, 22vw, 120px);
-    padding-top: clamp(48px, 16vw, 72px);
   }
   .speech-bubble {
     max-width: min(46ch, 94vw);
@@ -183,7 +174,7 @@ html, body { overflow-x: hidden; }
 .progress__nums {
   position: absolute;
   inset: 0;
-  display: grid;
+ display: grid;
   place-items: center;
   font-size: clamp(10px, 2vw, 12px);
   color: #a8b3c7;
@@ -208,7 +199,7 @@ html, body { overflow-x: hidden; }
   cursor: pointer;
   font-size: clamp(12px, 2.2vw, 14px);
   position: absolute;
-  top: 70%;
+  top: 33%;
   left: 0;
 }
 
