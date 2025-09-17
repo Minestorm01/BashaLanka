@@ -111,12 +111,8 @@ html, body { overflow-x: hidden; }
 .speech-line.romanised {
   font-weight: 600;
   font-size: clamp(11px, 2.3vw, 13px);
-  color: #9db8ff;
-  letter-spacing: 0.3px;
-}
-
 .speech-line.sinhala {
- font-weight: 700;
+  font-weight: 700;
   font-size: clamp(14px, 3vw, 18px);
   color: #e6f1ff;
 }
@@ -140,9 +136,7 @@ html, body { overflow-x: hidden; }
   .sections-list { gap: clamp(12px, 3vw, 18px); }
 
   .section-card {
-    --section-card-max: none;
-    --bubble-buffer: clamp(28px, 10vw, 48px);
-    max-width: calc(100% - (var(--mob-gutter) * 2));
+    max-width: calc(100vw - (var(--mob-gutter) * 2));
     margin-inline: auto;
   }
   .section-card__left {
@@ -162,6 +156,12 @@ html, body { overflow-x: hidden; }
   .section-card__img { width: clamp(76px, 26vw, 110px); }
   .speech-bubble { max-width: min(40ch, 98vw); }
 }
+
+/* ============ Progress bar / buttons scale ============ */
+.progress {
+  position: relative;
+  height: clamp(12px, 2.2vw, 18px);
+  background: #111927;
 
 /* ============ Progress bar / buttons scale ============ */
 .progress {
