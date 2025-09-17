@@ -1,0 +1,34 @@
+{
+  "id": "section-6",
+  "number": 6,
+  "title": "Section 6",
+  "status": "locked",
+  "cta": "Jump to Section 6",
+  "phrase": { "romanised": "mata hitenavā…", "si": "මට හිතෙනවා…" },
+  "mascot": "assets/sections/section-6/mascot.svg",
+  "description": "Express opinions, hopes, and complex ideas.",
+  "units": [
+    {
+      "id": "unit-1",
+      "title": "Share Opinions",
+      "status": "locked",
+      "icon": "💡",
+      "lessons": [
+        { "id": "lesson-1", "title": "Agree & Disagree", "status": "locked" },
+        { "id": "lesson-2", "title": "Preferences", "status": "locked" },
+        { "id": "lesson-3", "title": "Plans", "status": "locked" }
+      ]
+    },
+    {
+      "id": "unit-2",
+      "title": "Tell Stories",
+      "status": "locked",
+      "icon": "📖",
+      "lessons": [
+        { "id": "lesson-1", "title": "Past Events", "status": "locked" },
+        { "id": "lesson-2", "title": "Future Hopes", "status": "locked" },
+        { "id": "lesson-3", "title": "Expressing Emotions", "status": "locked" }
+      ]
+    }
+  ]
+}
