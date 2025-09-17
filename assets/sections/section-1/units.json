@@ -1,0 +1,45 @@
+{
+  "id": "section-1",
+  "number": 1,
+  "title": "Section 1",
+  "status": "unlocked",
+  "cta": "Continue",
+  "phrase": { "romanised": "kohomada?", "si": "කොහොමද?" },
+  "mascot": "assets/sections/section-1/mascot.svg",
+  "description": "Foundational Sinhala for everyday greetings and getting around.",
+  "units": [
+    {
+      "id": "unit-1",
+      "title": "Order Food",
+      "status": "unlocked",
+      "icon": "🍛",
+      "lessons": [
+        { "id": "lesson-1", "title": "Greetings", "status": "completed" },
+        { "id": "lesson-2", "title": "Polite Phrases", "status": "unlocked" },
+        { "id": "lesson-3", "title": "Ordering Basics", "status": "locked" }
+      ]
+    },
+    {
+      "id": "unit-2",
+      "title": "Describe People",
+      "status": "locked",
+      "icon": "🧑",
+      "lessons": [
+        { "id": "lesson-1", "title": "Family", "status": "locked" },
+        { "id": "lesson-2", "title": "Appearance", "status": "locked" },
+        { "id": "lesson-3", "title": "Personality", "status": "locked" }
+      ]
+    },
+    {
+      "id": "unit-3",
+      "title": "Directions",
+      "status": "locked",
+      "icon": "🧭",
+      "lessons": [
+        { "id": "lesson-1", "title": "Landmarks", "status": "locked" },
+        { "id": "lesson-2", "title": "Transport", "status": "locked" },
+        { "id": "lesson-3", "title": "Small Talk", "status": "locked" }
+      ]
+    }
+  ]
+}
