@@ -1,0 +1,34 @@
+{
+  "id": "section-5",
+  "number": 5,
+  "title": "Section 5",
+  "status": "locked",
+  "cta": "Jump to Section 5",
+  "phrase": { "romanised": "mata bāt tikak dēnna", "si": "මට බත් ටිකක් දෙන්න" },
+  "mascot": "assets/sections/section-5/mascot.svg",
+  "description": "Build the vocabulary you need to eat like a local.",
+  "units": [
+    {
+      "id": "unit-1",
+      "title": "At the Market",
+      "status": "locked",
+      "icon": "🛒",
+      "lessons": [
+        { "id": "lesson-1", "title": "Produce", "status": "locked" },
+        { "id": "lesson-2", "title": "Quantities", "status": "locked" },
+        { "id": "lesson-3", "title": "Bargaining", "status": "locked" }
+      ]
+    },
+    {
+      "id": "unit-2",
+      "title": "Eating Out",
+      "status": "locked",
+      "icon": "🍽️",
+      "lessons": [
+        { "id": "lesson-1", "title": "Menus", "status": "locked" },
+        { "id": "lesson-2", "title": "Allergies", "status": "locked" },
+        { "id": "lesson-3", "title": "Paying", "status": "locked" }
+      ]
+    }
+  ]
+}
