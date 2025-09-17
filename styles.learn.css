@@ -190,7 +190,7 @@
 
 .progress__nums {
   position: absolute;
-  inset: 0;
+ inset: 0;
   display: grid;
   place-items: center;
   font-size: clamp(10px, 2vw, 12px);
@@ -215,6 +215,7 @@
   border-radius: 14px;
   cursor: pointer;
   font-size: clamp(12px, 2.2vw, 14px);
+  text-transform: uppercase;
   position: absolute;
   top: 70%;
   left: 0;
@@ -233,6 +234,7 @@
   padding: 0;
   margin-bottom: 4px;
   cursor: pointer;
+  text-transform: uppercase;
 }
 
 .locked-note { font-size: 0.75rem; color: var(--color-muted); margin-top: 4px; }
