@@ -136,7 +136,8 @@ html, body { overflow-x: hidden; }
   .sections-list { gap: clamp(12px, 3vw, 18px); }
 
   .section-card {
-    max-width: calc(100vw - (var(--mob-gutter) * 2));
+    --section-card-max: none;
+    max-width: calc(100% - (var(--mob-gutter) * 2));
     margin-inline: auto;
   }
   .section-card__left {
