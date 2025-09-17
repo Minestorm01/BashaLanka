@@ -1,4 +1,4 @@
-/* ============ Layout fixes ============ */
+/* ============ Layout fixes ballsS ============ */
 .learn-wrap {
   display: grid;
   grid-template-columns: 1fr minmax(280px, 360px);
@@ -26,58 +26,70 @@
   border: 1px solid #1a2635;
   border-radius: 18px;
   padding: clamp(12px, 2vw, 16px) clamp(14px, 2.4vw, 18px);
+  width: min(100%, var(--section-card-max, 100%));
 }
 
 .section-card__left {
   flex: 1 1 auto;
   position: relative;
   min-height: 180px;
+  min-width: 0;
 }
 
 .section-card h3 { margin: 0 0 8px; font-size: var(--fs-500); }
 
 .section-card__img {
   position: relative;
-  width: clamp(60px, 10vw, 90px);
+  width: clamp(80px, 11vw, 100px);
   flex: 0 0 auto;
+  overflow: visible;
 }
 
 .character {
   position: relative;
   width: 100%;
+  aspect-ratio: 1 / 1;
   display: grid;
-  place-items: center;
+  place-items: end centre;
+  transform: translateY(70px); /* move mascot down */
 }
 
 .character__img {
-  display: block;
+  position: absolute;
+  bottom: 0;
+  left: 0;
   width: 100%;
   height: auto;
-  max-width: 100%;
- margin-top: 70px;
+  margin-top: 0;
 }
 
 /* ============ Speech bubble ============ */
 .speech-bubble {
   position: absolute;
-  top: 5%;
-  left: -150%;
-  transform: translate(0, 0);
+  right: 0;
+  bottom: 100%;
+  transform: translateY(-15px);
+
+  display: inline-block;
+  width: max-content;
+  max-width: min(46ch, 60vw);
+  white-space: normal;
+  overflow-wrap: break-word;
+
   background: #1a6460;
   color: #e6f1ff;
   border: 1px solid #3d7b78;
   border-radius: 14px;
   padding: clamp(8px, 1.8vw, 12px) clamp(10px, 2.2vw, 14px);
-  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.25);
-  max-width: min(80vw, 220px);
+  box-shadow: 0 6px 14px rgba(0,0,0,.25);
   z-index: 2;
 }
 
 .speech-bubble::after {
   content: "";
   position: absolute;
-  bottom: -10px;
-  left: 80px;
+  top: 100%;
+  right: 22px;
   width: 0;
   height: 0;
   border-left: 10px solid transparent;
@@ -89,9 +101,8 @@
 .speech-line {
   margin: 0;
   line-height: 1.15;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  white-space: normal;
+  overflow-wrap: break-word;
 }
 
 .speech-line.romanised {
@@ -107,10 +118,26 @@
   color: #e6f1ff;
 }
 
+@media (max-width: 700px) {
+  .section-card {
+    --section-card-max: clamp(280px, 96vw, 640px);
+    margin-inline: auto;
+  }
+  .section-card__left {
+    min-height: clamp(180px, 52vw, 240px);
+  }
+  .section-card__img {
+    width: clamp(80px, 22vw, 120px);
+  }
+  .speech-bubble {
+    max-width: min(46ch, 90vw);
+  }
+}
+
 @media (max-width: 480px) {
   .section-card { align-items: stretch; }
-  .section-card__img { width: clamp(55px, 16vw, 75px); }
-  .speech-bubble { top: -8%; left: 0; max-width: 82%; }
+  .section-card__img { width: clamp(76px, 26vw, 110px); }
+  .speech-bubble { max-width: min(40ch, 96vw); }
 }
 
 /* ============ Progress bar / buttons scale ============ */
@@ -143,8 +170,8 @@
   top: 50%;
   right: 4px;
   transform: translateY(-50%);
-  height: clamp(14px, 2.2vw, 16px);
-  width: clamp(14px, 2.2vw, 16px);
+  height: clamp(40px, 8vw, 60px);
+  width: clamp(40px, 8vw, 60px);
 }
 
 .btn-continue {
@@ -157,7 +184,7 @@
   cursor: pointer;
   font-size: clamp(12px, 2.2vw, 14px);
   position: absolute;
-  top: 33%;
+  top: 70%;
   left: 0;
 }
 
