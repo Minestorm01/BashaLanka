@@ -1,0 +1,34 @@
+{
+  "id": "section-4",
+  "number": 4,
+  "title": "Section 4",
+  "status": "locked",
+  "cta": "Jump to Section 4",
+  "phrase": { "romanised": "kōheda yanne?", "si": "කොහේද යන්නේ?" },
+  "mascot": "assets/sections/section-4/mascot.svg",
+  "description": "Navigate travel scenarios and directions with confidence.",
+  "units": [
+    {
+      "id": "unit-1",
+      "title": "Get Around",
+      "status": "locked",
+      "icon": "🛣️",
+      "lessons": [
+        { "id": "lesson-1", "title": "Transport", "status": "locked" },
+        { "id": "lesson-2", "title": "Tickets", "status": "locked" },
+        { "id": "lesson-3", "title": "Asking for Help", "status": "locked" }
+      ]
+    },
+    {
+      "id": "unit-2",
+      "title": "Stay Safe",
+      "status": "locked",
+      "icon": "🛟",
+      "lessons": [
+        { "id": "lesson-1", "title": "Emergencies", "status": "locked" },
+        { "id": "lesson-2", "title": "Important Numbers", "status": "locked" },
+        { "id": "lesson-3", "title": "Health", "status": "locked" }
+      ]
+    }
+  ]
+}
