@@ -1,5 +1,13 @@
 /* === Fonts =================================================== */
 @font-face {
+  font-family: "Dolpino";
+  src: url("assets/font/Dolpino.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
   font-family: "Feather";
   src: url("assets/fonts/Feather-Bold.woff2") format("woff2");
   font-weight: 700;
@@ -25,8 +33,8 @@
 
 /* Font stacks (with reliable fallbacks) */
 :root {
-  --font-heading: "Feather", "DIN Next Rounded", ui-rounded, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
-  --font-body: "DIN Next Rounded", ui-rounded, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
+  --font-heading: "Dolpino", "Feather", "DIN Next Rounded", ui-rounded, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
+  --font-body: "Dolpino", "Feather", "DIN Next Rounded", ui-rounded, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
 
   /* Optional optical adjustments */
   --heading-letterspacing: 0.2px;
@@ -610,6 +618,7 @@ img, svg, video { max-width: 100%; height: auto; display: block; }
 }
 .course-card .media { border-radius: 10px; overflow: hidden; }
 .course-card .content { display: grid; gap: 8px; }
+.course-card .btn { text-transform: uppercase; }
 
 /* tab bar: only on small screens */
 .tabbar { position: fixed; inset-block-end: 0; inset-inline: 0; z-index: 60; }
@@ -656,6 +665,7 @@ img, svg, video { max-width: 100%; height: auto; display: block; }
 .sidebar__link:focus-visible{outline:var(--ring)}
 .sidebar__link.is-active{background:var(--accent);color:var(--bg);font-weight:700}
 .sidebar__link span:first-child{width:1.4rem;display:inline-grid;place-items:center}
+.sidebar__link span:last-child{text-transform:uppercase}
 
 body.drawer-open{overflow:hidden}
 
