@@ -1,0 +1,34 @@
+{
+  "id": "section-2",
+  "number": 2,
+  "title": "Section 2",
+  "status": "locked",
+  "cta": "Jump to Section 2",
+  "phrase": { "romanised": "mama hondai", "si": "මම හොඳයි" },
+  "mascot": "assets/sections/section-2/mascot.svg",
+  "description": "Level up polite conversation and social introductions.",
+  "units": [
+    {
+      "id": "unit-1",
+      "title": "Friendly Chats",
+      "status": "locked",
+      "icon": "💬",
+      "lessons": [
+        { "id": "lesson-1", "title": "Casual Greetings", "status": "locked" },
+        { "id": "lesson-2", "title": "Ask How Someone Is", "status": "locked" },
+        { "id": "lesson-3", "title": "Share Feelings", "status": "locked" }
+      ]
+    },
+    {
+      "id": "unit-2",
+      "title": "Make Plans",
+      "status": "locked",
+      "icon": "📅",
+      "lessons": [
+        { "id": "lesson-1", "title": "Times and Days", "status": "locked" },
+        { "id": "lesson-2", "title": "Invitations", "status": "locked" },
+        { "id": "lesson-3", "title": "Confirming Details", "status": "locked" }
+      ]
+    }
+  ]
+}
