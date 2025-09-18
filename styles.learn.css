@@ -45,7 +45,7 @@
 
 .section-card__img {
   position: relative;
-  width: clamp(80px, 11vw, 100px);
+   width: clamp(80px, 11vw, 100px);
   flex: 0 0 auto;
   overflow: visible;
 }
@@ -70,9 +70,9 @@
 /* ============ Speech bubble ============ */
 .speech-bubble {
   position: absolute;
+  right: -10%;
   bottom: 100%;
-  left: 50%;
-  transform: translate(-50%, -8px);
+  transform: translateY(-15px);
 
   display: inline-block;
   width: max-content;
@@ -97,13 +97,10 @@
   content: "";
   position: absolute;
   top: 100%;
-  left: 50%;
-  width: 0;
-  height: 0;
+  right: 22px;
   border-left: 10px solid transparent;
   border-right: 10px solid transparent;
   border-top: 10px solid #1a6460;
-  transform: translateX(-50%);
   filter: drop-shadow(0 2px 2px rgba(0,0,0,.25));
 }
 
