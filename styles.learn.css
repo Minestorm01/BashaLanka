@@ -203,11 +203,17 @@
   box-sizing: border-box;
 }
 
-/* Mobile-only override */
+/* Mobile-only */
 @media (max-width: 700px) {
-  .section-overview {
-    padding: clamp(18px, 5vw, 26px); /* more breathing room */
-    max-width: 100%;                /* let it stretch wider */
+  /* How much extra width to the right (in px) */
+  .section-card { --ov-push-right: 24px; } /* adjust this number */
+
+  /* Grow the panel to the right while keeping the left edge fixed */
+  .section-card .section-overview {
+    width: calc(100% + var(--ov-push-right));
+    margin-right: calc(-1 * var(--ov-push-right));
+    /* Safety: don't exceed the card's inner width (respects card padding) */
+    max-width: calc(100% + var(--section-card-padding-inline));
   }
 }
 
