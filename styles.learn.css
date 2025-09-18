@@ -2,7 +2,7 @@
 .learn-wrap {
   display: grid;
   grid-template-columns: 1fr minmax(280px, 360px);
- gap: 20px;
+  gap: 20px;
   align-items: start;
 }
 
@@ -25,16 +25,15 @@
   border-radius: 18px;
   padding: var(--section-card-padding-block) var(--section-card-padding-inline);
   width: min(100%, var(--section-card-max, 100%));
+  position: relative;
 }
 
 /* Ensure mascot + bubble can overlap the left column safely */
-.section-card { position: relative; }
-.section-card__left { position: relative; z-index: 1; }
-.section-card__img { position: relative; z-index: 3; overflow: visible; }
 
 .section-card__left {
   flex: 1 1 auto;
   position: relative;
+  z-index: 1;
   min-height: 180px;
   min-width: 0;
 }
@@ -50,6 +49,7 @@
 
 .section-card__img {
   position: relative;
+  z-index: 3;
   width: clamp(80px, 11vw, 100px);
   flex: 0 0 auto;
   overflow: visible;
@@ -60,7 +60,7 @@
   width: 100%;
   aspect-ratio: 1 / 1;
   display: grid;
-  place-items: end center; /* was `centre`; use US spelling */
+  place-items: end center; /* make sure it's "center" (US spelling) */
   transform: none;
 }
 
@@ -72,7 +72,7 @@
   height: auto;
   margin-top: 0;
 }
-@@ -98,94 +105,280 @@
+
 /* ============ Speech bubble ============ */
 .speech-bubble {
   position: absolute;
@@ -92,7 +92,7 @@
   border-radius: 14px;
   padding: clamp(8px, 1.8vw, 12px) clamp(10px, 2.2vw, 14px);
   box-shadow: 0 6px 14px rgba(0,0,0,.25);
-  z-index: 4; /* float above card text */
+  z-index: 4; /* <- higher than left column */
 }
 
 /* Bubble should be visible on the Learn list, hidden only on the detail page */
@@ -364,8 +364,7 @@
   }
   .section-card__actions {
     justify-content: flex-start;
-  }
-  .section-card__left {
+.section-card__left {
     min-height: clamp(180px, 52vw, 240px);
   }
   .section-card__img {
@@ -390,7 +389,6 @@
   border: 1px solid #1e2b3b;
   border-radius: 12px;
   overflow: hidden;
-@@ -203,70 +396,61 @@
   display: grid;
   place-items: center;
   font-size: clamp(10px, 2vw, 12px);
