@@ -126,6 +126,7 @@
           <label class="toggle"><input type="checkbox" name="sfx"> <span>Sound effects</span></label>
           <label class="toggle"><input type="checkbox" name="anim"> <span>Animations</span></label>
           <label class="toggle"><input type="checkbox" name="motivate"> <span>Motivational messages</span></label>
+
            <label class="toggle"><input type="checkbox" name="motivate"> <span>Motivational messages</span></label>
           <label class="toggle"><input type="checkbox" name="listen"> <span>Listening exercises</span></label>
         </fieldset>
@@ -151,6 +152,103 @@
   </div>
   <div id="drawerScrim" class="scrim" hidden></div>
 
+    <script id="sections-overview-data" type="application/json">
+      {
+        "1": {
+          "tagline": "Start with essential phrases and simple grammar concepts",
+          "summary": "Focus on must-know phrases, SOV word order, and subject omission.",
+          "helpfulHints": [
+            "Sinhala often drops \u201cam/is/are\u201d in simple present.",
+            "Question marker \u201cdh\u01e7?\u201d converts a statement into a question.",
+            "Use \u201cg\u00e9\u201d for possession with living things (e.g., oyaa-g\u00e9)."
+          ],
+          "grammarConcepts": [
+            {
+              "title": "Word order (Sinhala)",
+              "explanation": "Verb typically comes at the end; \u201cis/are/am\u201d may be implied.",
+              "examples": [
+                { "l1": "ma\u00b7m\u1e87 ho\u0148dhin in\u00b7n\u1e87\u00b7va.", "gloss": "I (am) fine." },
+                { "l1": "o\u00b7yaa ka\u00b7thaa k\u1e7f\u00b7r\u1e7f\u00b7n\u1e87\u00b7va.", "gloss": "You speak / are speaking." }
+              ]
+            },
+            {
+              "title": "Possession with \u201cg\u00e9\u201d",
+              "explanation": "Attach \u201cg\u00e9\u201d to people/animals for possession.",
+              "examples": [
+                { "l1": "o\u00b7yaa\u00b7g\u00e9 na\u00b7m\u1e87 mo\u00b7kak\u00b7dh\u1e7f?", "gloss": "Your name, what? \u2192 What\u2019s your name?" },
+                { "l1": "ma\u00b7g\u00e9 ra\u00b7t\u1e87 Shree lan\u00b7kaa\u00b7v\u00e1.", "gloss": "My country, Sri Lanka." }
+              ]
+            }
+          ],
+          "cta": {
+            "text": "Start Section 1",
+            "href": "#/section/1"
+          }
+        },
+        "2": {
+          "tagline": "Build everyday conversation stamina",
+          "summary": "Practice polite requests, introduce friends, and follow polite particles for smoother chats.",
+          "helpfulHints": [
+            "Add \u201cplii\u201d for gentle requests when speaking casually.",
+            "Honorific \u201coyaal\u00e1\u201d works for groups or formal situations.",
+            "Sentence particles often soften tone\u2014listen for them in native speech."
+          ],
+          "grammarConcepts": [
+            {
+              "title": "Polite requests",
+              "explanation": "Use \u201ckaranna puluwanda\u201d to ask if someone can do something politely.",
+              "examples": [
+                { "l1": "oba ka\u1e7fa\u00b7ranna puluwanda?", "gloss": "Can you please do it?" },
+                { "l1": "ma\u00b7t\u0115 di\u0115nna puluwanda?", "gloss": "Could you give it to me?" }
+              ]
+            },
+            {
+              "title": "Introducing others",
+              "explanation": "Link names with \u201coyaala\u201d and verbs like \u201cmeet\u201d for formal introductions.",
+              "examples": [
+                { "l1": "meyaa mage yaaluwaa.", "gloss": "This is my friend." },
+                { "l1": "meka oyaala hambennaa.", "gloss": "This is where you all meet." }
+              ]
+            }
+          ],
+          "cta": {
+            "text": "Continue Section 2",
+            "href": "#/section/2"
+          }
+        },
+        "3": {
+          "tagline": "Navigate travel and directions with confidence",
+          "summary": "Learn how to ask for locations, talk about transport, and use locative suffixes.",
+          "helpfulHints": [
+            "Add \u201c-ko\u201d to nouns to mean \u201cwhere is...?\u201d.",
+            "Use direction pairs like \u201cyatin/pit\u0115n\u201d (inside/outside).",
+            "Bus conductors appreciate short, clear sentences with place names first."
+          ],
+          "grammarConcepts": [
+            {
+              "title": "Locative suffixes",
+              "explanation": "Attach \u201ci\u201d or \u201ce\u201d endings to show location or direction.",
+              "examples": [
+                { "l1": "kol\u1e87mb\u1e87\u0115 dii?", "gloss": "At Colombo where?" },
+                { "l1": "bus\u0115 ka\u1e7fa iguruwala-ta yanaw\u00e1.", "gloss": "The bus is going to Gampaha." }
+              ]
+            },
+            {
+              "title": "Giving directions",
+              "explanation": "Combine verbs like \u201cyanna\u201d (go) with direction words to steer listeners.",
+              "examples": [
+                { "l1": "dekak idaata yanna.", "gloss": "Go two spaces forward." },
+                { "l1": "dakku\u1e7da pit\u0115n innawa.", "gloss": "It is outside on the right." }
+              ]
+            }
+          ],
+          "cta": {
+            "text": "Preview Section 3",
+            "href": "#/section/3"
+          }
+        }
+      }
+    </script>
     <script src="./app.js" defer></script>
     <script src="./app.learn.js" defer></script>
   </body>
