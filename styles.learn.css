@@ -203,6 +203,14 @@
   box-sizing: border-box;
 }
 
+/* Mobile-only override */
+@media (max-width: 700px) {
+  .section-overview {
+    padding: clamp(18px, 5vw, 26px); /* more breathing room */
+    max-width: 100%;                /* let it stretch wider */
+  }
+}
+
 .overview-header {
   display: flex;
   align-items: center;
