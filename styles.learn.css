@@ -30,7 +30,7 @@
 .section-card__left {
   flex: 1 1 auto;
   position: relative;
-  min-height: 180px;
+  in-height: 180px;
   min-width: 0;
 }
 
@@ -55,8 +55,7 @@
   width: 100%;
   aspect-ratio: 1 / 1;
   display: grid;
-  place-items: end centre;
-  transform: translateY(70px); /* move mascot down */
+  place-items: end center;
 }
 
 .character__img {
@@ -71,9 +70,9 @@
 /* ============ Speech bubble ============ */
 .speech-bubble {
   position: absolute;
-  right: -10%;
   bottom: 100%;
-  transform: translateY(-15px);
+  left: 50%;
+  transform: translate(-50%, -8px);
 
   display: inline-block;
   width: max-content;
@@ -98,12 +97,13 @@
   content: "";
   position: absolute;
   top: 100%;
-  right: 22px;
+  left: 50%;
   width: 0;
   height: 0;
   border-left: 10px solid transparent;
-border-right: 10px solid transparent;
- border-top: 10px solid #1a6460;
+  border-right: 10px solid transparent;
+  border-top: 10px solid #1a6460;
+  transform: translateX(-50%);
   filter: drop-shadow(0 2px 2px rgba(0,0,0,.25));
 }
 
