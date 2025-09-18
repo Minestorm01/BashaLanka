@@ -58,7 +58,7 @@
   left: 0;
   width: 100%;
   height: auto;
-  margin-top: 0;
+ margin-top: 0;
 }
 
 /* ============ Speech bubble ============ */
@@ -81,6 +81,10 @@
   padding: clamp(8px, 1.8vw, 12px) clamp(10px, 2.2vw, 14px);
   box-shadow: 0 6px 14px rgba(0,0,0,.25);
   z-index: 2;
+}
+
+.section-page .speech-bubble {
+  display: none;
 }
 
 .speech-bubble::after {
