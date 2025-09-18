@@ -1,0 +1,78 @@
+{
+  "course_id": "sinhala-v1",
+  "sections": [
+    {
+      "id": "section-01-introductions",
+      "title": "Introductions & Essentials",
+      "cefr": "A1",
+      "unit_count": 5,
+      "units": [
+        {
+          "id": "unit-01-pronouns-greetings",
+          "title": "Pronouns & Basic Greetings",
+          "path_ref": "sections/section-01-introductions/units/unit-01-pronouns-greetings",
+          "status": "ready"
+        },
+        {
+          "id": "unit-02-introducing-yourself",
+          "title": "Introducing Yourself",
+          "path_ref": "sections/section-01-introductions/units/unit-02-introducing-yourself",
+          "status": "ready"
+        },
+        {
+          "id": "unit-03-nationalities",
+          "title": "Nationalities",
+          "path_ref": "sections/section-01-introductions/units/unit-03-nationalities",
+          "status": "ready"
+        },
+        {
+          "id": "unit-04-age",
+          "title": "Age & Numbers",
+          "path_ref": "sections/section-01-introductions/units/unit-04-age",
+          "status": "ready"
+        },
+        {
+          "id": "unit-05-languages",
+          "title": "Languages You Speak",
+          "path_ref": "sections/section-01-introductions/units/unit-05-languages",
+          "status": "ready"
+        }
+      ]
+    },
+    {
+      "id": "section-02",
+      "title": "TBD",
+      "unit_count": 0,
+      "units": [],
+      "status": "template-ready"
+    },
+    {
+      "id": "section-03",
+      "title": "TBD",
+      "unit_count": 0,
+      "units": [],
+      "status": "template-ready"
+    },
+    {
+      "id": "section-04",
+      "title": "TBD",
+      "unit_count": 0,
+      "units": [],
+      "status": "template-ready"
+    },
+    {
+      "id": "section-05",
+      "title": "TBD",
+      "unit_count": 0,
+      "units": [],
+      "status": "template-ready"
+    },
+    {
+      "id": "section-06",
+      "title": "TBD",
+      "unit_count": 0,
+      "units": [],
+      "status": "template-ready"
+    }
+  ]
+}
