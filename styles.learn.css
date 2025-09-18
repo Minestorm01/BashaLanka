@@ -61,7 +61,7 @@
   aspect-ratio: 1 / 1;
   display: grid;
   place-items: end center; /* make sure it's "center" (US spelling) */
-  transform: none;
+  transform: translateY(12px);
 }
 
 .character__img {
