@@ -63,7 +63,7 @@
   place-items: end center;
 
   /* Desktop default */
-  transform: translateY(75);
+  transform: translateY(75px);
 }
 
 /* Override for smaller screens */
