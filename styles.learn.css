@@ -203,20 +203,6 @@
   box-sizing: border-box;
 }
 
-/* Mobile-only */
-@media (max-width: 700px) {
-  /* How much extra width to the right (in px) */
-  .section-card { --ov-push-right: 70px; } /* adjust this number */
-
-  /* Grow the panel to the right while keeping the left edge fixed */
-  .section-card .section-overview {
-    width: calc(100% + var(--ov-push-right));
-    margin-right: calc(-1 * var(--ov-push-right));
-    /* Safety: don't exceed the card's inner width (respects card padding) */
-    max-width: calc(100% + var(--section-card-padding-inline));
-  }
-}
-
 .overview-header {
   display: flex;
   align-items: center;
