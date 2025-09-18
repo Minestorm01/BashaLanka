@@ -3,6 +3,12 @@
   if(!container) return;
 
   const SECTION_ROOT = 'assets/sections';
+  const OVERVIEW_TRANSITION_MS = 320;
+  const overviewData = readOverviewData();
+  const overviewState = {
+    activePanel: null,
+    activeTrigger: null
+  };
   let sections = [];
   let loadingPromise = null;
 
@@ -88,7 +94,7 @@
         if(!res.ok){
           if(index === 1) console.warn(`No section data found at ${path}`);
           break;
-        }
+ }
         const data = await res.json();
         found.push(normalizeSection(data));
       }catch(err){
@@ -113,6 +119,7 @@
     const cards = sections.map(sec => sectionCard(sec)).join('');
     const listMarkup = cards || '<p class="unit-path__empty">No sections available yet.</p>';
     container.innerHTML = `<div class="learn-wrap"><div class="sections-list">${listMarkup}</div><aside class="learn-rail hide-mobile"><h3>Coming soon</h3></aside></div>`;
+    setupSectionOverviews();
   }
 
   function sectionCard(sec){
@@ -121,16 +128,25 @@
     const trophy = trophySrc(sec.progress);
     const note = locked ? '<small class="locked-note">Finish previous to unlock</small>' : '';
     const btnLabel = locked ? 'Locked' : sec.cta;
-    return `<article class="section-card"><div class="section-card__left">
-      <button class="btn-details" data-id="${sec.number}">see details</button>
-      <h3>${sec.title}</h3>
+    const sectionId = String(sec.number);
+    const subtitle = getSectionSubtitle(sectionId, sec);
+    const titleId = `section-${sectionId}-title`;
+    const detailsHref = `/sections/${sectionId}`;
+    return `<article class="section-card" data-section-id="${sectionId}"><div class="section-card__left">
+      <div class="section-card__header">
+        <h2 class="section-title" id="${titleId}">${sec.title}</h2>
+        ${subtitle ? `<p class="section-subtitle">${subtitle}</p>` : ''}
+      </div>
       <div class="progress" role="progressbar" aria-valuemin="0" aria-valuemax="${sec.lessonsTotal}" aria-valuenow="${sec.lessonsDone}">
         <div class="progress__fill" style="width:${pct}%"></div>
         <div class="progress__nums">${sec.lessonsDone} / ${sec.lessonsTotal}</div>
         <img class="progress__trophy" src="${trophy}" onerror="this.onerror=null;this.src='${trophy.replace('assets','assest')}'" alt="" />
       </div>
       ${note}
-      <button class="btn-continue" data-id="${sec.number}" ${locked?'disabled':''}>${btnLabel}</button>
+      <div class="section-card__actions">
+        <a class="see-details" href="${detailsHref}" aria-expanded="false">See details</a>
+        <button class="btn-continue" data-id="${sec.number}" ${locked?'disabled':''}>${btnLabel}</button>
+      </div>
     </div>
     <div class="section-card__img">
       <div class="character">
@@ -222,7 +238,7 @@
           <div class="progress" role="progressbar" aria-valuemin="0" aria-valuemax="${sec.lessonsTotal}" aria-valuenow="${sec.lessonsDone}">
             <div class="progress__fill" style="width:${pct}%"></div>
             <div class="progress__nums">${sec.lessonsDone} / ${sec.lessonsTotal}</div>
-            <img class="progress__trophy" src="${trophy}" onerror="this.onerror=null;this.src='${trophy.replace('assets','assest')}'" alt="" />
+          <img class="progress__trophy" src="${trophy}" onerror="this.onerror=null;this.src='${trophy.replace('assets','assest')}'" alt="" />
           </div>
         </div>
         <div class="section-page__mascot">
@@ -244,13 +260,6 @@
       const id = continueBtn.dataset.id;
       const sec = sections.find(s=>String(s.number) === String(id));
       if(sec && sec.status !== 'locked') location.hash = `#/section/${id}`;
-      return;
-    }
-
-    const detailBtn = e.target.closest('.btn-details');
-    if(detailBtn){
-      const id = detailBtn.dataset.id;
-      location.hash = `#/section/${id}`;
       return;
     }
 
@@ -291,4 +300,319 @@
     router();
     window.addEventListener('hashchange', router);
   });
+
+  function readOverviewData(){
+    const el = document.getElementById('sections-overview-data');
+    if(!el){
+      return {
+        '1': {
+          tagline: 'Start with essential phrases and simple grammar concepts',
+          summary: 'Focus on must-know phrases, SOV word order, and subject omission.',
+          helpfulHints: [
+            'Sinhala often drops “am/is/are” in simple present.',
+            'Question marker “dhȧ?” converts a statement into a question.',
+            'Use “gé” for possession with living things (e.g., oyaa-gé).'
+          ],
+          grammarConcepts: [
+            {
+              title: 'Word order (Sinhala)',
+              explanation: 'Verb typically comes at the end; “is/are/am” may be implied.',
+              examples: [
+                { l1: 'ma·mȧ hoňdhin in·nȧ·va.', gloss: 'I (am) fine.' },
+                { l1: 'o·yaa ka·thaa kȧ·rȧ·nȧ·va.', gloss: 'You speak / are speaking.' }
+              ]
+            },
+            {
+              title: 'Possession with “gé”',
+              explanation: 'Attach “gé” to people/animals for possession.',
+              examples: [
+                { l1: 'o·yaa·gé na·mȧ mo·kak·dhȧ?', gloss: 'Your name, what? → What’s your name?' },
+                { l1: 'ma·gé ra·tȧ Shree lan·kaa·vȧ.', gloss: 'My country, Sri Lanka.' }
+              ]
+            }
+          ],
+          cta: {
+            text: 'Start Section 1',
+            href: '#/section/1'
+          }
+        }
+      };
+    }
+    try{
+      return JSON.parse(el.textContent.trim());
+    }catch(err){
+      console.error('Failed to parse overview data', err);
+      return {};
+    }
+  }
+
+  function getSectionSubtitle(sectionId, sec){
+    const data = overviewData[sectionId];
+    if(data && data.tagline) return data.tagline;
+    if(sec.description) return sec.description;
+    return '';
+  }
+
+  function setupSectionOverviews(){
+    const cards = container.querySelectorAll('.section-card');
+    cards.forEach(card => initialiseOverview(card));
+  }
+
+  function initialiseOverview(card){
+    if(card.dataset.overviewBound === 'true') return;
+    const sectionId = card.getAttribute('data-section-id');
+    if(!sectionId) return;
+    const trigger = card.querySelector('.see-details');
+    if(!trigger) return;
+
+    const titleEl = card.querySelector('.section-title');
+    if(titleEl && !titleEl.id){
+      titleEl.id = `section-${sectionId}-title`;
+    }
+
+    const panelId = `section-overview-${sectionId}`;
+    const subtitleEl = card.querySelector('.section-subtitle');
+    let panel = card.querySelector(`#${panelId}`);
+    if(!panel){
+      panel = document.createElement('div');
+      panel.className = 'section-overview';
+      panel.id = panelId;
+      panel.hidden = true;
+      panel.setAttribute('aria-live', 'polite');
+      panel.setAttribute('aria-expanded', 'false');
+      panel.dataset.transitioning = 'false';
+      panel.style.maxHeight = '0px';
+      trigger.insertAdjacentElement('afterend', panel);
+    }
+
+    panel.setAttribute('role', 'region');
+    if(titleEl){
+      panel.setAttribute('aria-labelledby', titleEl.id);
+    }else{
+      panel.setAttribute('aria-label', `Section ${sectionId} overview`);
+    }
+
+    const subtitleText = subtitleEl ? subtitleEl.textContent.trim() : '';
+    renderOverviewPanel(panel, overviewData[sectionId], sectionId, titleEl, subtitleText);
+
+    trigger.setAttribute('aria-expanded', 'false');
+    trigger.setAttribute('aria-controls', panelId);
+
+    const handleToggle = event => {
+      event.preventDefault();
+      event.stopPropagation();
+      const isExpanded = panel.getAttribute('aria-expanded') === 'true';
+      if(isExpanded){
+        collapsePanel(panel, { focusTrigger: true });
+      }else{
+        expandPanel(panel, trigger);
+      }
+    };
+
+    trigger.addEventListener('click', handleToggle);
+    trigger.addEventListener('keydown', event => {
+      if(event.key === ' '){
+        event.preventDefault();
+        handleToggle(event);
+      }
+    });
+
+    panel.addEventListener('click', event => {
+      if(event.target.closest('.overview-close')){
+        event.preventDefault();
+        collapsePanel(panel, { focusTrigger: true });
+      }
+    });
+
+    panel.addEventListener('keydown', event => {
+      if(event.key === 'Escape'){
+        event.preventDefault();
+        collapsePanel(panel, { focusTrigger: true });
+      }
+    });
+
+    card.dataset.overviewBound = 'true';
+  }
+
+  function renderOverviewPanel(panel, sectionData = {}, sectionId, titleEl, subtitleText = ''){
+    const headingText = titleEl ? `${titleEl.textContent.trim()} overview` : `Section ${sectionId} overview`;
+    const headingId = `${panel.id}-heading`;
+    const safeHeading = escapeHtml(headingText);
+    const taglineText = sectionData && sectionData.tagline ? sectionData.tagline : subtitleText;
+    const tagline = taglineText ? `<p class="overview-tagline">${escapeHtml(taglineText)}</p>` : '';
+    const summary = sectionData && sectionData.summary ? `<p class="overview-summary">${escapeHtml(sectionData.summary)}</p>` : '';
+    const hints = Array.isArray(sectionData && sectionData.helpfulHints) ? sectionData.helpfulHints.slice(0) : [];
+    const concepts = Array.isArray(sectionData && sectionData.grammarConcepts) ? sectionData.grammarConcepts.slice(0) : [];
+    const hasContent = Boolean(summary || hints.length || concepts.length || (sectionData && sectionData.cta));
+    const hintsMarkup = hints.length ? `
+      <h4 class="overview-subheading">Helpful hints</h4>
+      <ul class="overview-hints">
+        ${hints.map(item => `<li>${escapeHtml(item)}</li>`).join('')}
+      </ul>
+    ` : '';
+
+    const conceptsMarkup = concepts.length ? `
+      <h4 class="overview-subheading">Grammar concepts</h4>
+      <div class="overview-concepts">
+        ${concepts.map(concept => renderConcept(concept)).join('')}
+      </div>
+    ` : '';
+
+    const ctaMarkup = sectionData && sectionData.cta && sectionData.cta.href && sectionData.cta.text
+      ? `<p class="overview-cta"><a class="btn-primary" href="${escapeAttribute(sectionData.cta.href)}">${escapeHtml(sectionData.cta.text)}</a></p>`
+      : '';
+
+    const placeholder = hasContent ? '' : '<p class="overview-placeholder">Overview coming soon.</p>';
+
+    panel.innerHTML = `
+      <div class="overview-header">
+        <h3 class="overview-heading" id="${headingId}">${safeHeading}</h3>
+        <button type="button" class="overview-close" aria-label="Close overview for ${escapeAttribute(titleEl ? titleEl.textContent.trim() : `Section ${sectionId}`)}">×</button>
+      </div>
+      ${tagline || ''}
+      ${summary || ''}
+      ${hintsMarkup}
+      ${conceptsMarkup}
+      ${ctaMarkup}
+      ${placeholder}
+    `;
+
+    panel.setAttribute('aria-expanded', 'false');
+    panel.hidden = true;
+
+    panel.dataset.sectionId = sectionId;
+  }
+
+  function renderConcept(concept){
+    const title = concept && concept.title ? escapeHtml(concept.title) : '';
+    const explanation = concept && concept.explanation ? `<p>${escapeHtml(concept.explanation)}</p>` : '';
+    const examples = Array.isArray(concept && concept.examples) ? concept.examples.slice(0, 2) : [];
+    const examplesMarkup = examples.length ? `
+      <div class="overview-examples">
+        ${examples.map(example => renderExample(example)).join('')}
+      </div>
+    ` : '';
+    return `
+      <section class="overview-concept">
+        ${title ? `<h5>${title}</h5>` : ''}
+        ${explanation}
+        ${examplesMarkup}
+      </section>
+    `;
+  }
+
+  function renderExample(example){
+    const l1 = example && example.l1 ? escapeHtml(example.l1) : '';
+    const gloss = example && example.gloss ? escapeHtml(example.gloss) : '';
+    return `
+      <div class="overview-example">
+        ${l1 ? `<span class="example-l1">${l1}</span>` : ''}
+        ${gloss ? `<span class="example-gloss">${gloss}</span>` : ''}
+      </div>
+    `;
+  }
+
+  function escapeHtml(value){
+    return String(value || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  function escapeAttribute(value){
+    return escapeHtml(value).replace(/`/g, '&#96;');
+  }
+
+  function expandPanel(panel, trigger){
+    if(!panel || panel.dataset.transitioning === 'true') return;
+    closeAll(panel);
+    panel.hidden = false;
+    panel.dataset.transitioning = 'true';
+    panel.setAttribute('aria-expanded', 'true');
+    if(trigger){
+      trigger.setAttribute('aria-expanded', 'true');
+    }
+    panel.style.maxHeight = '0px';
+    requestAnimationFrame(() => {
+      panel.style.maxHeight = `${panel.scrollHeight}px`;
+    });
+    onPanelTransition(panel, () => {
+      panel.dataset.transitioning = 'false';
+      panel.style.maxHeight = `${panel.scrollHeight}px`;
+      focusPanelHeading(panel);
+      overviewState.activePanel = panel;
+      overviewState.activeTrigger = trigger || null;
+    });
+  }
+
+  function collapsePanel(panel, { focusTrigger = false } = {}){
+    if(!panel || panel.dataset.transitioning === 'true') return;
+    const trigger = panel.closest('.section-card')?.querySelector('.see-details');
+    panel.dataset.transitioning = 'true';
+    panel.setAttribute('aria-expanded', 'false');
+    if(trigger){
+      trigger.setAttribute('aria-expanded', 'false');
+    }
+    panel.style.maxHeight = `${panel.scrollHeight}px`;
+    requestAnimationFrame(() => {
+      panel.style.maxHeight = '0px';
+    });
+    onPanelTransition(panel, () => {
+      panel.hidden = true;
+      panel.dataset.transitioning = 'false';
+      if(overviewState.activePanel === panel){
+        overviewState.activePanel = null;
+        overviewState.activeTrigger = null;
+      }
+      if(focusTrigger && trigger){
+        trigger.focus();
+      }
+    });
+  }
+
+  function closeAll(except){
+    container.querySelectorAll('.section-overview[aria-expanded="true"]').forEach(panel => {
+      if(panel !== except){
+        collapsePanel(panel);
+      }
+    });
+  }
+
+  function focusPanelHeading(panel){
+    const heading = panel.querySelector('.overview-heading');
+    if(!heading) return;
+    heading.setAttribute('tabindex', '-1');
+    heading.focus({ preventScroll: true });
+    const removeTabIndex = () => {
+      heading.removeAttribute('tabindex');
+      heading.removeEventListener('blur', removeTabIndex);
+    };
+    heading.addEventListener('blur', removeTabIndex);
+  }
+
+  function onPanelTransition(panel, callback){
+    const styles = window.getComputedStyle(panel);
+    const duration = parseFloat(styles.transitionDuration || '0') + parseFloat(styles.transitionDelay || '0');
+    if(!duration){
+      callback();
+      return;
+    }
+    let settled = false;
+    const handle = event => {
+      if(event.target === panel && event.propertyName === 'max-height'){
+        settled = true;
+        panel.removeEventListener('transitionend', handle);
+        callback();
+      }
+    };
+    panel.addEventListener('transitionend', handle);
+    window.setTimeout(() => {
+      if(!settled){
+        panel.removeEventListener('transitionend', handle);
+        callback();
+      }
+    }, OVERVIEW_TRANSITION_MS + 50);
+  }
 })();
