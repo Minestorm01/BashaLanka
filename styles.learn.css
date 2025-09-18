@@ -35,7 +35,7 @@
 .section-card__left {
   flex: 1 1 auto;
   position: relative;
-  in-height: 180px;
+  min-height: 180px;
   min-width: 0;
 }
 
