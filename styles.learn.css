@@ -395,7 +395,7 @@
 
   .section-overview {
     width: calc(100% + 20px);
-    margin-right: -20px;
+    margin-right: -50px;
     max-width: none;
   }
 }
