@@ -176,7 +176,7 @@
 
 .see-details::after {
   content: '▾';
-  font-size: 0.9em;
+ font-size: 0.9em;
   transition: transform 0.3s ease;
 }
 
@@ -201,6 +201,8 @@
   overflow: hidden;
   transition: max-height 0.3s ease;
   box-sizing: border-box;
+  grid-column: 1 / -1;
+  width: auto;
 }
 
 .overview-header {
@@ -365,7 +367,7 @@
     padding-inline: var(--mob-gutter);
     max-width: 100vw;
     box-sizing: border-box;
-  }
+ }
 
   .learn-wrap,
   .sections-list {
@@ -390,6 +392,12 @@
   .speech-bubble {
     max-width: min(46ch, 94vw);
   }
+
+  .section-overview {
+    width: calc(100% + 20px);
+    margin-right: -20px;
+    max-width: none;
+  }
 }
 
 @media (max-width: 480px) {
@@ -406,6 +414,8 @@
   border: 1px solid #1e2b3b;
   border-radius: 12px;
   overflow: hidden;
+  max-width: 100%;
+  margin-inline: 0;
 }
 
 .progress__fill {
