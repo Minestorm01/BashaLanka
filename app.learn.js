@@ -433,7 +433,7 @@
   }
 
   async function router(){
-    await ensureSections();
+ await ensureSections();
     const hash = location.hash || '#/learn';
     const m = hash.match(/^#\/section\/(\d+)/);
     if(m){
@@ -458,24 +458,24 @@
           summary: 'Focus on must-know phrases, SOV word order, and subject omission.',
           helpfulHints: [
             'Sinhala often drops “am/is/are” in simple present.',
-            'Question marker “dhȧ?” converts a statement into a question.',
-            'Use “gé” for possession with living things (e.g., oyaa-gé).'
+            'The question marker “da” (ද) turns a statement into a question.',
+            'Use “-gé” (ගේ) for possession with people and animals.'
           ],
           grammarConcepts: [
             {
               title: 'Word order (Sinhala)',
               explanation: 'Verb typically comes at the end; “is/are/am” may be implied.',
               examples: [
-                { l1: 'ma·mȧ hoňdhin in·nȧ·va.', gloss: 'I (am) fine.' },
-                { l1: 'o·yaa ka·thaa kȧ·rȧ·nȧ·va.', gloss: 'You speak / are speaking.' }
+                { l1: 'මම හොඳින් ඉන්නවා. — mama hondin innavā.', gloss: 'I (am) fine.' },
+                { l1: 'ඔයා කතා කරනවා. — oyā kathā karanavā.', gloss: 'You speak / are speaking.' }
               ]
             },
             {
-              title: 'Possession with “gé”',
-              explanation: 'Attach “gé” to people/animals for possession.',
+              title: 'Possession with “-gé”',
+              explanation: 'Attach “-gé” to people/animals for possession.',
               examples: [
-                { l1: 'o·yaa·gé na·mȧ mo·kak·dhȧ?', gloss: 'Your name, what? → What’s your name?' },
-                { l1: 'ma·gé ra·tȧ Shree lan·kaa·vȧ.', gloss: 'My country, Sri Lanka.' }
+                { l1: 'ඔයාගේ නම මොකක්ද? — oyāgé nama mokakda?', gloss: 'Your name, what? → What’s your name?' },
+                { l1: 'මගේ රට ශ්‍රී ලංකාව. — magé raṭa Śrī Lankāva.', gloss: 'My country, Sri Lanka.' }
               ]
             }
           ],
