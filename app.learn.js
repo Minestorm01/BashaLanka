@@ -122,30 +122,12 @@
     setupSectionOverviews();
   }
 
-  function renderSectionButton(section){
-    const sectionId = section.id;
-    const progress = section.progress || 0;
-
-    if(progress === 0){
-      return `
-        <a class="btn-primary" href="#/section/${sectionId}">
-          Start Section ${sectionId}
-        </a>
-      `;
-    }
-
-    return `
-      <button class="btn-primary" data-id="${sectionId}">
-        Continue
-      </button>
-    `;
-  }
-
   function sectionCard(sec){
     const pct = Math.round(sec.progress * 100);
     const locked = sec.status === 'locked';
     const trophy = trophySrc(sec.progress);
     const note = locked ? '<small class="locked-note">Finish previous to unlock</small>' : '';
+    const btnLabel = locked ? 'Locked' : sec.cta;
     const sectionId = String(sec.number);
     const subtitle = getSectionSubtitle(sectionId, sec);
     const titleId = `section-${sectionId}-title`;
@@ -163,7 +145,7 @@
       ${note}
       <div class="section-card__actions">
         <a class="see-details" href="${detailsHref}" aria-expanded="false">See details</a>
-        ${renderSectionButton(sec)}
+        <button class="btn-continue" data-id="${sec.number}" ${locked?'disabled':''}>${btnLabel}</button>
       </div>
     </div>
     <div class="section-card__img">
