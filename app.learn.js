@@ -230,7 +230,7 @@
       : '<p class="unit-path__empty">No units available yet.</p>';
 
     container.innerHTML = `<div class="section-page">
-      <button class="btn-back" data-action="back">← Back</button>
+   <button class="btn-back" data-action="back">← Back</button>
       <div class="section-page__hero">
         <div class="section-page__info">
           <h2>${sec.title}</h2>
@@ -255,7 +255,7 @@
   }
 
   function handleClick(e){
-    const continueBtn = e.target.closest('.btn-continue');
+    const continueBtn = e.target.closest('.btn-continue, .overview-cta .btn-primary');
     if(continueBtn){
       const id = continueBtn.dataset.id;
       const sec = sections.find(s=>String(s.number) === String(id));
@@ -458,8 +458,10 @@
       </div>
     ` : '';
 
-    const ctaMarkup = sectionData && sectionData.cta && sectionData.cta.href && sectionData.cta.text
-      ? `<p class="overview-cta"><a class="btn-primary" href="${escapeAttribute(sectionData.cta.href)}">${escapeHtml(sectionData.cta.text)}</a></p>`
+    const sectionInfo = sections.find(sec => String(sec.number) === String(sectionId));
+    const canShowCTA = sectionInfo && sectionInfo.status !== 'locked';
+    const ctaMarkup = canShowCTA
+      ? '<div class="overview-cta"></div>'
       : '';
 
     const placeholder = hasContent ? '' : '<p class="overview-placeholder">Overview coming soon.</p>';
@@ -481,6 +483,36 @@
     panel.hidden = true;
 
     panel.dataset.sectionId = sectionId;
+
+    if(canShowCTA){
+      updateCTA(sectionInfo.number, sectionInfo.progress, sectionInfo.lessonsDone);
+    }
+  }
+
+  function updateCTA(sectionId, progress, completedLessons){
+    const card = container.querySelector(`.section-card[data-section-id="${sectionId}"]`);
+    if(!card) return;
+
+    const ctaContainer = card.querySelector('.overview-cta');
+    if(!ctaContainer) return;
+
+    ctaContainer.innerHTML = '';
+
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.setAttribute('data-id', sectionId);
+
+    const hasProgress = progress > 0 || (completedLessons || 0) > 0;
+
+    if(!hasProgress){
+      button.className = 'btn-primary';
+      button.textContent = `Start Section ${sectionId}`;
+    }else{
+      button.className = 'btn-continue';
+      button.textContent = 'Continue';
+    }
+
+    ctaContainer.appendChild(button);
   }
 
   function renderConcept(concept){
