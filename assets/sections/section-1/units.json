@@ -9,36 +9,95 @@
   "description": "Foundational Sinhala for everyday greetings and getting around.",
   "units": [
     {
-      "id": "unit-1",
-      "title": "Order Food",
+      "id": "s1u1",
+      "number": 1,
+      "title": "Greetings 1",
       "status": "unlocked",
-      "icon": "🍛",
       "lessons": [
-        { "id": "lesson-1", "title": "Greetings", "status": "unlocked" },
-        { "id": "lesson-2", "title": "Polite Phrases", "status": "locked" },
-        { "id": "lesson-3", "title": "Ordering Basics", "status": "locked" }
+        { "id": "lesson-01", "title": "Pronouns + key words", "status": "unlocked" },
+        { "id": "lesson-02", "title": "Ask “How are you?”", "status": "locked" },
+        { "id": "lesson-03", "title": "Answers + formal greeting", "status": "locked" },
+        { "id": "lesson-04", "title": "Unit Review", "type": "review", "status": "locked" }
       ]
     },
     {
-      "id": "unit-2",
-      "title": "Describe People",
+      "id": "s1u2",
+      "number": 2,
+      "title": "Yes/No & ‘Am’ Forms",
       "status": "locked",
-      "icon": "🧑",
       "lessons": [
-        { "id": "lesson-1", "title": "Family", "status": "locked" },
-        { "id": "lesson-2", "title": "Appearance", "status": "locked" },
-        { "id": "lesson-3", "title": "Personality", "status": "locked" }
+        { "id": "lesson-01", "title": "Lesson 1" },
+        { "id": "lesson-02", "title": "Lesson 2" },
+        { "id": "lesson-03", "title": "Unit Review", "type": "review" }
       ]
     },
     {
-      "id": "unit-3",
-      "title": "Directions",
+      "id": "s1u3",
+      "number": 3,
+      "title": "Introduce Yourself",
       "status": "locked",
-      "icon": "🧭",
       "lessons": [
-        { "id": "lesson-1", "title": "Landmarks", "status": "locked" },
-        { "id": "lesson-2", "title": "Transport", "status": "locked" },
-        { "id": "lesson-3", "title": "Small Talk", "status": "locked" }
+        { "id": "lesson-01", "title": "Lesson 1" },
+        { "id": "lesson-02", "title": "Lesson 2" },
+        { "id": "lesson-03", "title": "Unit Review", "type": "review" }
+      ]
+    },
+    {
+      "id": "s1u4",
+      "number": 4,
+      "title": "Pronouns 1",
+      "status": "locked",
+      "lessons": [
+        { "id": "lesson-01", "title": "Lesson 1" },
+        { "id": "lesson-02", "title": "Lesson 2" },
+        { "id": "lesson-03", "title": "Lesson 3" },
+        { "id": "lesson-04", "title": "Unit Review", "type": "review" }
+      ]
+    },
+    {
+      "id": "s1u5",
+      "number": 5,
+      "title": "Possessives",
+      "status": "locked",
+      "lessons": [
+        { "id": "lesson-01", "title": "Lesson 1" },
+        { "id": "lesson-02", "title": "Lesson 2" },
+        { "id": "lesson-03", "title": "Unit Review", "type": "review" }
+      ]
+    },
+    {
+      "id": "s1u6",
+      "number": 6,
+      "title": "Script Basics A",
+      "status": "locked",
+      "lessons": [
+        { "id": "lesson-01", "title": "Lesson 1" },
+        { "id": "lesson-02", "title": "Lesson 2" },
+        { "id": "lesson-03", "title": "Lesson 3" },
+        { "id": "lesson-04", "title": "Unit Review", "type": "review" }
+      ]
+    },
+    {
+      "id": "s1u7",
+      "number": 7,
+      "title": "Question Words",
+      "status": "locked",
+      "lessons": [
+        { "id": "lesson-01", "title": "Lesson 1" },
+        { "id": "lesson-02", "title": "Lesson 2" },
+        { "id": "lesson-03", "title": "Unit Review", "type": "review" }
+      ]
+    },
+    {
+      "id": "s1u8",
+      "number": 8,
+      "title": "Core Verbs (Present)",
+      "status": "locked",
+      "lessons": [
+        { "id": "lesson-01", "title": "Lesson 1" },
+        { "id": "lesson-02", "title": "Lesson 2" },
+        { "id": "lesson-03", "title": "Lesson 3" },
+        { "id": "lesson-04", "title": "Unit Review", "type": "review" }
       ]
     }
   ]
