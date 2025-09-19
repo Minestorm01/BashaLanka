@@ -147,9 +147,11 @@
         <h2 class="section-title" id="${titleId}">${sec.title}</h2>
         ${subtitle ? `<p class="section-subtitle">${subtitle}</p>` : ''}
       </div>
-      <div class="progress" role="progressbar" aria-valuemin="0" aria-valuemax="${sec.lessonsTotal}" aria-valuenow="${sec.lessonsDone}">
-        <div class="progress__fill" style="width:${pct}%"></div>
-        <div class="progress__nums">${sec.lessonsDone} / ${sec.lessonsTotal}</div>
+      <div class="progress-row">
+        <div class="progress" role="progressbar" aria-valuemin="0" aria-valuemax="${sec.lessonsTotal}" aria-valuenow="${sec.lessonsDone}">
+          <div class="progress__fill" style="width:${pct}%"></div>
+          <div class="progress__nums">${sec.lessonsDone} / ${sec.lessonsTotal}</div>
+        </div>
         <img class="progress__trophy" src="${trophy}" onerror="this.onerror=null;this.src='${trophy.replace('assets','assest')}'" alt="" />
       </div>
       ${note}
@@ -245,10 +247,12 @@
         <div class="section-page__info">
           <h2>${sec.title}</h2>
           ${sec.description ? `<p class="section-page__description">${sec.description}</p>` : ''}
-          <div class="progress" role="progressbar" aria-valuemin="0" aria-valuemax="${sec.lessonsTotal}" aria-valuenow="${sec.lessonsDone}">
-            <div class="progress__fill" style="width:${pct}%"></div>
-            <div class="progress__nums">${sec.lessonsDone} / ${sec.lessonsTotal}</div>
-          <img class="progress__trophy" src="${trophy}" onerror="this.onerror=null;this.src='${trophy.replace('assets','assest')}'" alt="" />
+          <div class="progress-row">
+            <div class="progress" role="progressbar" aria-valuemin="0" aria-valuemax="${sec.lessonsTotal}" aria-valuenow="${sec.lessonsDone}">
+              <div class="progress__fill" style="width:${pct}%"></div>
+              <div class="progress__nums">${sec.lessonsDone} / ${sec.lessonsTotal}</div>
+            </div>
+            <img class="progress__trophy" src="${trophy}" onerror="this.onerror=null;this.src='${trophy.replace('assets','assest')}'" alt="" />
           </div>
         </div>
         <div class="section-page__mascot">

@@ -396,7 +396,7 @@
     max-width: min(46ch, 94vw);
   }
 
-  .section-overview {
+    .section-overview {
     width: calc(100% + 80px);
     margin-right: -100px;
     max-width: none;
@@ -421,6 +421,18 @@
   margin-inline: 0;
 }
 
+.progress-row {
+  --trophy-size: clamp(32px, 6vw, 48px);
+  display: flex;
+  align-items: center;
+  gap: clamp(4px, 1vw, 8px);
+}
+
+.progress-row .progress {
+  flex: 0 1 auto;
+  width: max(calc(100% - var(--trophy-size) - 30px), 120px);
+}
+
 .progress__fill {
   position: absolute;
   inset: 0 auto 0 0;
@@ -440,12 +452,9 @@
 }
 
 .progress__trophy {
-  position: absolute;
-  top: 50%;
-  right: 4px;
-  transform: translateY(-50%);
-  height: clamp(40px, 8vw, 60px);
-  width: clamp(40px, 8vw, 60px);
+  flex: 0 0 var(--trophy-size);
+  width: var(--trophy-size);
+  height: var(--trophy-size);
 }
 
 .btn-continue {
