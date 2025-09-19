@@ -11,7 +11,7 @@
   };
   let sections = [];
   let loadingPromise = null;
-  let sectionsLoadedEventSent = false;
+   let sectionsLoadedEventSent = false;
 
   function trophySrc(progress){
     const file = progress >= 1 ? 'trophy-gold_1.svg' : 'trophy-silver_1.svg';
@@ -177,26 +177,75 @@
     const assetRoot = 'assets/general';
     const mascotPath = `${assetRoot}/section${sectionNum}_unit_${unit.number}.svg`;
     const mascotFallback = `${assetRoot}/section1_unit_1.svg`;
-    const lessonsMarkup = (unit.lessons || []).map(lesson => {
-      const status = lesson.status || 'locked';
-      const src = status === 'completed'
-        ? `${assetRoot}/lesson_complete.svg`
-        : status === 'unlocked'
-          ? `${assetRoot}/start_lesson.svg`
-          : `${assetRoot}/lesson_locked.svg`;
-      const alt = status === 'completed'
-        ? 'Lesson completed'
-        : status === 'unlocked'
-          ? 'Start lesson'
-          : 'Locked lesson';
-      return `<button type="button" class="lesson lesson--${status}">
-      <img src="${src}" alt="${alt}" />
-    </button>`;
-    }).join('');
     const lessons = unit.lessons || [];
-    const hasLessons = lessons.length > 0;
-    const allComplete = hasLessons && lessons.every(lesson => lesson.status === 'completed');
+    const allComplete = lessons.length > 0 && lessons.every(lesson => lesson.status === 'completed');
     const rewardDefined = unit.reward === 'chest' || unit.chest === true || (unit.reward && unit.reward.type === 'chest');
+    const midpoint = lessons.length ? Math.ceil(lessons.length / 2) : 0;
+    const mascotSide = unit.number % 2 === 0 ? 'left' : 'right';
+    const rows = [];
+    const iconForStatus = status => {
+      switch(status){
+        case 'completed':
+        case 'complete':
+          return `${assetRoot}/lesson_complete.svg`;
+        case 'unlocked':
+        case 'start':
+          return `${assetRoot}/start_lesson.svg`;
+        default:
+          return `${assetRoot}/lesson_locked.svg`;
+      }
+    };
+    const altForStatus = status => {
+      switch(status){
+        case 'completed':
+        case 'complete':
+          return 'Lesson completed';
+        case 'unlocked':
+        case 'start':
+          return 'Start lesson';
+        default:
+          return 'Locked lesson';
+      }
+    };
+
+    lessons.forEach((lesson, index) => {
+      const status = lesson.status || 'locked';
+      const side = index % 2 === 0 ? 'left' : 'right';
+      rows.push(`
+        <div class="lesson-row lesson-row--${side} lesson-row--lesson">
+          <button type="button" class="lesson lesson--${status}">
+            <img src="${iconForStatus(status)}" alt="${altForStatus(status)}" />
+          </button>
+        </div>`);
+      if(index === midpoint - 1){
+        rows.push(`
+          <div class="lesson-row mascot lesson-row--${mascotSide}">
+            <img src="${mascotPath}" onerror="this.onerror=null;this.src='${mascotFallback}'" alt="Unit mascot" />
+          </div>`);
+      }
+    });
+
+    if(!lessons.length){
+      rows.push(`
+        <div class="lesson-row mascot lesson-row--${mascotSide}">
+          <img src="${mascotPath}" onerror="this.onerror=null;this.src='${mascotFallback}'" alt="Unit mascot" />
+        </div>`);
+    }
+
+    if(rewardDefined){
+      rows.push(`
+        <div class="lesson-row lesson-row--center chest">
+          <img src="${assetRoot}/path.svg" alt="Reward chest" />
+        </div>`);
+    }
+
+    if(allComplete){
+      rows.push(`
+        <div class="lesson-row lesson-row--center trophy">
+          <img src="${assetRoot}/trophy-gold_1.svg" alt="Trophy" />
+        </div>`);
+    }
+
     return `
     <section class="unit">
       <header class="unit-header">
@@ -204,18 +253,7 @@
       </header>
       <div class="unit-path">
         <div class="unit-connector"></div>
-        ${hasLessons ? `<div class="lesson-row">${lessonsMarkup}</div>` : ''}
-        <div class="lesson-row mascot">
-          <img src="${mascotPath}" onerror="this.onerror=null;this.src='${mascotFallback}'" alt="Mascot" />
-        </div>
-        ${rewardDefined ? `
-          <div class="lesson-row chest">
-            <img src="${assetRoot}/path.svg" alt="Reward chest" />
-          </div>` : ''}
-        ${allComplete ? `
-          <div class="lesson-row trophy">
-            <img src="${assetRoot}/trophy-gold_1.svg" alt="Trophy" />
-          </div>` : ''}
+        ${rows.join('')}
       </div>
     </section>`;
   }
