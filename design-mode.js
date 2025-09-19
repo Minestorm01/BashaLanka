@@ -652,39 +652,57 @@ const rect = state.selected.getBoundingClientRect();
     const parent = element.offsetParent || element.parentElement || document.body;
     const rect = parent.getBoundingClientRect();
     const isRoot = parent === document.body || parent === document.documentElement;
-    const widthCandidates = [];
-    const heightCandidates = [];
-    if (typeof rect.width === 'number' && !Number.isNaN(rect.width)) {
-      widthCandidates.push(rect.width);
-    }
-    if (typeof rect.height === 'number' && !Number.isNaN(rect.height)) {
-      heightCandidates.push(rect.height);
-    }
+    let width = rect.width;
+    let height = rect.height;
+
     if (isRoot) {
       if (document.documentElement) {
         const docWidth = document.documentElement.clientWidth;
         const docHeight = document.documentElement.clientHeight;
-        if (typeof docWidth === 'number' && !Number.isNaN(docWidth)) widthCandidates.push(docWidth);
-        if (typeof docHeight === 'number' && !Number.isNaN(docHeight)) heightCandidates.push(docHeight);
+        if (isFinite(docWidth) && docWidth > 0) width = docWidth;
+        if (isFinite(docHeight) && docHeight > 0) height = docHeight;
       }
       if (typeof window !== 'undefined') {
         const winWidth = window.innerWidth || 0;
         const winHeight = window.innerHeight || 0;
-        if (typeof winWidth === 'number' && !Number.isNaN(winWidth)) widthCandidates.push(winWidth);
-        if (typeof winHeight === 'number' && !Number.isNaN(winHeight)) heightCandidates.push(winHeight);
+        if (isFinite(winWidth) && winWidth > 0) width = winWidth;
+        if (isFinite(winHeight) && winHeight > 0) height = winHeight;
       }
     } else if (parent instanceof HTMLElement) {
       const clientWidth = parent.clientWidth;
       const clientHeight = parent.clientHeight;
-      const scrollWidth = parent.scrollWidth;
-      const scrollHeight = parent.scrollHeight;
-      if (typeof clientWidth === 'number' && !Number.isNaN(clientWidth)) widthCandidates.push(clientWidth);
-      if (typeof scrollWidth === 'number' && !Number.isNaN(scrollWidth)) widthCandidates.push(scrollWidth);
-      if (typeof clientHeight === 'number' && !Number.isNaN(clientHeight)) heightCandidates.push(clientHeight);
-      if (typeof scrollHeight === 'number' && !Number.isNaN(scrollHeight)) heightCandidates.push(scrollHeight);
+      const storedWidth = parseFloat(parent.dataset.designerBoundsWidth || '0');
+      const storedHeight = parseFloat(parent.dataset.designerBoundsHeight || '0');
+
+      if (isFinite(clientWidth) && clientWidth > 0) {
+        width = clientWidth;
+        if (!storedWidth || clientWidth > storedWidth) {
+          parent.dataset.designerBoundsWidth = String(clientWidth);
+        }
+      } else if (isFinite(storedWidth) && storedWidth > 0) {
+        width = storedWidth;
+      }
+
+      if (isFinite(clientHeight) && clientHeight > 0) {
+        height = clientHeight;
+        if (!storedHeight || clientHeight > storedHeight) {
+          parent.dataset.designerBoundsHeight = String(clientHeight);
+        }
+      } else if (isFinite(storedHeight) && storedHeight > 0) {
+        height = storedHeight;
+      }
+
+      if (!parent.dataset.designerBoundsWidth && width > 0) {
+        parent.dataset.designerBoundsWidth = String(width);
+      }
+      if (!parent.dataset.designerBoundsHeight && height > 0) {
+        parent.dataset.designerBoundsHeight = String(height);
+      }
     }
-    const width = widthCandidates.length ? Math.max(...widthCandidates) : rect.width;
-    const height = heightCandidates.length ? Math.max(...heightCandidates) : rect.height;
+
+    if (!isFinite(width) || width <= 0) width = rect.width;
+    if (!isFinite(height) || height <= 0) height = rect.height;
+
     return {
       left: rect.left,
       top: rect.top,
