@@ -15,7 +15,7 @@
       "icon": "🍛",
       "lessons": [
         { "id": "lesson-1", "title": "Greetings", "status": "unlocked" },
-        { "id": "lesson-2", "title": "Polite Phrases", "status": "unlocked" },
+        { "id": "lesson-2", "title": "Polite Phrases", "status": "locked" },
         { "id": "lesson-3", "title": "Ordering Basics", "status": "locked" }
       ]
     },
