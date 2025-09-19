@@ -19,6 +19,18 @@
     '[class*="unit-node"]'
   ];
 
+  const DATA_KEY_PRIORITY = [
+    'layoutKey',
+    'unit',
+    'lesson',
+    'id',
+    'key',
+    'slug',
+    'name'
+  ];
+
+  const DATA_KEY_IGNORE_PARTS = ['toggle', 'expanded', 'state', 'index', 'count', 'status', 'hidden'];
+
   const state = {
     active: false,
     map: {},
@@ -297,17 +309,136 @@
 
   function findDraggableElement(node){
     if (!(node instanceof Element)) return null;
-    return node.closest('[data-layout-key], .designer-draggable');
+    let current = node;
+    let candidate = null;
+
+    while (current && current !== document.body) {
+      const key = ensureKey(current);
+      if (key) {
+        candidate = current;
+        if (current.getAttribute('data-layout-key')) {
+          return current;
+        }
+      }
+      current = current.parentElement;
+    }
+
+    return candidate;
   }
 
   function ensureKey(element){
     let key = element.getAttribute('data-layout-key');
-    if (!key) {
-      key = prompt('Enter a unique layout key for this element');
-      if (!key) return null;
-      element.setAttribute('data-layout-key', key);
+    if (key) return key;
+    if (!element.classList || !element.classList.contains('designer-draggable')) return null;
+    const derived = deriveAutoKey(element);
+    if (!derived) return null;
+    element.setAttribute('data-layout-key', derived);
+    return derived;
+  }
+
+  function deriveAutoKey(element){
+    const dataset = element.dataset || {};
+
+    for (const attr of DATA_KEY_PRIORITY) {
+      if (Object.prototype.hasOwnProperty.call(dataset, attr)) {
+        const value = dataset[attr];
+        if (isMeaningfulDataValue(attr, value)) {
+          const key = formatLayoutKey(attr, value);
+          if (key) return key;
+        }
+      }
     }
-    return key;
+
+    for (const attr of Object.keys(dataset)) {
+      if (DATA_KEY_PRIORITY.includes(attr)) continue;
+      const value = dataset[attr];
+      if (isMeaningfulDataValue(attr, value)) {
+        const key = formatLayoutKey(attr, value);
+        if (key) return key;
+      }
+    }
+
+    const id = element.id && element.id.trim();
+    if (id) {
+      const key = formatLayoutKey('id', id);
+      if (key) return key;
+    }
+
+    const nameAttr = element.getAttribute && element.getAttribute('name');
+    if (nameAttr && nameAttr.trim()) {
+      const key = formatLayoutKey('name', nameAttr);
+      if (key) return key;
+    }
+
+    const ariaLabel = element.getAttribute && element.getAttribute('aria-label');
+    if (ariaLabel && ariaLabel.trim()) {
+      const key = formatLayoutKey('aria', ariaLabel);
+      if (key) return key;
+    }
+
+    const pathKey = buildDomPathKey(element);
+    if (pathKey) {
+      return `path:${pathKey}`;
+    }
+
+    return null;
+  }
+
+  function formatLayoutKey(source, rawValue){
+    const sanitized = sanitizeKey(rawValue);
+    if (!sanitized) return null;
+    return `${source}:${sanitized}`;
+  }
+
+  function sanitizeKey(value){
+    return String(value)
+      .trim()
+      .replace(/\s+/g, '-')
+      .replace(/[^a-zA-Z0-9._:-]/g, '')
+      .replace(/-+/g, '-');
+  }
+
+  function isMeaningfulDataValue(key, value){
+    if (value === undefined || value === null) return false;
+    const trimmed = String(value).trim();
+    if (!trimmed) return false;
+    const lowerKey = key.toLowerCase();
+    if (DATA_KEY_IGNORE_PARTS.some(part => lowerKey.includes(part))) {
+      return false;
+    }
+    return true;
+  }
+
+  function buildDomPathKey(element){
+    const parts = [];
+    let current = element;
+
+    while (current && current !== document.body) {
+      const tag = current.tagName && current.tagName.toLowerCase();
+      if (!tag) break;
+      let part = tag;
+
+      if (current.id) {
+        part += `#${sanitizeKey(current.id)}`;
+        parts.unshift(part);
+        break;
+      }
+
+      const parent = current.parentElement;
+      if (parent) {
+        let index = 1;
+        let sibling = current;
+        while ((sibling = sibling.previousElementSibling)) {
+          if (sibling.tagName === current.tagName) index++;
+        }
+        part += `:${index}`;
+      }
+
+      parts.unshift(part);
+      current = current.parentElement;
+    }
+
+    return parts.join('.');
   }
 
   function selectElement(element){
