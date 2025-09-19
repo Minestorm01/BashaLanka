@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Paw prints along a path (demo)</title>
+<style>
+  body { margin: 0; background:#0b3e3e; display:grid; place-items:center; height:100svh; }
+  svg { width: min(100vw, 900px); height: min(90vh, 700px); display:block; }
+  .path { fill: none; stroke: #78d3d3; stroke-width: 10; stroke-linecap: round; opacity:.25; }
+  .print { pointer-events:none; }
+  .handles { fill:#ffd166; stroke:#00000044; stroke-width:2; cursor:grab }
+</style>
+</head>
+<body>
+<svg viewBox="0 0 900 700" id="scene" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <symbol id="paw" viewBox="0 0 80 80">
+      <image id="paw-image" data-srcs="../assets/general/learn/lessons/start_lesson.svg|../assets/general/start_lesson.svg|../assets/learn/lessons/start_lesson.svg" width="80" height="80" />
+    </symbol>
+  </defs>
+  <path id="trail" class="path" d="M 120,580 C 260,420 420,560 520,420 S 760,220 780,120" />
+  <g id="prints"></g>
+</svg>
+<script>
+function drawFootprints(pathEl, outGroup, opts = {}) {
+  const { spacing=80, sideOffset=20, startAt=0, pawSize={w:36,h:36}, jitter=4 } = opts;
+  while (outGroup.firstChild) outGroup.removeChild(outGroup.firstChild);
+  const total = pathEl.getTotalLength(); if (total <= 0) return;
+  const EPS = 0.01;
+  function tangentAt(len) {
+    const p1 = pathEl.getPointAtLength(Math.max(0, Math.min(total, len - EPS)));
+    const p2 = pathEl.getPointAtLength(Math.max(0, Math.min(total, len + EPS)));
+    const dx = p2.x - p1.x, dy = p2.y - p1.y;
+    const angle = Math.atan2(dy, dx);
+    const nx = -Math.sin(angle), ny = Math.cos(angle);
+    return { angle, nx, ny, x: p2.x, y: p2.y };
+  }
+  let side = -1;
+  for (let d = startAt; d <= total; d += spacing) {
+    const { angle, nx, ny, x, y } = tangentAt(d);
+    side *= -1;
+    const ox = x + nx * side * sideOffset;
+    const oy = y + ny * side * sideOffset;
+    const deg = angle * 180 / Math.PI + (Math.random() * jitter * 2 - jitter);
+    const use = document.createElementNS('http://www.w3.org/2000/svg', 'use');
+    use.setAttributeNS('http://www.w3.org/1999/xlink', 'href', '#paw');
+    use.setAttribute('class', 'print');
+    use.setAttribute('width', pawSize.w); use.setAttribute('height', pawSize.h);
+    use.setAttribute('transform', `translate(${ox},${oy}) rotate(${deg}) translate(${-pawSize.w/2},${-pawSize.h/2})`);
+    outGroup.appendChild(use);
+  }
+}
+function applySvgImageFallback(imageEl){
+  if(!imageEl) return;
+  const srcs = (imageEl.getAttribute('data-srcs') || '').split('|').map(s => s.trim()).filter(Boolean);
+  if(!srcs.length) return;
+  const attemptNext = () => {
+    if(!srcs.length){
+      imageEl.removeEventListener('error', attemptNext);
+      return;
+    }
+    const next = srcs.shift();
+    if(!next) return;
+    imageEl.setAttribute('href', next);
+    imageEl.setAttributeNS('http://www.w3.org/1999/xlink', 'href', next);
+  };
+  imageEl.addEventListener('error', attemptNext);
+  attemptNext();
+}
+
+const pathEl = document.getElementById('trail');
+const outGroup = document.getElementById('prints');
+applySvgImageFallback(document.getElementById('paw-image'));
+drawFootprints(pathEl, outGroup, { spacing: 90, sideOffset: 26, startAt: 10, pawSize: { w: 40, h: 40 }, jitter: 2 });
+</script>
+</body>
+</html>
