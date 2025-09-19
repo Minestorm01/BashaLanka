@@ -36,7 +36,7 @@
     return { total, completed, unlocked };
   }
 
-  function normalizeUnit(unit){
+  function normalizeUnit(unit, index){
     const lessons = (unit.lessons || []).map(lesson => ({
       id: lesson.id || '',
       title: lesson.title || 'Untitled lesson',
@@ -50,6 +50,9 @@
     }else if(status === 'locked' && unlocked > 0){
       status = 'unlocked';
     }
+    const number = unit.number
+      || parseInt(((unit.id || '').match(/(\d+)/) || [])[1] || '', 10)
+      || (typeof index === 'number' ? index + 1 : 1);
     return {
       ...unit,
       status,
@@ -57,7 +60,8 @@
       lessonsTotal: total,
       lessonsCompleted: completed,
       lessonsUnlocked: unlocked,
-      progress
+      progress,
+      number
     };
   }
 
@@ -65,7 +69,7 @@
     const slug = section.id || `section-${section.number || ''}`;
     const number = section.number || parseInt((slug.match(/(\d+)/) || [])[1] || sections.length + 1, 10);
     const mascot = section.mascot || `${SECTION_ROOT}/${slug}/mascot.svg`;
-    const units = (section.units || []).map(normalizeUnit);
+    const units = (section.units || []).map((unit, index) => normalizeUnit(unit, index));
     const lessonsTotal = units.reduce((sum, unit) => sum + unit.lessonsTotal, 0);
     const lessonsDone = units.reduce((sum, unit) => sum + unit.lessonsCompleted, 0);
     const progress = lessonsTotal ? lessonsDone / lessonsTotal : 0;
@@ -169,64 +173,50 @@
     </article>`;
   }
 
-  function unitStatusLabel(unit){
-    if(unit.status === 'locked') return 'Locked';
-    if(unit.status === 'completed' || unit.progress >= 1) return 'Completed';
-    return 'In progress';
-  }
-
-  function lessonStatusLabel(status){
-    if(status === 'completed') return 'Completed';
-    if(status === 'unlocked') return 'Available';
-    return 'Locked';
-  }
-
-  function renderLesson(lesson){
-    const status = lesson.status || 'locked';
-    const icon = status === 'completed' ? '✓' : status === 'unlocked' ? '•' : '🔒';
-    return `<li class="lesson lesson--${status}" role="listitem">
-      <span class="lesson__icon" aria-hidden="true">${icon}</span>
-      <span class="lesson__title">${lesson.title}</span>
-      <span class="lesson__state">${lessonStatusLabel(status)}</span>
-    </li>`;
-  }
-
-  function renderUnit(unit, index, total){
-    const locked = unit.status === 'locked';
-    const showTop = index > 0;
-    const showBottom = index < total - 1;
-    const progressPct = Math.round(unit.progress * 100);
-    const bubbleIcon = unit.icon || '🔰';
-    const lessonsMarkup = unit.lessons.length
-      ? `<div class="unit-node__lessons" hidden>
-          <ul class="lesson-list" role="list">
-            ${unit.lessons.map(renderLesson).join('')}
-          </ul>
-        </div>`
-      : '';
-    const buttonAttrs = locked ? 'type="button" disabled' : 'type="button"';
-    return `<div class="unit-node ${locked ? 'is-locked' : ''}${unit.progress >= 1 ? ' is-complete' : ''}" role="listitem" data-unit="${unit.id}">
-      <div class="unit-node__stem" aria-hidden="true">
-        ${showTop ? '<span class="unit-node__line unit-node__line--top"></span>' : ''}
-        <span class="unit-node__bubble">${bubbleIcon}</span>
-        ${showBottom ? '<span class="unit-node__line unit-node__line--bottom"></span>' : ''}
+  function renderUnit(sectionNum, unit){
+    const mascotPath = `assets/learn/units/section${sectionNum}_unit_${unit.number}.svg`;
+    const mascotFallback = `assets/learn/units/section1_unit_1.svg`;
+    const lessonsMarkup = (unit.lessons || []).map(lesson => {
+      const status = lesson.status || 'locked';
+      const src = status === 'completed'
+        ? 'assets/learn/lessons/lesson_complete.svg'
+        : status === 'unlocked'
+          ? 'assets/learn/lessons/start_lesson.svg'
+          : 'assets/learn/lessons/lesson_locked.svg';
+      const alt = status === 'completed'
+        ? 'Lesson completed'
+        : status === 'unlocked'
+          ? 'Start lesson'
+          : 'Locked lesson';
+      return `<button type="button" class="lesson lesson--${status}">
+      <img src="${src}" alt="${alt}" />
+    </button>`;
+    }).join('');
+    const lessons = unit.lessons || [];
+    const hasLessons = lessons.length > 0;
+    const allComplete = hasLessons && lessons.every(lesson => lesson.status === 'completed');
+    const rewardDefined = unit.reward === 'chest' || unit.chest === true || (unit.reward && unit.reward.type === 'chest');
+    return `
+    <section class="unit">
+      <header class="unit-header">
+        <hr /><h2>${unit.title}</h2><hr />
+      </header>
+      <div class="unit-path">
+        <div class="unit-connector"></div>
+        ${hasLessons ? `<div class="lesson-row">${lessonsMarkup}</div>` : ''}
+        <div class="lesson-row mascot">
+          <img src="${mascotPath}" onerror="this.onerror=null;this.src='${mascotFallback}'" alt="Mascot" />
+        </div>
+        ${rewardDefined ? `
+          <div class="lesson-row chest">
+            <img src="assets/learn/ui/chest.svg" alt="Reward chest" />
+          </div>` : ''}
+        ${allComplete ? `
+          <div class="lesson-row trophy">
+            <img src="assets/learn/ui/trophy.svg" alt="Trophy" />
+          </div>` : ''}
       </div>
-      <div class="unit-node__content">
-        <button class="unit-node__header" ${buttonAttrs} data-unit-toggle="${unit.id}" aria-expanded="false">
-          <div class="unit-node__title-wrap">
-            <span class="unit-node__title">${unit.title}</span>
-            <span class="unit-node__status">${unitStatusLabel(unit)}</span>
-          </div>
-          <div class="unit-node__meta">
-            <span class="unit-node__count">${unit.lessonsCompleted}/${unit.lessonsTotal} lessons</span>
-            <span class="unit-node__progress" aria-hidden="true">
-              <span class="unit-node__progress-fill" style="width:${progressPct}%"></span>
-            </span>
-          </div>
-        </button>
-        ${lessonsMarkup}
-      </div>
-    </div>`;
+    </section>`;
   }
 
   function renderSection(number){
@@ -235,37 +225,14 @@
       container.innerHTML = '<p>Section not found.</p>';
       return;
     }
-    const pct = Math.round(sec.progress * 100);
-    const trophy = trophySrc(sec.progress);
     const unitsMarkup = sec.units.length
-      ? sec.units.map((unit, index) => renderUnit(unit, index, sec.units.length)).join('')
+      ? sec.units.map(unit => renderUnit(sec.number, unit)).join('')
       : '<p class="unit-path__empty">No units available yet.</p>';
 
     container.innerHTML = `<div class="section-page">
-   <button class="btn-back" data-action="back">← Back</button>
-      <div class="section-page__hero">
-        <div class="section-page__info">
-          <h2>${sec.title}</h2>
-          ${sec.description ? `<p class="section-page__description">${sec.description}</p>` : ''}
-          <div class="progress-row">
-            <div class="progress" role="progressbar" aria-valuemin="0" aria-valuemax="${sec.lessonsTotal}" aria-valuenow="${sec.lessonsDone}">
-              <div class="progress__fill" style="width:${pct}%"></div>
-              <div class="progress__nums">${sec.lessonsDone} / ${sec.lessonsTotal}</div>
-            </div>
-            <img class="progress__trophy" src="${trophy}" onerror="this.onerror=null;this.src='${trophy.replace('assets','assest')}'" alt="" />
-          </div>
-        </div>
-        <div class="section-page__mascot">
-          <div class="character">
-            <img src="${sec.mascot}" alt="Section ${sec.number} mascot" class="character__img" />
-            ${speechBubble(sec.phrase)}
-          </div>
-        </div>
-      </div>
-      <div class="unit-path" role="list" aria-label="Units in ${sec.title}">
-        ${unitsMarkup}
-      </div>
-    </div>`;
+    <button class="btn-back" data-action="back">← Back</button>
+    ${unitsMarkup}
+  </div>`;
   }
 
   function handleClick(e){
