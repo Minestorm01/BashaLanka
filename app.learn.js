@@ -489,7 +489,7 @@
     }
   }
 
-  function updateCTA(sectionId, progress, completedLessons){
+  function updateCTA(sectionId, progress = 0, completedLessons = 0){
     const card = container.querySelector(`.section-card[data-section-id="${sectionId}"]`);
     if(!card) return;
 
@@ -502,7 +502,11 @@
     button.type = 'button';
     button.setAttribute('data-id', sectionId);
 
-    const hasProgress = progress > 0 || (completedLessons || 0) > 0;
+    const numericProgress = Number(progress ?? 0);
+    const numericCompleted = Number(completedLessons ?? 0);
+    const safeProgress = Number.isFinite(numericProgress) ? numericProgress : 0;
+    const safeCompleted = Number.isFinite(numericCompleted) ? numericCompleted : 0;
+    const hasProgress = safeProgress > 0 || safeCompleted > 0;
 
     if(!hasProgress){
       button.className = 'btn-primary';
