@@ -455,7 +455,7 @@
 
   function highlightSelection(){
     if (!state.overlay || !state.selected) return;
-    const rect = state.selected.getBoundingClientRect();
+const rect = state.selected.getBoundingClientRect();
     state.overlay.style.display = 'block';
     state.overlay.style.left = rect.left + 'px';
     state.overlay.style.top = rect.top + 'px';
@@ -480,7 +480,8 @@
       baseLeft: rect.left - parent.left,
       baseTop: rect.top - parent.top,
       key: element.getAttribute('data-layout-key'),
-      snap: event.altKey ? 1 : SNAP
+      snap: event.altKey ? 1 : SNAP,
+      parentRect: parent
     };
     document.addEventListener('pointermove', onPointerMove, true);
     document.addEventListener('pointerup', onPointerUp, true);
@@ -507,7 +508,8 @@
       baseWidth,
       baseHeight,
       key: element.getAttribute('data-layout-key'),
-      snap: event.altKey ? 1 : SNAP
+      snap: event.altKey ? 1 : SNAP,
+      parentRect: parent
     };
     event.preventDefault();
     event.stopPropagation();
@@ -518,6 +520,7 @@
   function onPointerMove(event){
     if (!state.interaction) return;
     const i = state.interaction;
+    i.parentRect = getOffsetParentRect(i.element);
     const dx = event.clientX - i.startX;
     const dy = event.clientY - i.startY;
     const snap = event.altKey ? 1 : i.snap || SNAP;
@@ -525,16 +528,17 @@
     if (i.type === 'move') {
       const snappedLeft = snapRound(i.baseLeft + dx, snap);
       const snappedTop = snapRound(i.baseTop + dy, snap);
-      const constrained = constrainToParent(i.element, snappedLeft, snappedTop);
+      const constrained = constrainToParent(i.element, snappedLeft, snappedTop, i.parentRect);
       i.element.style.left = constrained.left + 'px';
       i.element.style.top = constrained.top + 'px';
       refreshOverlay();
     } else if (i.type === 'resize') {
       const result = computeResize(i, dx, dy, snap);
-      i.element.style.left = result.left + 'px';
-      i.element.style.top = result.top + 'px';
-      i.element.style.width = result.width + 'px';
-      i.element.style.height = result.height + 'px';
+      const bounded = constrainSizeToParent(i.element, result, i.parentRect);
+      i.element.style.left = bounded.left + 'px';
+      i.element.style.top = bounded.top + 'px';
+      i.element.style.width = bounded.width + 'px';
+      i.element.style.height = bounded.height + 'px';
       refreshOverlay();
     }
   }
@@ -583,7 +587,7 @@
     const i = state.interaction;
     const entry = readEntry(i.element) || {};
     const rect = i.element.getBoundingClientRect();
-    const parent = getOffsetParentRect(i.element);
+    const parent = i.parentRect || getOffsetParentRect(i.element);
     entry.left = Math.round(rect.left - parent.left);
     entry.top = Math.round(rect.top - parent.top);
     const style = getComputedStyle(i.element);
@@ -647,26 +651,86 @@
   function getOffsetParentRect(element){
     const parent = element.offsetParent || element.parentElement || document.body;
     const rect = parent.getBoundingClientRect();
+    const isRoot = parent === document.body || parent === document.documentElement;
+    const widthCandidates = [];
+    const heightCandidates = [];
+    if (typeof rect.width === 'number' && !Number.isNaN(rect.width)) {
+      widthCandidates.push(rect.width);
+    }
+    if (typeof rect.height === 'number' && !Number.isNaN(rect.height)) {
+      heightCandidates.push(rect.height);
+    }
+    if (isRoot) {
+      if (document.documentElement) {
+        const docWidth = document.documentElement.clientWidth;
+        const docHeight = document.documentElement.clientHeight;
+        if (typeof docWidth === 'number' && !Number.isNaN(docWidth)) widthCandidates.push(docWidth);
+        if (typeof docHeight === 'number' && !Number.isNaN(docHeight)) heightCandidates.push(docHeight);
+      }
+      if (typeof window !== 'undefined') {
+        const winWidth = window.innerWidth || 0;
+        const winHeight = window.innerHeight || 0;
+        if (typeof winWidth === 'number' && !Number.isNaN(winWidth)) widthCandidates.push(winWidth);
+        if (typeof winHeight === 'number' && !Number.isNaN(winHeight)) heightCandidates.push(winHeight);
+      }
+    } else if (parent instanceof HTMLElement) {
+      const clientWidth = parent.clientWidth;
+      const clientHeight = parent.clientHeight;
+      const scrollWidth = parent.scrollWidth;
+      const scrollHeight = parent.scrollHeight;
+      if (typeof clientWidth === 'number' && !Number.isNaN(clientWidth)) widthCandidates.push(clientWidth);
+      if (typeof scrollWidth === 'number' && !Number.isNaN(scrollWidth)) widthCandidates.push(scrollWidth);
+      if (typeof clientHeight === 'number' && !Number.isNaN(clientHeight)) heightCandidates.push(clientHeight);
+      if (typeof scrollHeight === 'number' && !Number.isNaN(scrollHeight)) heightCandidates.push(scrollHeight);
+    }
+    const width = widthCandidates.length ? Math.max(...widthCandidates) : rect.width;
+    const height = heightCandidates.length ? Math.max(...heightCandidates) : rect.height;
     return {
       left: rect.left,
       top: rect.top,
-      width: rect.width,
-      height: rect.height
+      width,
+      height,
+      element: parent
     };
   }
 
-  function constrainToParent(element, left, top){
-    const parentRect = getOffsetParentRect(element);
-    if (!parentRect) {
+  function constrainToParent(element, left, top, parentRect){
+    const bounds = parentRect || getOffsetParentRect(element);
+    if (!bounds) {
       return { left, top };
     }
-    const elementRect = element.getBoundingClientRect();
-    const maxLeft = Math.max(0, Math.round(parentRect.width - elementRect.width));
-    const maxTop = Math.max(0, Math.round(parentRect.height - elementRect.height));
+    if (bounds.width <= 0 || bounds.height <= 0) {
+      return { left, top };
+    }
+    const elementWidth = element.offsetWidth || element.getBoundingClientRect().width || 0;
+    const elementHeight = element.offsetHeight || element.getBoundingClientRect().height || 0;
+    const maxLeft = Math.max(0, Math.round(bounds.width - elementWidth));
+    const maxTop = Math.max(0, Math.round(bounds.height - elementHeight));
     return {
       left: clamp(left, 0, maxLeft),
       top: clamp(top, 0, maxTop)
     };
+  }
+
+  function constrainSizeToParent(element, rect, parentRect){
+    const bounds = parentRect || getOffsetParentRect(element);
+    if (!bounds) return rect;
+    const maxWidth = Math.max(0, Math.round(bounds.width));
+    const maxHeight = Math.max(0, Math.round(bounds.height));
+    if (maxWidth <= 0 || maxHeight <= 0) {
+      return rect;
+    }
+    let width = Math.min(rect.width, maxWidth);
+    let height = Math.min(rect.height, maxHeight);
+    width = Math.max(width, 1);
+    height = Math.max(height, 1);
+    width = Math.min(width, maxWidth);
+    height = Math.min(height, maxHeight);
+    const maxLeft = Math.max(0, Math.round(bounds.width - width));
+    const maxTop = Math.max(0, Math.round(bounds.height - height));
+    const left = clamp(rect.left, 0, maxLeft);
+    const top = clamp(rect.top, 0, maxTop);
+    return { left, top, width, height };
   }
 
   function clamp(value, min, max){
