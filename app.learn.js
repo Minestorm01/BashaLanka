@@ -174,15 +174,16 @@
   }
 
   function renderUnit(sectionNum, unit){
-    const mascotPath = `assets/learn/units/section${sectionNum}_unit_${unit.number}.svg`;
-    const mascotFallback = `assets/learn/units/section1_unit_1.svg`;
+    const assetRoot = 'assets/general';
+    const mascotPath = `${assetRoot}/section${sectionNum}_unit_${unit.number}.svg`;
+    const mascotFallback = `${assetRoot}/section1_unit_1.svg`;
     const lessonsMarkup = (unit.lessons || []).map(lesson => {
       const status = lesson.status || 'locked';
       const src = status === 'completed'
-        ? 'assets/learn/lessons/lesson_complete.svg'
+        ? `${assetRoot}/lesson_complete.svg`
         : status === 'unlocked'
-          ? 'assets/learn/lessons/start_lesson.svg'
-          : 'assets/learn/lessons/lesson_locked.svg';
+          ? `${assetRoot}/start_lesson.svg`
+          : `${assetRoot}/lesson_locked.svg`;
       const alt = status === 'completed'
         ? 'Lesson completed'
         : status === 'unlocked'
@@ -209,11 +210,11 @@
         </div>
         ${rewardDefined ? `
           <div class="lesson-row chest">
-            <img src="assets/learn/ui/chest.svg" alt="Reward chest" />
+            <img src="${assetRoot}/path.svg" alt="Reward chest" />
           </div>` : ''}
         ${allComplete ? `
           <div class="lesson-row trophy">
-            <img src="assets/learn/ui/trophy.svg" alt="Trophy" />
+            <img src="${assetRoot}/trophy-gold_1.svg" alt="Trophy" />
           </div>` : ''}
       </div>
     </section>`;
