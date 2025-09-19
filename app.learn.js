@@ -45,7 +45,7 @@
     const { total, completed, unlocked } = lessonStats(lessons);
     const progress = total ? completed / total : 0;
     let status = unit.status || 'locked';
-    if(status !== 'locked' && completed >= total && total > 0){
+        if(status !== 'locked' && completed >= total && total > 0){
       status = 'completed';
     }else if(status === 'locked' && unlocked > 0){
       status = 'unlocked';
@@ -70,7 +70,9 @@
     const lessonsDone = units.reduce((sum, unit) => sum + unit.lessonsCompleted, 0);
     const progress = lessonsTotal ? lessonsDone / lessonsTotal : 0;
     const status = section.status || (progress >= 1 ? 'completed' : units.some(u => u.status !== 'locked') ? 'unlocked' : 'locked');
-    const cta = section.cta || (status === 'locked' ? 'Locked' : 'Continue');
+    const cta = section.cta || (status === 'locked'
+      ? 'Locked'
+      : (progress > 0 ? 'Continue' : `Start Section ${number}`));
     return {
       ...section,
       id: slug,
