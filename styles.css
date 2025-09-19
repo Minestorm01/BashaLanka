@@ -627,33 +627,6 @@ img, svg, video { max-width: 100%; height: auto; display: block; }
 .course-card .media { border-radius: 10px; overflow: hidden; }
 .course-card .content { display: grid; gap: 8px; }
 .course-card .btn { text-transform: uppercase; }
-.course-card .btn-primary,
-.course-card .btn-continue {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  padding: 0.6rem 1.25rem;
-  border-radius: 999px;
-  background: linear-gradient(135deg, #7b5cff, #5aa9ff);
-  color: #0b1320;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  text-decoration: none;
-  border: none;
-  cursor: pointer;
-  min-width: 0;
-  transition: filter 0.2s ease, transform 0.2s ease;
-}
-.course-card .btn-primary:hover,
-.course-card .btn-primary:focus-visible,
-.course-card .btn-continue:hover,
-.course-card .btn-continue:focus-visible {
-  filter: brightness(1.05);
-  transform: translateY(-1px);
-  outline: none;
-  text-decoration: none;
-}
 
 /* tab bar: only on small screens */
 .tabbar { position: fixed; inset-block-end: 0; inset-inline: 0; z-index: 60; }
