@@ -366,6 +366,103 @@ background: var(--color-surface);
 }
 .help { color: var(--color-muted); font-size: .9em; }
 
+/* -----------------------------
+   Profile view
+------------------------------ */
+.profile-content {
+  display: grid;
+  gap: var(--space-lg);
+  max-width: min(760px, 100%);
+  margin-inline: auto;
+  align-content: start;
+}
+
+.profile-grid {
+  display: grid;
+  gap: var(--space-lg);
+}
+
+@media (min-width: 700px) {
+  .profile-grid {
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  }
+}
+
+.profile-card {
+  display: grid;
+  gap: var(--space-md);
+}
+
+.profile-login fieldset {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-md);
+  display: grid;
+  gap: var(--space-md);
+  background: color-mix(in oklab, var(--color-surface) 92%, black 8%);
+}
+
+.profile-login legend {
+  font-weight: 700;
+  padding: 0 .5rem;
+}
+
+.profile-form__row {
+  display: flex;
+  gap: var(--space-sm);
+  align-items: center;
+}
+
+.profile-form__row .input {
+  flex: 1;
+  min-width: 0;
+}
+
+.profile-hint {
+  margin: 0;
+  font-size: .9em;
+  color: var(--color-muted);
+}
+
+.profile-welcome {
+  margin: 0;
+  font-size: var(--fs-500);
+  font-weight: 600;
+}
+
+.profile-summary .btn {
+  justify-self: start;
+}
+
+.debug-panel {
+  display: grid;
+  gap: var(--space-md);
+}
+
+.debug-panel__header h2 {
+  margin: 0;
+  font-size: var(--fs-500);
+}
+
+.debug-panel__picker {
+  display: grid;
+  gap: var(--space-xs);
+}
+
+.debug-panel__picker label {
+  font-weight: 600;
+  font-size: .95em;
+}
+
+.debug-panel__controls {
+  display: grid;
+  gap: var(--space-sm);
+}
+
+.debug-control__btn {
+  width: 100%;
+}
+
 /* Inline form layout that auto-stacks on small screens */
 .form-inline {
   display: grid; gap: var(--space-md);

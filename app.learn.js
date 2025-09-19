@@ -11,6 +11,7 @@
   };
   let sections = [];
   let loadingPromise = null;
+  let sectionsLoadedEventSent = false;
 
   function trophySrc(progress){
     const file = progress >= 1 ? 'trophy-gold_1.svg' : 'trophy-silver_1.svg';
@@ -85,7 +86,7 @@
   }
 
   async function loadSections(){
-    const found = [];
+        const found = [];
     for(let index = 1; index <= 50; index += 1){
       const slug = `section-${index}`;
       const path = `${SECTION_ROOT}/${slug}/units.json`;
@@ -110,6 +111,12 @@
     if(loadingPromise) return loadingPromise;
     loadingPromise = loadSections().then(result => {
       sections = result;
+      if(!sectionsLoadedEventSent){
+        sectionsLoadedEventSent = true;
+        window.dispatchEvent(new CustomEvent('learn:sections-loaded', {
+          detail: { sections: sections.map(sec => ({ ...sec })) }
+        }));
+      }
       return sections;
     });
     return loadingPromise;
@@ -460,7 +467,7 @@
 
     const sectionInfo = sections.find(sec => String(sec.number) === String(sectionId));
     const canShowCTA = sectionInfo && sectionInfo.status !== 'locked';
-    const ctaMarkup = canShowCTA
+        const ctaMarkup = canShowCTA
       ? '<div class="overview-cta"></div>'
       : '';
 
@@ -485,38 +492,125 @@
     panel.dataset.sectionId = sectionId;
 
     if(canShowCTA){
-      updateCTA(sectionInfo.number, sectionInfo.progress, sectionInfo.lessonsDone);
+      updateCTAForSection(sectionInfo.number);
     }
   }
 
-  function updateCTA(sectionId, progress = 0, completedLessons = 0){
+  function updateCTAForSection(sectionId){
+    const { section } = getSectionRecord(sectionId);
+    if(!section) return;
     const card = container.querySelector(`.section-card[data-section-id="${sectionId}"]`);
     if(!card) return;
-
     const ctaContainer = card.querySelector('.overview-cta');
     if(!ctaContainer) return;
 
     ctaContainer.innerHTML = '';
+    if(section.status === 'locked') return;
 
     const button = document.createElement('button');
     button.type = 'button';
     button.setAttribute('data-id', sectionId);
+    button.className = 'btn-continue';
+    const label = section.cta || (section.progress > 0 ? 'Continue' : `Start Section ${sectionId}`);
+    button.textContent = label;
+    ctaContainer.appendChild(button);
+  }
 
-    const numericProgress = Number(progress ?? 0);
-    const numericCompleted = Number(completedLessons ?? 0);
-    const safeProgress = Number.isFinite(numericProgress) ? numericProgress : 0;
-    const safeCompleted = Number.isFinite(numericCompleted) ? numericCompleted : 0;
-    const hasProgress = safeProgress > 0 || safeCompleted > 0;
+  function getSectionRecord(sectionId){
+    const index = sections.findIndex(sec => String(sec.number) === String(sectionId));
+    return { index, section: index >= 0 ? sections[index] : null };
+  }
 
-    if(!hasProgress){
-      button.className = 'btn-primary';
-      button.textContent = `Start Section ${sectionId}`;
-    }else{
-      button.className = 'btn-continue';
-      button.textContent = 'Continue';
+  function clamp(value, min, max){
+    return Math.min(max, Math.max(min, value));
+  }
+
+  function refreshSectionCard(section){
+    if(!section) return;
+    const card = container.querySelector(`.section-card[data-section-id="${section.number}"]`);
+    if(card){
+      const pct = Math.round((Number(section.progress) || 0) * 100);
+      const fill = card.querySelector('.progress__fill');
+      if(fill) fill.style.width = `${pct}%`;
+      const nums = card.querySelector('.progress__nums');
+      if(nums) nums.textContent = `${section.lessonsDone} / ${section.lessonsTotal}`;
+      const bar = card.querySelector('.progress');
+      if(bar){
+        bar.setAttribute('aria-valuenow', section.lessonsDone);
+        bar.setAttribute('aria-valuemax', section.lessonsTotal);
+      }
+      const trophy = card.querySelector('.progress__trophy');
+      if(trophy){
+        const nextSrc = trophySrc(section.progress);
+        if(trophy.getAttribute('src') !== nextSrc){
+          trophy.setAttribute('src', nextSrc);
+        }
+      }
+      const mainBtn = card.querySelector('.btn-continue');
+      if(mainBtn){
+        const locked = section.status === 'locked';
+        mainBtn.disabled = locked;
+        const label = locked ? 'Locked' : (section.cta || (section.progress > 0 ? 'Continue' : `Start Section ${section.number}`));
+        mainBtn.textContent = label;
+      }
+    }
+    updateCTAForSection(section.number);
+  }
+
+  function refreshSectionDetailIfActive(section){
+    const match = location.hash.match(/^#\/section\/(\d+)/);
+    if(match && String(match[1]) === String(section.number)){
+      renderSection(section.number);
+    }
+  }
+
+  function setSectionState(sectionId, patch = {}){
+    const { index, section } = getSectionRecord(sectionId);
+    if(index < 0 || !section) return null;
+    const totalLessons = Number(section.lessonsTotal) || 0;
+    let lessonsDone = Object.prototype.hasOwnProperty.call(patch, 'lessonsDone')
+      ? clamp(Math.round(Number(patch.lessonsDone) || 0), 0, totalLessons)
+      : section.lessonsDone;
+    let progress = Object.prototype.hasOwnProperty.call(patch, 'progress')
+      ? clamp(Number(patch.progress) || 0, 0, 1)
+      : section.progress;
+
+    if(Object.prototype.hasOwnProperty.call(patch, 'progress') && !Object.prototype.hasOwnProperty.call(patch, 'lessonsDone')){
+      lessonsDone = totalLessons ? Math.round(progress * totalLessons) : 0;
+    }else if(Object.prototype.hasOwnProperty.call(patch, 'lessonsDone') && !Object.prototype.hasOwnProperty.call(patch, 'progress')){
+      progress = totalLessons ? lessonsDone / totalLessons : 0;
     }
 
-    ctaContainer.appendChild(button);
+    const nextStatus = Object.prototype.hasOwnProperty.call(patch, 'status')
+      ? patch.status
+      : (progress >= 1 ? 'completed' : (section.status === 'locked' && progress <= 0 ? 'locked' : 'unlocked'));
+
+    const nextCTA = Object.prototype.hasOwnProperty.call(patch, 'cta')
+      ? patch.cta
+      : (progress > 0 ? 'Continue' : `Start Section ${section.number}`);
+
+    const updated = {
+      ...section,
+      ...patch,
+      lessonsDone,
+      progress,
+      status: nextStatus,
+      cta: nextCTA
+    };
+
+    sections[index] = updated;
+    refreshSectionCard(updated);
+    refreshSectionDetailIfActive(updated);
+    window.dispatchEvent(new CustomEvent('learn:section-updated', { detail: { section: { ...updated } } }));
+    return updated;
+  }
+
+  function setSectionProgress(sectionId, progressValue){
+    return setSectionState(sectionId, { progress: progressValue });
+  }
+
+  function getSectionsSnapshot(){
+    return sections.map(sec => ({ ...sec }));
   }
 
   function renderConcept(concept){
@@ -651,4 +745,13 @@
       }
     }, OVERVIEW_TRANSITION_MS + 50);
   }
+
+  const learnAPI = {
+    ensureSections,
+    getSectionsSnapshot,
+    setSectionState,
+    setSectionProgress,
+    updateCTAForSection
+  };
+  window.__LEARN__ = Object.assign(window.__LEARN__ || {}, learnAPI);
 })();

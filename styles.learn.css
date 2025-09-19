@@ -305,7 +305,7 @@
   margin: clamp(16px, 3vw, 22px) 0 0;
 }
 
-.overview-cta .btn-primary,
+.overview-cta .btn-continue,
 .btn-continue {
   display: inline-flex;
   align-items: center;
@@ -317,14 +317,14 @@
   border: none;
 }
 
-.overview-cta .btn-primary {
+.overview-cta .btn-continue {
   padding: 10px 18px;
   text-decoration: none;
   min-width: 0;
 }
 
-.overview-cta .btn-primary:hover,
-.overview-cta .btn-primary:focus-visible,
+.overview-cta .btn-continue:hover,
+.overview-cta .btn-continue:focus-visible,
 .btn-continue:hover,
 .btn-continue:focus-visible {
   filter: brightness(1.05);

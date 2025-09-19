@@ -11,6 +11,45 @@ const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
 const on = (el, ev, fn, opts) => el && el.addEventListener(ev, fn, opts);
 const debounce = (fn, ms = 150) => { let t; return (...args) => { clearTimeout(t); t = setTimeout(() => fn.apply(null, args), ms); }; };
 
+const escapeHTML = (value = '') => String(value)
+  .replace(/&/g, '&amp;')
+  .replace(/</g, '&lt;')
+  .replace(/>/g, '&gt;')
+  .replace(/"/g, '&quot;')
+  .replace(/'/g, '&#39;');
+
+const USER_STORAGE_KEY = 'bashalanka-user';
+
+function createUser(username = '') {
+  const trimmed = String(username || '').trim();
+  return {
+    username: trimmed,
+    isAdmin: trimmed.toLowerCase() === 'admin'
+  };
+}
+
+function loadStoredUser() {
+  try {
+    const raw = localStorage.getItem(USER_STORAGE_KEY);
+    if (!raw) return createUser('');
+    const parsed = JSON.parse(raw);
+    if (parsed && typeof parsed.username === 'string') {
+      return createUser(parsed.username);
+    }
+  } catch (err) {
+    console.warn('Failed to load stored user', err);
+  }
+  return createUser('');
+}
+
+function persistUser(user) {
+  if (user && user.username) {
+    localStorage.setItem(USER_STORAGE_KEY, JSON.stringify({ username: user.username }));
+  } else {
+    localStorage.removeItem(USER_STORAGE_KEY);
+  }
+}
+
 // Trap focus inside a container (for modals/drawers)
 function trapFocus(container) {
   if (!container) return () => {};
@@ -42,6 +81,7 @@ const AppState = {
   courses: [],
   filtered: [],
   installPromptEvt: null,
+  user: loadStoredUser(),
   prefs: {
     sfx: true, anim: true, motivate: true, listen: true,
     appearance: localStorage.getItem('theme') || 'system',
@@ -210,6 +250,237 @@ function initSettingsForm(){
     };
     savePrefs();
   });
+}
+
+/* -------------------------
+   Profile & Debug tools
+------------------------- */
+
+function profileStatsMarkup(){
+  return `
+    <div class="card profile-card profile-stats">
+      <h2 class="card__title">Your stats</h2>
+      <ul class="stats">
+        <li><strong id="stat-streak">0</strong> day streak</li>
+        <li><strong id="stat-xp">0</strong> XP total</li>
+        <li><strong id="stat-crown">0</strong> crowns</li>
+      </ul>
+    </div>`;
+}
+
+const DebugTools = (() => {
+  const controls = [];
+  let controlsContainer = null;
+  let sectionSelect = null;
+  let hostEl = null;
+
+  function appendControl(entry){
+    if(!controlsContainer) return;
+    const row = document.createElement('div');
+    row.className = 'debug-control';
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'btn btn--ghost debug-control__btn';
+    btn.textContent = entry.label;
+    btn.addEventListener('click', () => {
+      if(!sectionSelect || sectionSelect.disabled) return;
+      const sectionId = sectionSelect.value;
+      if(sectionId) entry.callback(sectionId);
+    });
+    row.appendChild(btn);
+    controlsContainer.appendChild(row);
+  }
+
+  function setControlsDisabled(disabled){
+    if(!controlsContainer) return;
+    controlsContainer.querySelectorAll('button').forEach(btn => {
+      btn.disabled = !!disabled;
+    });
+  }
+
+  function populateSections(){
+    if(!sectionSelect) return;
+    const learn = window.__LEARN__;
+    if(!learn || typeof learn.ensureSections !== 'function'){ setControlsDisabled(true); return; }
+    learn.ensureSections().then(() => {
+      const snapshot = typeof learn.getSectionsSnapshot === 'function' ? learn.getSectionsSnapshot() : [];
+      const options = snapshot.map(sec => `<option value="${sec.number}">Section ${sec.number}: ${escapeHTML(sec.title || 'Untitled')}</option>`);
+      if(options.length){
+        sectionSelect.innerHTML = options.join('');
+        sectionSelect.disabled = false;
+        setControlsDisabled(false);
+      }else{
+        sectionSelect.innerHTML = '<option value="" disabled selected>No sections</option>';
+        sectionSelect.disabled = true;
+        setControlsDisabled(true);
+      }
+    }).catch(() => {
+      sectionSelect.innerHTML = '<option value="" disabled selected>Unavailable</option>';
+      sectionSelect.disabled = true;
+      setControlsDisabled(true);
+    });
+  }
+
+  function registerDebugControl(label, callback){
+    const entry = { label, callback };
+    controls.push(entry);
+    if(controlsContainer) appendControl(entry);
+    return entry;
+  }
+
+  function mount(root){
+    if(!root) return;
+    hostEl = root;
+    root.innerHTML = `
+      <section class="debug-panel" aria-labelledby="debug-tools-title">
+        <div class="debug-panel__header">
+          <h2 id="debug-tools-title">Debug Tools</h2>
+        </div>
+        <div class="debug-panel__picker">
+          <label for="debugSectionSelect">Target section</label>
+          <select id="debugSectionSelect" class="select"></select>
+        </div>
+        <div class="debug-panel__controls"></div>
+      </section>`;
+    controlsContainer = root.querySelector('.debug-panel__controls');
+    sectionSelect = root.querySelector('#debugSectionSelect');
+    populateSections();
+    controls.forEach(appendControl);
+  }
+
+  function unmount(){
+    if(hostEl){
+      hostEl.innerHTML = '';
+    }
+    controlsContainer = null;
+    sectionSelect = null;
+    hostEl = null;
+  }
+
+  window.addEventListener('learn:sections-loaded', () => {
+    populateSections();
+  });
+
+  return {
+    registerDebugControl,
+    mount,
+    unmount,
+    refresh: populateSections
+  };
+})();
+
+function withSection(sectionId, handler){
+  if(!sectionId) return;
+  const learn = window.__LEARN__;
+  if(!learn || typeof learn.ensureSections !== 'function'){
+    console.warn('Learn module not ready yet.');
+    return;
+  }
+  learn.ensureSections().then(() => {
+    const snapshot = typeof learn.getSectionsSnapshot === 'function' ? learn.getSectionsSnapshot() : [];
+    const section = snapshot.find(sec => String(sec.number) === String(sectionId));
+    if(section){
+      handler(section, learn);
+    }
+  });
+}
+
+DebugTools.registerDebugControl('Set Section to Not Started', sectionId => {
+  withSection(sectionId, (_section, learn) => {
+    learn.setSectionState?.(sectionId, { progress: 0, lessonsDone: 0, status: 'unlocked' });
+  });
+});
+
+DebugTools.registerDebugControl('Set Section to Half Complete', sectionId => {
+  withSection(sectionId, (section, learn) => {
+    const total = Number(section.lessonsTotal) || 0;
+    const lessonsDone = total ? Math.max(1, Math.round(total / 2)) : 0;
+    learn.setSectionState?.(sectionId, { lessonsDone, status: 'unlocked' });
+  });
+});
+
+DebugTools.registerDebugControl('Set Section to Complete', sectionId => {
+  withSection(sectionId, (section, learn) => {
+    const total = Number(section.lessonsTotal) || 0;
+    learn.setSectionState?.(sectionId, { progress: 1, lessonsDone: total, status: 'completed' });
+  });
+});
+
+function renderProfileView(){
+  const wrap = $('#profileContent');
+  if(!wrap) return;
+  DebugTools.unmount();
+  const { username, isAdmin } = AppState.user;
+  const statsMarkup = profileStatsMarkup();
+
+  if(!username){
+    wrap.innerHTML = `
+      <div class="profile-grid">
+        <form id="profileLoginForm" class="card profile-card profile-login" autocomplete="off">
+          <fieldset>
+            <legend>Log in</legend>
+            <label class="label" for="profile-username">Username</label>
+            <div class="profile-form__row">
+              <input id="profile-username" name="username" class="input" type="text" required placeholder="Enter username" />
+              <button type="submit" class="btn btn--primary">Login</button>
+            </div>
+            <p class="profile-hint">Use “admin” for debug tools.</p>
+          </fieldset>
+        </form>
+        ${statsMarkup}
+      </div>`;
+    requestAnimationFrame(() => {
+      const input = $('#profile-username');
+      if(input) input.focus();
+    });
+    return;
+  }
+
+  wrap.innerHTML = `
+    <div class="profile-grid">
+      <div class="card profile-card profile-summary">
+        <p class="profile-welcome">Welcome, <strong>${escapeHTML(username)}</strong></p>
+        <button type="button" class="btn btn--ghost" data-action="profile-logout">Logout</button>
+      </div>
+      ${statsMarkup}
+      ${isAdmin ? '<div class="card profile-card profile-debug" id="debugPanelRoot"></div>' : ''}
+    </div>`;
+
+  if(isAdmin){
+    const debugRoot = wrap.querySelector('#debugPanelRoot');
+    if(debugRoot){
+      DebugTools.mount(debugRoot);
+    }
+  }
+}
+
+function handleProfileSubmit(event){
+  const form = event.target.closest('#profileLoginForm');
+  if(!form) return;
+  event.preventDefault();
+  const username = form.username?.value || '';
+  const user = createUser(username);
+  AppState.user = user;
+  persistUser(user);
+  renderProfileView();
+}
+
+function handleProfileClick(event){
+  const logoutBtn = event.target.closest('[data-action="profile-logout"]');
+  if(logoutBtn){
+    event.preventDefault();
+    AppState.user = createUser('');
+    persistUser(AppState.user);
+    renderProfileView();
+  }
+}
+
+function initProfile(){
+  const view = $('#view-profile');
+  if(!view) return;
+  renderProfileView();
+  on(view, 'submit', handleProfileSubmit);
+  on(view, 'click', handleProfileClick);
 }
 
 // Courses (point to data/)
@@ -406,6 +677,7 @@ window.addEventListener('DOMContentLoaded', () => {
   initInstall();
   initServiceWorker();
   initSettingsForm();
+  initProfile();
   initSearch();     // optional
   loadCourses();    // populates Learn view
   initRouter(sidebarCtl);
@@ -413,4 +685,3 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 
 typeof module !== 'undefined' && (module.exports = { debounce, trapFocus });
-
