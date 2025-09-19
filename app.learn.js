@@ -11,7 +11,7 @@
   };
   let sections = [];
   let loadingPromise = null;
-  let sectionsLoadedEventSent = false;
+let sectionsLoadedEventSent = false;
 
   function trophySrc(progress){
     const file = progress >= 1 ? 'trophy-gold_1.svg' : 'trophy-silver_1.svg';
