@@ -784,12 +784,16 @@
 }
 
 .unit .unit-path {
+  --node-size: clamp(60px, 15vw, 78px);
+  --sway: clamp(42px, 12vw, 96px);
   position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1.5rem;
-  padding: 0 0.5rem;
+  gap: clamp(1.8rem, 5vw, 3rem);
+  width: min(100%, 340px);
+  margin: 0 auto;
+  padding: clamp(1.5rem, 4vw, 2.5rem) 0;
 }
 
 .unit .unit-connector {
@@ -804,18 +808,37 @@
 }
 
 .unit .lesson-row {
+  position: relative;
+  width: 100%;
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 1rem;
+}
+
+.unit .lesson-row > * {
+  position: relative;
+  z-index: 1;
+  transform: translateX(0);
+}
+
+.unit .lesson-row--left > * {
+  transform: translateX(calc(-1 * var(--sway)));
+}
+
+.unit .lesson-row--right > * {
+  transform: translateX(var(--sway));
+}
+
+.unit .lesson-row--center > * {
+  transform: translateX(0);
 }
 
 .unit .lesson {
   background: none;
   border: none;
   cursor: pointer;
-  width: 64px;
-  height: 64px;
+  width: var(--node-size);
+  height: var(--node-size);
   padding: 0;
 }
 
@@ -826,7 +849,7 @@
 }
 
 .unit .lesson--locked img {
-  opacity: 0.5;
+  opacity: 0.55;
 }
 
 .unit .lesson--completed img,
@@ -839,26 +862,13 @@
   filter: drop-shadow(0 0 4px rgba(143, 176, 255, 0.6));
 }
 
-.unit .mascot img,
-.unit .chest img,
-.unit .trophy img {
-  width: 80px;
+.unit .lesson-row.mascot img {
+  width: calc(var(--node-size) * 1.15);
   height: auto;
 }
 
-.unit .trophy img {
-  width: 72px;
-}
-
-@media (max-width: 600px) {
-  .unit .lesson {
-    width: 56px;
-    height: 56px;
-  }
-
-  .unit .mascot img,
-  .unit .chest img,
-  .unit .trophy img {
-    width: 68px;
-  }
+.unit .lesson-row.trophy img,
+.unit .lesson-row.chest img {
+  width: calc(var(--node-size) * 0.95);
+  height: auto;
 }
