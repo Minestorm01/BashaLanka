@@ -15,7 +15,8 @@
     '.topbar',
     '.sidebar',
     '.view',
-    '.card-grid > *'
+    '.card-grid > *',
+    '[class*="unit-node"]'
   ];
 
   const state = {
