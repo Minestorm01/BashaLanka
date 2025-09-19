@@ -300,6 +300,25 @@
     </li>`;
   }
 
+  function waypointIconMarkup(status){
+    const safeStatus = status === 'completed'
+      ? 'completed'
+      : status === 'unlocked'
+        ? 'unlocked'
+        : 'locked';
+    const icon = imgWithFallback({
+      className: 'wp__icon',
+      alt: '',
+      attrs: 'aria-hidden="true"',
+      paths: lessonIconPaths(safeStatus)
+    });
+    if(icon) return icon;
+    const fallbackSymbol = safeStatus === 'completed' ? '✓'
+      : safeStatus === 'unlocked' ? '▶'
+      : '🔒';
+    return `<span class="wp__icon wp__icon--fallback" aria-hidden="true">${escapeHtml(fallbackSymbol)}</span>`;
+  }
+
   function renderUnit(section, unit, index){
     const lessons = unit.lessons || [];
     const waypoints = lessons.map((lesson, lessonIndex) => {
@@ -311,7 +330,7 @@
       const title = escapeAttribute(lesson.title || `Lesson ${lessonIndex + 1}`);
       return `
         <button type="button" class="wp ${cls}" data-lesson="${lessonIndex}" data-status="${status}" ${disabled}
-          aria-label="Lesson ${lessonIndex + 1}: ${title} — ${lessonStatusLabel(status)}"></button>
+          aria-label="Lesson ${lessonIndex + 1}: ${title} — ${lessonStatusLabel(status)}">${waypointIconMarkup(status)}</button>
         ${lessonIndex < lessons.length - 1 ? '<div class="trail" aria-hidden="true"></div>' : ''}`;
     }).join('');
 
@@ -349,6 +368,11 @@
       el.classList.toggle('is-available', status === 'unlocked');
       el.classList.toggle('is-complete', status === 'completed');
       el.toggleAttribute('disabled', status === 'locked');
+      if(el.dataset.status !== status){
+        el.dataset.status = status;
+        el.innerHTML = waypointIconMarkup(status);
+        applyImageFallbacks(el);
+      }
     });
 
     const guide = trackEl.querySelector('.wp-mascot');
