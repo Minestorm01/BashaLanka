@@ -136,7 +136,8 @@
     const locked = sec.status === 'locked';
     const trophy = trophySrc(sec.progress);
     const note = locked ? '<small class="locked-note">Finish previous to unlock</small>' : '';
-    const btnLabel = locked ? 'Locked' : sec.cta;
+    const completed = sec.status === 'completed' || sec.progress >= 1;
+    const btnLabel = locked ? 'Locked' : completed ? 'Completed!' : sec.cta;
     const sectionId = String(sec.number);
     const subtitle = getSectionSubtitle(sectionId, sec);
     const titleId = `section-${sectionId}-title`;
