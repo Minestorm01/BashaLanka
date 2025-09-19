@@ -304,6 +304,15 @@
           return 'Locked lesson';
       }
     };
+    const trophyIconForStatus = status => {
+      switch(status){
+        case 'completed':
+        case 'complete':
+          return `${assetRoot}/trophy-gold_1.svg`;
+        default:
+          return `${assetRoot}/trophy-silver_1.svg`;
+      }
+    };
     const altForReview = status => {
       switch(status){
         case 'completed':
@@ -325,7 +334,7 @@
       if(isReview) rowClasses.push('trophy');
       const buttonClasses = ['lesson', `lesson--${status}`];
       if(isReview) buttonClasses.push('lesson--review');
-      const iconSrc = isReview ? `${assetRoot}/trophy-gold_1.svg` : iconForStatus(status);
+      const iconSrc = isReview ? trophyIconForStatus(status) : iconForStatus(status);
       const altText = isReview ? altForReview(status) : altForStatus(status);
       const lessonIdAttr = lesson && lesson.id ? ` data-lesson-id="${escapeAttribute(lesson.id)}"` : '';
       const skillAttr = lesson && lesson.skillId ? ` data-skill-id="${escapeAttribute(lesson.skillId)}"` : '';
@@ -350,7 +359,6 @@
           <img src="${mascotPath}" onerror="this.onerror=null;this.src='${mascotFallback}'" alt="Unit mascot" />
         </div>`);
     }
-
     if(rewardDefined){
       rows.push(`
         <div class="lesson-row lesson-row--center chest">

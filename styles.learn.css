@@ -422,7 +422,7 @@
 }
 
 .progress-row {
-  --trophy-size: clamp(32px, 6vw, 48px);
+  --trophy-size: clamp(40px, 7vw, 64px);
   display: flex;
   align-items: center;
   gap: clamp(4px, 1vw, 8px);
