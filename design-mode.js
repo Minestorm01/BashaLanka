@@ -523,10 +523,11 @@
     const snap = event.altKey ? 1 : i.snap || SNAP;
 
     if (i.type === 'move') {
-      const left = snapRound(i.baseLeft + dx, snap);
-      const top = snapRound(i.baseTop + dy, snap);
-      i.element.style.left = left + 'px';
-      i.element.style.top = top + 'px';
+      const snappedLeft = snapRound(i.baseLeft + dx, snap);
+      const snappedTop = snapRound(i.baseTop + dy, snap);
+      const constrained = constrainToParent(i.element, snappedLeft, snappedTop);
+      i.element.style.left = constrained.left + 'px';
+      i.element.style.top = constrained.top + 'px';
       refreshOverlay();
     } else if (i.type === 'resize') {
       const result = computeResize(i, dx, dy, snap);
@@ -648,8 +649,31 @@
     const rect = parent.getBoundingClientRect();
     return {
       left: rect.left,
-      top: rect.top
+      top: rect.top,
+      width: rect.width,
+      height: rect.height
     };
+  }
+
+  function constrainToParent(element, left, top){
+    const parentRect = getOffsetParentRect(element);
+    if (!parentRect) {
+      return { left, top };
+    }
+    const elementRect = element.getBoundingClientRect();
+    const maxLeft = Math.max(0, Math.round(parentRect.width - elementRect.width));
+    const maxTop = Math.max(0, Math.round(parentRect.height - elementRect.height));
+    return {
+      left: clamp(left, 0, maxLeft),
+      top: clamp(top, 0, maxTop)
+    };
+  }
+
+  function clamp(value, min, max){
+    if (Number.isNaN(value)) return min;
+    if (value < min) return min;
+    if (value > max) return max;
+    return value;
   }
 
   function applyPositions(root = document){
