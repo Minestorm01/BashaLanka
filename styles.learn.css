@@ -320,6 +320,7 @@
   font-weight: 700;
   text-decoration: none;
   min-width: 0;
+  border: none;
 }
 
 .overview-cta .btn-primary:hover,
@@ -446,17 +447,18 @@
 }
 
 .btn-continue {
-  background: #7b5cff;
   border: none;
-  color: #fff;
-  padding: clamp(8px, 1.6vw, 10px) clamp(12px, 2.4vw, 16px);
-  font-weight: 800;
-  border-radius: 14px;
-  cursor: pointer;
-  font-size: clamp(12px, 2.2vw, 14px);
-  text-transform: uppercase;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
+  padding: clamp(8px, 1.6vw, 10px) clamp(12px, 2.4vw, 16px);
+  border-radius: 999px;
+  background: linear-gradient(135deg, #7b5cff, #5aa9ff);
+  color: #0b1320;
+  font-weight: 700;
+  text-transform: uppercase;
+  cursor: pointer;
+  font-size: clamp(12px, 2.2vw, 14px);
   min-width: clamp(120px, 28vw, 180px);
 }
 
