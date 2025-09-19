@@ -1,0 +1,26 @@
+{
+  "unitId": "s1u6",
+  "title": "Script Basics A",
+  "skills": [
+    {
+      "skillId": "s1u6-skill-01",
+      "title": "Level 1",
+      "levels": [
+        {
+          "levelId": "s1u6-skill-01-l1",
+          "lessonCount": 3,
+          "lessons": [
+            { "lessonId": "lesson-01", "title": "Lesson 1", "objectives": [], "content_blocks": [] },
+            { "lessonId": "lesson-02", "title": "Lesson 2", "objectives": [], "content_blocks": [] },
+            { "lessonId": "lesson-03", "title": "Lesson 3", "objectives": [], "content_blocks": [] }
+          ],
+          "review": {
+            "type": "review",
+            "title": "Lesson Review",
+            "content_blocks": []
+          }
+        }
+      ]
+    }
+  ]
+}

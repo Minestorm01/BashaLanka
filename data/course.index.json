@@ -6,30 +6,14 @@
       "id": "sec1",
       "title": "Foundations",
       "units": [
-        {
-          "id": "s1u1",
-          "title": "Greetings 1",
-          "lessons": 3,
-          "status": "unlocked"
-        },
-        {
-          "id": "s1u2",
-          "title": "Introduce Yourself",
-          "lessons": 3,
-          "status": "locked"
-        },
-        {
-          "id": "s1u3",
-          "title": "Script Basics A",
-          "lessons": 4,
-          "status": "locked"
-        },
-        {
-          "id": "s1u4",
-          "title": "Word Order",
-          "lessons": 3,
-          "status": "locked"
-        }
+        { "id": "s1u1", "title": "Greetings 1",              "lessons": 4, "status": "unlocked" },
+        { "id": "s1u2", "title": "Yes/No & ‘Am’ Forms",      "lessons": 3, "status": "locked" },
+        { "id": "s1u3", "title": "Introduce Yourself",       "lessons": 3, "status": "locked" },
+        { "id": "s1u4", "title": "Pronouns 1",               "lessons": 4, "status": "locked" },
+        { "id": "s1u5", "title": "Possessives",              "lessons": 3, "status": "locked" },
+        { "id": "s1u6", "title": "Script Basics A",          "lessons": 4, "status": "locked" },
+        { "id": "s1u7", "title": "Question Words",           "lessons": 3, "status": "locked" },
+        { "id": "s1u8", "title": "Core Verbs (Present)",     "lessons": 4, "status": "locked" }
       ]
     }
   ]
