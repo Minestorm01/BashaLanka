@@ -1,26 +1,89 @@
 {
   "unitId": "s1u1",
-  "title": "Greetings 1",
-  "skills": [
+  "skillId": "s1-skill-01",
+  "levelId": "s1-skill-01-l1",
+  "lessons": [
     {
-      "skillId": "s1u1-skill-01",
-      "title": "Level 1",
-      "levels": [
-        {
-          "levelId": "s1u1-skill-01-l1",
-          "lessonCount": 3,
-          "lessons": [
-            { "lessonId": "lesson-01", "title": "Lesson 1", "objectives": [], "content_blocks": [] },
-            { "lessonId": "lesson-02", "title": "Lesson 2", "objectives": [], "content_blocks": [] },
-            { "lessonId": "lesson-03", "title": "Lesson 3", "objectives": [], "content_blocks": [] }
-          ],
-          "review": {
-            "type": "review",
-            "title": "Lesson Review",
-            "content_blocks": []
-          }
-        }
-      ]
+      "id": "lesson-01",
+      "title": "Pronouns + key words (how? / fine)",
+      "duration_min": 7,
+      "xp_reward": 10,
+      "objectives": [
+        "Learn I/you/he/she",
+        "Learn “how?” and “fine” vocab"
+      ],
+      "vocab": [
+        {"si": "මම", "translit": "mama", "en": "I"},
+        {"si": "ඔයා", "translit": "oyā", "en": "you (casual)"},
+        {"si": "ඔහු", "translit": "ohu", "en": "he"},
+        {"si": "ඇය", "translit": "eya", "en": "she"},
+        {"si": "කොහොමද?", "translit": "kohomada?", "en": "how?"},
+        {"si": "හොඳයි", "translit": "hondayi", "en": "fine / good"}
+      ],
+      "pronunciation_tips": "හොඳයි ≈ hon-dai (not hon-dye). Stretch long vowels: oyā, āyu-bō-van.",
+      "content_blocks": [
+        {"type":"CONCEPT","body":"Core pronouns carry most beginner sentences. Keep it short; Sinhala often drops 'am/is/are'."},
+        {"type":"MINI_EXAMPLE","body":"මම — mama — I\nඔයා — oyā — you (casual)\nඔහු — ohu — he\nඇය — eya — she"},
+        {"type":"PRACTICE","body":"Match script ↔ translit ↔ English; then read aloud."}
+      ],
+      "unlock_next": "lesson-02"
+    },
+    {
+      "id": "lesson-02",
+      "title": "Ask “How are you?” (casual & polite)",
+      "duration_min": 6,
+      "xp_reward": 10,
+      "objectives": [
+        "Build [pronoun] + කොහොමද?",
+        "Use casual vs polite you vocab"
+      ],
+      "vocab": [
+        {"si": "ඔයා කොහොමද?", "translit": "oyā kohomada?", "en": "How are you? (casual)"},
+        {"si": "ඔබ කොහොමද?", "translit": "oba kohomada?", "en": "How are you? (polite)"},
+        {"si": "ඔහු කොහොමද?", "translit": "ohu kohomada?", "en": "How is he?"},
+        {"si": "ඇය කොහොමද?", "translit": "eya kohomada?", "en": "How is she?"}
+      ],
+      "content_blocks": [
+        {"type":"CONCEPT","body":"Pattern: [pronoun] + කොහොමද? (how?). Casual: ඔයා; Polite: ඔබ."},
+        {"type":"BIG_EXAMPLE","body":"A: ඔයා කොහොමද? — oyā kohomada? — How are you?"},
+        {"type":"PRACTICE","body":"Build & record each question; app checks pronunciation."}
+      ],
+      "unlock_next": "lesson-03"
+    },
+    {
+      "id": "lesson-03",
+      "title": "Answers + formal greeting",
+      "duration_min": 7,
+      "xp_reward": 12,
+      "objectives": [
+        "Say “I’m fine / He/She is fine”",
+        "Use ආයුබෝවන් greeting"
+      ],
+      "vocab": [
+        {"si":"මම හොඳයි.", "translit":"mama hondayi.", "en":"I am fine."},
+        {"si":"ඔහු හොඳයි.", "translit":"ohu hondayi.", "en":"He is fine."},
+        {"si":"ඇය හොඳයි.", "translit":"eya hondayi.", "en":"She is fine."},
+        {"si":"ආයුබෝවන්", "translit":"āyubōvan", "en":"formal greeting (hello)"}
+      ],
+      "content_blocks": [
+        {"type":"CONCEPT","body":"Replies are short: [pronoun] + හොඳයි. Use āyubōvan to open/close formally."},
+        {"type":"DIALOGUE","body":"A: ඔබ කොහොමද? — oba kohomada?\nB: මම හොඳයි. ආයුබෝවන්."},
+        {"type":"PRACTICE","body":"Roleplay: greet → ask → answer → close."}
+      ],
+      "unlock_next": "lesson-04"
+    },
+    {
+      "id": "lesson-04",
+      "title": "Lesson Review",
+      "type": "review",
+      "trophy": "gold",
+      "duration_min": 5,
+      "xp_reward": 8,
+      "objectives": ["Consolidate pronouns", "Ask/answer greetings"],
+      "content_blocks": [
+        {"type":"QUIZ","body":"Mixed exercises from lessons 1–3 (translate, matching, type-what-you-hear)."}
+      ],
+      "unlock_next": null
     }
   ]
 }

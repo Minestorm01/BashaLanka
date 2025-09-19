@@ -11,7 +11,14 @@
   };
   let sections = [];
   let loadingPromise = null;
-let sectionsLoadedEventSent = false;
+  let sectionsLoadedEventSent = false;
+  const courseHierarchyState = {
+    promise: null,
+    ready: false,
+    sections: [],
+    unitMap: new Map()
+  };
+  const lessonDataCache = new Map();
 
   function trophySrc(progress){
     const file = progress >= 1 ? 'trophy-gold_1.svg' : 'trophy-silver_1.svg';
@@ -29,6 +36,99 @@ let sectionsLoadedEventSent = false;
       </div>`;
   }
 
+  function normalizeLessonEntry(lesson, fallbackStatus, index, meta = {}){
+    const order = typeof meta.order === 'number'
+      ? meta.order
+      : (typeof index === 'number' ? index + 1 : 0);
+    const lessonIndex = typeof meta.lessonIndex === 'number'
+      ? meta.lessonIndex
+      : (typeof index === 'number' ? index + 1 : 0);
+    const skillId = meta.skillId || '';
+    const levelId = meta.levelId || '';
+    const baseType = meta.type || null;
+
+    if(typeof lesson === 'string'){
+      const typeValue = baseType;
+      return {
+        id: lesson,
+        title: typeof index === 'number' ? `Lesson ${index + 1}` : 'Lesson',
+        status: fallbackStatus,
+        type: typeValue,
+        isReview: typeValue === 'review',
+        skillId,
+        levelId,
+        order,
+        lessonIndex
+      };
+    }
+
+    if(lesson && typeof lesson === 'object'){
+      const typeValue = lesson.type || baseType || null;
+      return {
+        id: lesson.id || lesson.lessonId || '',
+        title: lesson.title || (typeof index === 'number' ? `Lesson ${index + 1}` : 'Untitled lesson'),
+        status: lesson.status || fallbackStatus,
+        type: typeValue,
+        isReview: typeValue === 'review',
+        skillId: lesson.skillId || skillId,
+        levelId: lesson.levelId || levelId,
+        order,
+        lessonIndex
+      };
+    }
+
+    const typeValue = baseType;
+    return {
+      id: '',
+      title: typeof index === 'number' ? `Lesson ${index + 1}` : 'Untitled lesson',
+      status: fallbackStatus,
+      type: typeValue,
+      isReview: typeValue === 'review',
+      skillId,
+      levelId,
+      order,
+      lessonIndex
+    };
+  }
+
+  function buildUnitLessons(unit){
+    const fallbackStatus = unit.status || 'locked';
+    const directLessons = Array.isArray(unit.lessons) ? unit.lessons : [];
+    if(directLessons.length){
+      return directLessons.map((lesson, index) => normalizeLessonEntry(lesson, fallbackStatus, index, {
+        order: index + 1,
+        lessonIndex: index + 1
+      }));
+    }
+
+    const skills = Array.isArray(unit.skills) ? unit.skills : [];
+    if(!skills.length) return [];
+
+    const flattened = [];
+    let globalOrder = 0;
+    skills.forEach(skill => {
+      const skillId = skill.skillId || skill.id || '';
+      const levels = Array.isArray(skill.levels) ? skill.levels : [];
+      levels.forEach(level => {
+        const levelId = level.levelId || level.id || '';
+        const refs = Array.isArray(level.lessons) ? level.lessons : [];
+        refs.forEach((ref, index) => {
+          globalOrder += 1;
+          const typeValue = ref && typeof ref === 'object' ? ref.type : null;
+          flattened.push(normalizeLessonEntry(ref, fallbackStatus, index, {
+            skillId,
+            levelId,
+            order: globalOrder,
+            lessonIndex: index + 1,
+            type: typeValue
+          }));
+        });
+      });
+    });
+
+    return flattened;
+  }
+
   function lessonStats(lessons){
     const total = lessons.length;
     const completed = lessons.filter(l => l.status === 'completed').length;
@@ -37,11 +137,7 @@ let sectionsLoadedEventSent = false;
   }
 
   function normalizeUnit(unit, index){
-    const lessons = (unit.lessons || []).map(lesson => ({
-      id: lesson.id || '',
-      title: lesson.title || 'Untitled lesson',
-      status: lesson.status || unit.status || 'locked'
-    }));
+    const lessons = buildUnitLessons(unit);
     const { total, completed, unlocked } = lessonStats(lessons);
     const progress = total ? completed / total : 0;
     let status = unit.status || 'locked';
@@ -178,6 +274,7 @@ let sectionsLoadedEventSent = false;
     const mascotPath = `${assetRoot}/section${sectionNum}_unit_${unit.number}.svg`;
     const mascotFallback = `${assetRoot}/section1_unit_1.svg`;
     const lessons = unit.lessons || [];
+    const hasReviewLesson = lessons.some(lesson => lesson && lesson.isReview);
     const allComplete = lessons.length > 0 && lessons.every(lesson => lesson.status === 'completed');
     const rewardDefined = unit.reward === 'chest' || unit.chest === true || (unit.reward && unit.reward.type === 'chest');
     const midpoint = lessons.length ? Math.ceil(lessons.length / 2) : 0;
@@ -207,14 +304,36 @@ let sectionsLoadedEventSent = false;
           return 'Locked lesson';
       }
     };
+    const altForReview = status => {
+      switch(status){
+        case 'completed':
+        case 'complete':
+          return 'Review completed';
+        case 'unlocked':
+        case 'start':
+          return 'Start review';
+        default:
+          return 'Review locked';
+      }
+    };
 
     lessons.forEach((lesson, index) => {
       const status = lesson.status || 'locked';
+      const isReview = Boolean(lesson && lesson.isReview);
       const side = index % 2 === 0 ? 'left' : 'right';
+      const rowClasses = ['lesson-row', `lesson-row--${isReview ? 'center' : side}`, 'lesson-row--lesson'];
+      if(isReview) rowClasses.push('trophy');
+      const buttonClasses = ['lesson', `lesson--${status}`];
+      if(isReview) buttonClasses.push('lesson--review');
+      const iconSrc = isReview ? `${assetRoot}/trophy-gold_1.svg` : iconForStatus(status);
+      const altText = isReview ? altForReview(status) : altForStatus(status);
+      const lessonIdAttr = lesson && lesson.id ? ` data-lesson-id="${escapeAttribute(lesson.id)}"` : '';
+      const skillAttr = lesson && lesson.skillId ? ` data-skill-id="${escapeAttribute(lesson.skillId)}"` : '';
+      const levelAttr = lesson && lesson.levelId ? ` data-level-id="${escapeAttribute(lesson.levelId)}"` : '';
       rows.push(`
-        <div class="lesson-row lesson-row--${side} lesson-row--lesson">
-          <button type="button" class="lesson lesson--${status}">
-            <img src="${iconForStatus(status)}" alt="${altForStatus(status)}" />
+        <div class="${rowClasses.join(' ')}">
+          <button type="button" class="${buttonClasses.join(' ')}"${lessonIdAttr}${skillAttr}${levelAttr}>
+            <img src="${iconSrc}" alt="${altText}" />
           </button>
         </div>`);
       if(index === midpoint - 1){
@@ -239,7 +358,7 @@ let sectionsLoadedEventSent = false;
         </div>`);
     }
 
-    if(allComplete){
+    if(allComplete && !hasReviewLesson){
       rows.push(`
         <div class="lesson-row lesson-row--center trophy">
           <img src="${assetRoot}/trophy-gold_1.svg" alt="Trophy" />
@@ -768,12 +887,199 @@ let sectionsLoadedEventSent = false;
     }, OVERVIEW_TRANSITION_MS + 50);
   }
 
+  async function ensureCourseHierarchy(){
+    if(courseHierarchyState.ready && !courseHierarchyState.promise) return courseHierarchyState;
+    if(courseHierarchyState.promise) return courseHierarchyState.promise;
+    const load = fetch('data/course.index.json', { cache: 'no-cache' })
+      .then(res => res.ok ? res.json() : null)
+      .then(data => {
+        const sections = Array.isArray(data)
+          ? data
+          : (data && Array.isArray(data.sections) ? data.sections : []);
+        courseHierarchyState.sections = sections;
+        courseHierarchyState.unitMap = new Map();
+        sections.forEach(section => {
+          const units = Array.isArray(section.units) ? section.units : [];
+          units.forEach(unit => {
+            courseHierarchyState.unitMap.set(unit.id, { unit, section });
+          });
+        });
+        courseHierarchyState.ready = true;
+        courseHierarchyState.promise = null;
+        return courseHierarchyState;
+      })
+      .catch(err => {
+        console.error('learn: failed to load course index', err);
+        courseHierarchyState.sections = [];
+        courseHierarchyState.unitMap = new Map();
+        courseHierarchyState.ready = true;
+        courseHierarchyState.promise = null;
+        return courseHierarchyState;
+      });
+    courseHierarchyState.promise = load;
+    return load;
+  }
+
+  async function ensureUnitLessonData(unitId){
+    if(!unitId) return null;
+    const cached = lessonDataCache.get(unitId);
+    if(cached){
+      if(typeof cached.then === 'function') return cached;
+      return Promise.resolve(cached);
+    }
+    const promise = fetch(`data/${unitId}.lessons.json`, { cache: 'no-cache' })
+      .then(res => res.ok ? res.json() : null)
+      .catch(err => {
+        console.warn('learn: failed to load lesson data for', unitId, err);
+        return null;
+      })
+      .then(data => {
+        lessonDataCache.set(unitId, data);
+        return data;
+      });
+    lessonDataCache.set(unitId, promise);
+    return promise;
+  }
+
+  function normalizeLevelLessons(level){
+    const refs = Array.isArray(level && level.lessons) ? level.lessons : [];
+    return refs.map((ref, index) => {
+      if(typeof ref === 'string'){
+        return { id: ref, order: index + 1 };
+      }
+      if(ref && typeof ref === 'object'){
+        return {
+          ...ref,
+          id: ref.id || ref.lessonId || '',
+          order: index + 1
+        };
+      }
+      return { id: '', order: index + 1 };
+    });
+  }
+
+  async function getLessonPositionMeta({ unitId, skillId, levelId, lessonId } = {}){
+    if(!unitId){
+      return {
+        currentIndex: 0,
+        totalLessons: 0,
+        lesson: null,
+        lessonId: '',
+        skill: null,
+        level: null,
+        unit: null,
+        section: null,
+        type: null,
+        isReview: false
+      };
+    }
+
+    const hierarchy = await ensureCourseHierarchy();
+    const entry = hierarchy.unitMap.get(unitId);
+    if(!entry || !entry.unit){
+      return {
+        currentIndex: 0,
+        totalLessons: 0,
+        lesson: null,
+        lessonId: lessonId || '',
+        skill: null,
+        level: null,
+        unit: null,
+        section: null,
+        type: null,
+        isReview: false
+      };
+    }
+
+    const skills = Array.isArray(entry.unit.skills) ? entry.unit.skills : [];
+    const skill = skills.find(s => (skillId && (s.skillId === skillId || s.id === skillId))) || skills[0] || null;
+    if(!skill){
+      return {
+        currentIndex: 0,
+        totalLessons: 0,
+        lesson: null,
+        lessonId: lessonId || '',
+        skill: null,
+        level: null,
+        unit: entry.unit,
+        section: entry.section,
+        type: null,
+        isReview: false
+      };
+    }
+
+    const levels = Array.isArray(skill.levels) ? skill.levels : [];
+    const level = levels.find(l => (levelId && (l.levelId === levelId || l.id === levelId))) || levels[0] || null;
+    if(!level){
+      return {
+        currentIndex: 0,
+        totalLessons: 0,
+        lesson: null,
+        lessonId: lessonId || '',
+        skill,
+        level: null,
+        unit: entry.unit,
+        section: entry.section,
+        type: null,
+        isReview: false
+      };
+    }
+
+    const lessons = normalizeLevelLessons(level);
+    const declaredTotal = Number(level.lessonCount) || 0;
+    const fallbackTotal = lessons.length;
+    const totalLessons = declaredTotal || fallbackTotal;
+
+    let targetId = lessonId || '';
+    let matchIndex = -1;
+    if(targetId){
+      matchIndex = lessons.findIndex(item => item.id === targetId);
+    }
+    if(matchIndex < 0 && lessons.length){
+      targetId = lessons[0].id;
+      matchIndex = 0;
+    }
+    const currentIndex = matchIndex >= 0 ? matchIndex + 1 : 0;
+
+    const lessonData = await ensureUnitLessonData(unitId);
+    let lessonDetail = null;
+    if(lessonData && Array.isArray(lessonData.lessons)){
+      lessonDetail = lessonData.lessons.find(item => item.id === targetId) || null;
+    }
+
+    const typeValue = lessonDetail && lessonDetail.type
+      ? lessonDetail.type
+      : (matchIndex >= 0 && lessons[matchIndex] && lessons[matchIndex].type ? lessons[matchIndex].type : null);
+    const isReview = typeValue === 'review';
+
+    return {
+      currentIndex,
+      totalLessons,
+      lesson: lessonDetail,
+      lessonId: targetId,
+      skill,
+      level,
+      unit: entry.unit,
+      section: entry.section,
+      type: typeValue,
+      isReview
+    };
+  }
+
+  async function getLessonCounterText(params = {}){
+    const meta = await getLessonPositionMeta(params);
+    if(!meta.totalLessons || !meta.currentIndex) return '';
+    return `Lesson ${meta.currentIndex} of ${meta.totalLessons}`;
+  }
+
   const learnAPI = {
     ensureSections,
     getSectionsSnapshot,
     setSectionState,
     setSectionProgress,
-    updateCTAForSection
+    updateCTAForSection,
+    getLessonPosition: getLessonPositionMeta,
+    getLessonCounterText
   };
   window.__LEARN__ = Object.assign(window.__LEARN__ || {}, learnAPI);
 })();

@@ -6,7 +6,30 @@
       "id": "sec1",
       "title": "Foundations",
       "units": [
-        { "id": "s1u1", "title": "Greetings 1",              "lessons": 4, "status": "unlocked" },
+        {
+          "id": "s1u1",
+          "title": "Greetings 1",
+          "lessons": 4,
+          "status": "unlocked",
+          "skills": [
+            {
+              "skillId": "s1-skill-01",
+              "title": "Pronouns + Key Words",
+              "levels": [
+                {
+                  "levelId": "s1-skill-01-l1",
+                  "lessonCount": 4,
+                  "lessons": [
+                    "lesson-01",
+                    "lesson-02",
+                    "lesson-03",
+                    "lesson-04"
+                  ]
+                }
+              ]
+            }
+          ]
+        },
         { "id": "s1u2", "title": "Yes/No & ‘Am’ Forms",      "lessons": 3, "status": "locked" },
         { "id": "s1u3", "title": "Introduce Yourself",       "lessons": 3, "status": "locked" },
         { "id": "s1u4", "title": "Pronouns 1",               "lessons": 4, "status": "locked" },
