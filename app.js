@@ -253,6 +253,11 @@ function courseCard(course){
   card.className = 'course-card card';
   card.tabIndex = 0;
   card.setAttribute('data-id', id);
+  const progressValue = Math.max(0, Math.min(100, Number(progress) || 0));
+  const hasProgress = progressValue > 0;
+  const primaryActionMarkup = hasProgress
+    ? '<button type="button" class="btn-continue" data-action="continue">Continue</button>'
+    : '<a class="btn-primary" href="#/section/1">Start Section 1</a>';
   const imgMarkup = cover
     ? `<img loading="lazy" decoding="async" src="${cover}" alt="${title || 'Course'} cover" />`
     : appLogoPicture(`${title || 'Course'} cover`);
@@ -267,10 +272,10 @@ function courseCard(course){
       </header>
       <p class="muted">Level ${level ?? '—'}</p>
       <div class="progress" aria-label="Progress">
-        <div class="bar" style="width:${Math.max(0, Math.min(100, Number(progress) || 0))}%"></div>
+        <div class="bar" style="width:${progressValue}%"></div>
       </div>
       <footer class="row gap">
-        <button class="btn primary" data-action="continue">Continue</button>
+        ${primaryActionMarkup}
         <button class="btn ghost" data-action="details">Details</button>
       </footer>
     </div>
