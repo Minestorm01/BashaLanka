@@ -465,10 +465,7 @@
   border-radius: 999px;
   display: grid;
   place-items: center;
-  background-color: #24374f;
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: contain;
+  background: none;
   border: none;
   padding: 0;
   box-shadow: none;
@@ -486,9 +483,19 @@
   outline-offset: 3px;
 }
 
-.wp.is-locked    { background-image: url('assets/general/lesson_locked.svg'); }
-.wp.is-available { background-image: url('assets/general/start_lesson.svg'); }
-.wp.is-complete  { background-image: url('assets/general/lesson_complete.svg'); }
+
+.wp__icon {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.wp__icon--fallback {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: clamp(18px, 4vw, 24px);
+}
 
 .unit-track .wp:nth-of-type(6n+1) { grid-column: 2; }
 .unit-track .wp:nth-of-type(6n+2) { grid-column: 1; }
