@@ -3,11 +3,6 @@
   if(!container) return;
 
   const SECTION_ROOT = 'assets/sections';
-  const LEARN_ICON_BASES = [
-    'assets/general/learn',
-    'assets/general',
-    'assets/learn'
-  ];
   const OVERVIEW_TRANSITION_MS = 320;
   const overviewData = readOverviewData();
   const overviewState = {
@@ -133,7 +128,6 @@
     const cards = sections.map(sec => sectionCard(sec)).join('');
     const listMarkup = cards || '<p class="unit-path__empty">No sections available yet.</p>';
     container.innerHTML = `<div class="learn-wrap"><div class="sections-list">${listMarkup}</div><aside class="learn-rail hide-mobile"><h3>Coming soon</h3></aside></div>`;
-    applyImageFallbacks(container);
     setupSectionOverviews();
   }
 
@@ -175,256 +169,80 @@
     </article>`;
   }
 
+  function unitStatusLabel(unit){
+    if(unit.status === 'locked') return 'Locked';
+    if(unit.status === 'completed' || unit.progress >= 1) return 'Completed';
+    return 'In progress';
+  }
+
   function lessonStatusLabel(status){
     if(status === 'completed') return 'Completed';
     if(status === 'unlocked') return 'Available';
     return 'Locked';
   }
 
-  // --- New helpers for assets ---
-  function collectAssetCandidates(possibleSubpaths){
-    const subs = Array.isArray(possibleSubpaths) ? possibleSubpaths : [possibleSubpaths];
-    const seen = new Set();
-    const result = [];
-    subs.forEach(sub => {
-      const cleanSub = String(sub || '').replace(/^\/+/, '').replace(/\/{2,}/g, '/');
-      LEARN_ICON_BASES.forEach(base => {
-        const cleanBase = base.replace(/\/+$/, '');
-        const candidate = cleanSub ? `${cleanBase}/${cleanSub}` : cleanBase;
-        if(candidate && !seen.has(candidate)){
-          seen.add(candidate);
-          result.push(candidate);
-        }
-      });
-    });
-    return result;
-  }
-
-  function lessonIconPaths(status){
-    const map = {
-      locked: 'lesson_locked.svg',
-      unlocked: 'start_lesson.svg',
-      completed: 'lesson_complete.svg'
-    };
-    const file = map[status] || map.locked;
-    return collectAssetCandidates([
-      `lessons/${file}`,
-      file
-    ]);
-  }
-
-  function unitMascotPaths(sectionNumber, unitNumber){
-    const safeSection = sectionNumber || 1;
-    const safeUnit = unitNumber || 1;
-    const specific = `section${safeSection}_unit_${safeUnit}.svg`;
-    const fallback = 'section1_unit_1.svg';
-    const candidates = collectAssetCandidates([
-      `units/${specific}`,
-      specific
-    ]);
-    const fallbackCandidates = collectAssetCandidates([
-      `units/${fallback}`,
-      fallback
-    ]);
-    const seen = new Set(candidates);
-    fallbackCandidates.forEach(src => {
-      if(!seen.has(src)){
-        seen.add(src);
-        candidates.push(src);
-      }
-    });
-    return candidates;
-  }
-
-  function backIconPaths(){
-    return collectAssetCandidates([
-      'ui/back_arrow_1.svg',
-      'back_arrow_1.svg'
-    ]);
-  }
-
-  function imgWithFallback({ className = '', alt = '', attrs = '', paths = [] }){
-    if(!paths || !paths.length) return '';
-    const [primary, ...rest] = paths;
-    const classAttr = className ? ` class="${escapeAttribute(className)}"` : '';
-    const altAttr = ` alt="${escapeAttribute(alt)}"`;
-    const extraAttrs = attrs ? ` ${attrs.trim()}` : '';
-    const fallbackAttr = rest.length ? ` data-fallbacks="${escapeAttribute(rest.join('|'))}"` : '';
-    return `<img src="${escapeAttribute(primary)}"${classAttr}${altAttr}${fallbackAttr}${extraAttrs}>`;
-  }
-
-  function applyImageFallbacks(scope = container){
-    if(!scope) return;
-    scope.querySelectorAll('img[data-fallbacks]')
-      .forEach(img => {
-        if(img.dataset.fallbackBound === '1') return;
-        img.dataset.fallbackBound = '1';
-        const queue = (img.dataset.fallbacks || '')
-          .split('|')
-          .map(item => item.trim())
-          .filter(Boolean);
-        if(!queue.length) return;
-        img.addEventListener('error', function handle(){
-          if(!queue.length){
-            img.removeEventListener('error', handle);
-            return;
-          }
-          const next = queue.shift();
-          if(next){
-            img.src = next;
-          }
-          if(!queue.length){
-            img.removeEventListener('error', handle);
-          }
-        });
-      });
-  }
-
   function renderLesson(lesson){
     const status = lesson.status || 'locked';
-    const title = lesson.title || 'Untitled lesson';
-    const alt = status === 'completed' ? 'Lesson complete'
-      : status === 'unlocked' ? 'Start lesson'
-      : 'Lesson locked';
-    const iconMarkup = imgWithFallback({
-      className: 'lesson-icon-img',
-      alt,
-      paths: lessonIconPaths(status)
-    }) || `<span class="lesson-icon-fallback" aria-hidden="true">${escapeHtml(status === 'completed' ? '✓' : status === 'unlocked' ? '•' : '🔒')}</span>`;
+    const icon = status === 'completed' ? '✓' : status === 'unlocked' ? '•' : '🔒';
     return `<li class="lesson lesson--${status}" role="listitem">
-      <span class="lesson__icon" aria-hidden="true">
-        ${iconMarkup}
-      </span>
-      <span class="lesson__title">${escapeHtml(title)}</span>
+      <span class="lesson__icon" aria-hidden="true">${icon}</span>
+      <span class="lesson__title">${lesson.title}</span>
       <span class="lesson__state">${lessonStatusLabel(status)}</span>
     </li>`;
   }
 
-  function waypointIconMarkup(status){
-    const safeStatus = status === 'completed'
-      ? 'completed'
-      : status === 'unlocked'
-        ? 'unlocked'
-        : 'locked';
-    const icon = imgWithFallback({
-      className: 'wp__icon',
-      alt: '',
-      attrs: 'aria-hidden="true"',
-      paths: lessonIconPaths(safeStatus)
-    });
-    if(icon) return icon;
-    const fallbackSymbol = safeStatus === 'completed' ? '✓'
-      : safeStatus === 'unlocked' ? '▶'
-      : '🔒';
-    return `<span class="wp__icon wp__icon--fallback" aria-hidden="true">${escapeHtml(fallbackSymbol)}</span>`;
+  function renderUnit(unit, index, total){
+    const locked = unit.status === 'locked';
+    const showTop = index > 0;
+    const showBottom = index < total - 1;
+    const progressPct = Math.round(unit.progress * 100);
+    const bubbleIcon = unit.icon || '🔰';
+    const lessonsMarkup = unit.lessons.length
+      ? `<div class="unit-node__lessons" hidden>
+          <ul class="lesson-list" role="list">
+            ${unit.lessons.map(renderLesson).join('')}
+          </ul>
+        </div>`
+      : '';
+    const buttonAttrs = locked ? 'type="button" disabled' : 'type="button"';
+    return `<div class="unit-node ${locked ? 'is-locked' : ''}${unit.progress >= 1 ? ' is-complete' : ''}" role="listitem" data-unit="${unit.id}">
+      <div class="unit-node__stem" aria-hidden="true">
+        ${showTop ? '<span class="unit-node__line unit-node__line--top"></span>' : ''}
+        <span class="unit-node__bubble">${bubbleIcon}</span>
+        ${showBottom ? '<span class="unit-node__line unit-node__line--bottom"></span>' : ''}
+      </div>
+      <div class="unit-node__content">
+        <button class="unit-node__header" ${buttonAttrs} data-unit-toggle="${unit.id}" aria-expanded="false">
+          <div class="unit-node__title-wrap">
+            <span class="unit-node__title">${unit.title}</span>
+            <span class="unit-node__status">${unitStatusLabel(unit)}</span>
+          </div>
+          <div class="unit-node__meta">
+            <span class="unit-node__count">${unit.lessonsCompleted}/${unit.lessonsTotal} lessons</span>
+            <span class="unit-node__progress" aria-hidden="true">
+              <span class="unit-node__progress-fill" style="width:${progressPct}%"></span>
+            </span>
+          </div>
+        </button>
+        ${lessonsMarkup}
+      </div>
+    </div>`;
   }
 
-  function renderUnit(section, unit, index){
-    const lessons = unit.lessons || [];
-    const waypoints = lessons.map((lesson, lessonIndex) => {
-      const status = lesson.status || 'locked';
-      const cls = status === 'completed' ? 'is-complete'
-        : status === 'unlocked' ? 'is-available'
-        : 'is-locked';
-      const disabled = status === 'locked' ? 'disabled' : '';
-      const title = escapeAttribute(lesson.title || `Lesson ${lessonIndex + 1}`);
-      return `
-        <button type="button" class="wp ${cls}" data-lesson="${lessonIndex}" data-status="${status}" ${disabled}
-          aria-label="Lesson ${lessonIndex + 1}: ${title} — ${lessonStatusLabel(status)}">${waypointIconMarkup(status)}</button>
-        ${lessonIndex < lessons.length - 1 ? '<div class="trail" aria-hidden="true"></div>' : ''}`;
-    }).join('');
-
-    const unitIndex = index;
-    const unitNumber = unit.number || unitIndex + 1;
-    const mascotPaths = unitMascotPaths(section.number, unitNumber);
-    const baseMascot = imgWithFallback({
-      className: 'wp-mascot',
-      alt: '',
-      attrs: 'aria-hidden="true"',
-      paths: mascotPaths
-    });
-    const celebrateMascot = imgWithFallback({
-      className: 'wp-mascot--celebrate',
-      alt: '',
-      attrs: 'aria-hidden="true"',
-      paths: mascotPaths
-    });
-    const unitTitle = unit.title || `Unit ${unitNumber}`;
-    return `
-      <div class="unit-divider"><h3 class="unit-divider__label">${escapeHtml(unitTitle)}</h3></div>
-      <div class="unit-track" data-unit-index="${unitIndex}">
-        ${waypoints}
-        ${baseMascot}
-        ${celebrateMascot}
-      </div>`;
-  }
-
-  function applyUnitPathState(trackEl, unit){
-    const items = Array.from(trackEl.querySelectorAll('.wp'));
-    items.forEach((el, index) => {
-      const lesson = unit.lessons[index];
-      const status = (lesson && lesson.status) || 'locked';
-      el.classList.toggle('is-locked', status === 'locked');
-      el.classList.toggle('is-available', status === 'unlocked');
-      el.classList.toggle('is-complete', status === 'completed');
-      el.toggleAttribute('disabled', status === 'locked');
-      if(el.dataset.status !== status){
-        el.dataset.status = status;
-        el.innerHTML = waypointIconMarkup(status);
-        applyImageFallbacks(el);
-      }
-    });
-
-    const guide = trackEl.querySelector('.wp-mascot');
-    const firstAvailable = items.find(el => el.classList.contains('is-available'));
-    const lastComplete = [...items].reverse().find(el => el.classList.contains('is-complete'));
-    const anchor = firstAvailable || lastComplete || items[0];
-    if(guide && anchor){
-      guide.style.transform = 'translateY(-28px)';
-      anchor.after(guide);
-    }
-
-    const allDone = items.length && items.every(el => el.classList.contains('is-complete'));
-    trackEl.classList.toggle('is-complete', Boolean(allDone));
-    const celebrate = trackEl.querySelector('.wp-mascot--celebrate');
-    if(celebrate){
-      celebrate.style.display = allDone ? 'block' : 'none';
-      if(allDone){
-        celebrate.style.transform = 'translate(8px, -12px) rotate(-10deg)';
-      }
-    }
-
-    items.forEach(el => {
-      if(el.classList.contains('is-complete') && !el.classList.contains('sparkled')){
-        el.classList.add('sparkle', 'sparkled');
-        setTimeout(() => el.classList.remove('sparkle'), 1300);
-      }
-    });
-  }
-
-  function renderSection(id){
-    const sec = sections.find(s => String(s.number) === String(id));
+  function renderSection(number){
+    const sec = sections.find(s => String(s.number) === String(number));
     if(!sec){
-      container.innerHTML = `<p class="unit-path__empty">Section not found.</p>`;
+      container.innerHTML = '<p>Section not found.</p>';
       return;
     }
     const pct = Math.round(sec.progress * 100);
     const trophy = trophySrc(sec.progress);
-    const backIcon = imgWithFallback({
-      className: 'icon-back',
-      alt: '',
-      attrs: 'aria-hidden="true"',
-      paths: backIconPaths()
-    });
     const unitsMarkup = sec.units.length
-      ? sec.units.map((unit, index) => renderUnit(sec, unit, index)).join('')
+      ? sec.units.map((unit, index) => renderUnit(unit, index, sec.units.length)).join('')
       : '<p class="unit-path__empty">No units available yet.</p>';
 
     container.innerHTML = `<div class="section-page">
-      <button class="btn-back" data-action="back">
-        ${backIcon || ''}
-        <span>Back</span>
-      </button>
+   <button class="btn-back" data-action="back">← Back</button>
       <div class="section-page__hero">
         <div class="section-page__info">
           <h2>${sec.title}</h2>
@@ -448,13 +266,6 @@
         ${unitsMarkup}
       </div>
     </div>`;
-
-    applyImageFallbacks(container);
-    container.querySelectorAll('.unit-track').forEach(track => {
-      const unitIndex = parseInt(track.dataset.unitIndex, 10);
-      const unit = Number.isInteger(unitIndex) ? sec.units[unitIndex] : null;
-      if(unit) applyUnitPathState(track, unit);
-    });
   }
 
   function handleClick(e){
@@ -472,20 +283,20 @@
       return;
     }
 
+    const unitToggle = e.target.closest('[data-unit-toggle]');
+    if(unitToggle){
+      const node = unitToggle.closest('.unit-node');
+      if(node && !node.classList.contains('is-locked')){
+        const expanded = unitToggle.getAttribute('aria-expanded') === 'true';
+        unitToggle.setAttribute('aria-expanded', (!expanded).toString());
+        node.classList.toggle('is-open', !expanded);
+        const lessons = node.querySelector('.unit-node__lessons');
+        if(lessons){
+          lessons.hidden = expanded;
+        }
+      }
+    }
   }
-
-  window.addEventListener('admin:recompute-states', () => {
-    const secId = (location.hash.match(/^#\/section\/(\d+)/) || [])[1];
-    if(!secId) return;
-    const sec = sections.find(s => String(s.number) === String(secId));
-    if(!sec) return;
-    applyImageFallbacks(container);
-    container.querySelectorAll('.unit-track').forEach(track => {
-      const unitIndex = parseInt(track.dataset.unitIndex, 10);
-      const unit = Number.isInteger(unitIndex) ? sec.units[unitIndex] : null;
-      if(unit) applyUnitPathState(track, unit);
-    });
-  });
 
   async function router(){
     await ensureSections();
