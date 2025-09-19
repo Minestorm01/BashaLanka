@@ -1,6 +1,3 @@
-+115
--2
-
 (function(){
   const container = document.getElementById('view-learn');
   if(!container) return;
@@ -12,10 +9,10 @@
     activePanel: null,
     activeTrigger: null
   };
-  const lessonPopoverState = {
-    activePopover: null,
-    activeTrigger: null
-  };
+
+
+
+
   let sections = [];
   let loadingPromise = null;
   let sectionsLoadedEventSent = false;
@@ -43,6 +40,99 @@
       </div>`;
   }
 
+  function normalizeLessonEntry(lesson, fallbackStatus, index, meta = {}){
+    const order = typeof meta.order === 'number'
+      ? meta.order
+      : (typeof index === 'number' ? index + 1 : 0);
+    const lessonIndex = typeof meta.lessonIndex === 'number'
+      ? meta.lessonIndex
+      : (typeof index === 'number' ? index + 1 : 0);
+    const skillId = meta.skillId || '';
+    const levelId = meta.levelId || '';
+    const baseType = meta.type || null;
+
+    if(typeof lesson === 'string'){
+      const typeValue = baseType;
+      return {
+        id: lesson,
+        title: typeof index === 'number' ? `Lesson ${index + 1}` : 'Lesson',
+        status: fallbackStatus,
+        type: typeValue,
+        isReview: typeValue === 'review',
+        skillId,
+        levelId,
+        order,
+        lessonIndex
+      };
+    }
+
+    if(lesson && typeof lesson === 'object'){
+      const typeValue = lesson.type || baseType || null;
+      return {
+        id: lesson.id || lesson.lessonId || '',
+        title: lesson.title || (typeof index === 'number' ? `Lesson ${index + 1}` : 'Untitled lesson'),
+        status: lesson.status || fallbackStatus,
+        type: typeValue,
+        isReview: typeValue === 'review',
+        skillId: lesson.skillId || skillId,
+        levelId: lesson.levelId || levelId,
+        order,
+        lessonIndex
+      };
+    }
+
+    const typeValue = baseType;
+    return {
+      id: '',
+      title: typeof index === 'number' ? `Lesson ${index + 1}` : 'Untitled lesson',
+      status: fallbackStatus,
+      type: typeValue,
+      isReview: typeValue === 'review',
+      skillId,
+      levelId,
+      order,
+      lessonIndex
+    };
+  }
+
+  function buildUnitLessons(unit){
+    const fallbackStatus = unit.status || 'locked';
+    const directLessons = Array.isArray(unit.lessons) ? unit.lessons : [];
+    if(directLessons.length){
+      return directLessons.map((lesson, index) => normalizeLessonEntry(lesson, fallbackStatus, index, {
+        order: index + 1,
+        lessonIndex: index + 1
+      }));
+    }
+
+    const skills = Array.isArray(unit.skills) ? unit.skills : [];
+    if(!skills.length) return [];
+
+    const flattened = [];
+    let globalOrder = 0;
+    skills.forEach(skill => {
+      const skillId = skill.skillId || skill.id || '';
+      const levels = Array.isArray(skill.levels) ? skill.levels : [];
+      levels.forEach(level => {
+        const levelId = level.levelId || level.id || '';
+        const refs = Array.isArray(level.lessons) ? level.lessons : [];
+        refs.forEach((ref, index) => {
+          globalOrder += 1;
+          const typeValue = ref && typeof ref === 'object' ? ref.type : null;
+          flattened.push(normalizeLessonEntry(ref, fallbackStatus, index, {
+            skillId,
+            levelId,
+            order: globalOrder,
+            lessonIndex: index + 1,
+            type: typeValue
+          }));
+        });
+      });
+    });
+
+    return flattened;
+  }
+
   function lessonStats(lessons){
     const total = lessons.length;
     const completed = lessons.filter(l => l.status === 'completed').length;
@@ -51,11 +141,11 @@
   }
 
   function normalizeUnit(unit, index){
-    const lessons = (unit.lessons || []).map(lesson => ({
-      id: lesson.id || '',
-      title: lesson.title || 'Untitled lesson',
-      status: lesson.status || unit.status || 'locked'
-    }));
+    const lessons = buildUnitLessons(unit);
+
+
+
+
     const { total, completed, unlocked } = lessonStats(lessons);
     const progress = total ? completed / total : 0;
     let status = unit.status || 'locked';
@@ -146,7 +236,7 @@
     const cards = sections.map(sec => sectionCard(sec)).join('');
     const listMarkup = cards || '<p class="unit-path__empty">No sections available yet.</p>';
     container.innerHTML = `<div class="learn-wrap"><div class="sections-list">${listMarkup}</div><aside class="learn-rail hide-mobile"><h3>Coming soon</h3></aside></div>`;
-    resetLessonPopoverState();
+
     setupSectionOverviews();
   }
 
@@ -193,6 +283,7 @@
     const mascotPath = `${assetRoot}/section${sectionNum}_unit_${unit.number}.svg`;
     const mascotFallback = `${assetRoot}/section1_unit_1.svg`;
     const lessons = unit.lessons || [];
+    const hasReviewLesson = lessons.some(lesson => lesson && lesson.isReview);
     const allComplete = lessons.length > 0 && lessons.every(lesson => lesson.status === 'completed');
     const rewardDefined = unit.reward === 'chest' || unit.chest === true || (unit.reward && unit.reward.type === 'chest');
     const midpoint = lessons.length ? Math.ceil(lessons.length / 2) : 0;
@@ -211,6 +302,27 @@
       }
     };
     const altForStatus = status => {
+      switch(status){
+        case 'completed':
+        case 'complete':
+          return 'Lesson completed';
+        case 'unlocked':
+        case 'start':
+          return 'Start lesson';
+        default:
+          return 'Locked lesson';
+      }
+    };
+    const trophyIconForStatus = status => {
+      switch(status){
+        case 'completed':
+        case 'complete':
+          return `${assetRoot}/trophy-gold_1.svg`;
+        default:
+          return `${assetRoot}/trophy-silver_1.svg`;
+      }
+    };
+    const altForReview = status => {
       switch(status){
         case 'completed':
         case 'complete':
@@ -236,32 +348,32 @@
       const lessonIdAttr = lesson && lesson.id ? ` data-lesson-id="${escapeAttribute(lesson.id)}"` : '';
       const skillAttr = lesson && lesson.skillId ? ` data-skill-id="${escapeAttribute(lesson.skillId)}"` : '';
       const levelAttr = lesson && lesson.levelId ? ` data-level-id="${escapeAttribute(lesson.levelId)}"` : '';
-      const lessonNumber = typeof lesson.lessonIndex === 'number' ? lesson.lessonIndex : index + 1;
-      const totalLessons = lessons.length;
-      const popoverId = `lesson-popover-${sectionNum}-${unit.number}-${index + 1}`;
-      const popoverTitleId = `${popoverId}-title`;
-      const popoverClasses = ['lesson-popover'];
-      if(status === 'locked') popoverClasses.push('lesson-popover--locked');
-      const metaMarkup = totalLessons ? `<p class="lesson-popover__meta">Lesson ${lessonNumber} out of ${totalLessons}</p>` : '';
-      const lockedMessage = status === 'locked'
-        ? '<p class="lesson-popover__message">Complete all levels above to unlock this!</p>'
-        : '';
-      const actionAttrs = status === 'locked'
-        ? 'type="button" class="lesson-popover__action lesson-popover__action--locked" disabled'
-        : 'type="button" class="lesson-popover__action lesson-popover__action--start" data-lesson-action="start"';
-      const actionLabel = status === 'locked' ? 'Locked' : 'Begin lesson!';
-      const safeTitle = escapeHtml(lesson && lesson.title ? lesson.title : `Lesson ${lessonNumber}`);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
       rows.push(`
         <div class="${rowClasses.join(' ')}">
-          <button type="button" class="${buttonClasses.join(' ')}"${lessonIdAttr}${skillAttr}${levelAttr} aria-expanded="false" aria-haspopup="true" aria-controls="${popoverId}">
+          <button type="button" class="${buttonClasses.join(' ')}"${lessonIdAttr}${skillAttr}${levelAttr}>
             <img src="${iconSrc}" alt="${altText}" />
           </button>
-          <div class="${popoverClasses.join(' ')}" id="${popoverId}" role="group" aria-hidden="true" aria-labelledby="${popoverTitleId}" hidden>
-            <h3 id="${popoverTitleId}" class="lesson-popover__title">${safeTitle}</h3>
-            ${metaMarkup}
-            ${lockedMessage}
-            <button ${actionAttrs}>${actionLabel}</button>
-          </div>
+
+
+
+
+
+
         </div>`);
       if(index === midpoint - 1){
         rows.push(`
@@ -326,13 +438,13 @@
     <button class="btn-back" data-action="back">← Back</button>
     ${unitsMarkup}
   </div>`;
-    resetLessonPopoverState();
+
   }
 
   function handleClick(e){
-    if(lessonPopoverState.activePopover && !e.target.closest('.lesson-row')){
-      closeLessonPopover();
-    }
+
+
+
 
     const continueBtn = e.target.closest('.btn-continue, .overview-cta .btn-primary');
     if(continueBtn){
@@ -348,28 +460,28 @@
       return;
     }
 
-    const lessonTrigger = e.target.closest('.lesson');
-    if(lessonTrigger){
-      const row = lessonTrigger.closest('.lesson-row');
-      const popoverId = lessonTrigger.getAttribute('aria-controls');
-      const popover = popoverId ? row?.querySelector(`#${popoverId}`) : row?.querySelector('.lesson-popover');
-      if(popover){
-        if(popover.hidden){
-          openLessonPopover(popover, lessonTrigger);
-        }else{
-          closeLessonPopover(popover);
-        }
-      }
-      return;
-    }
 
-    const startLessonBtn = e.target.closest('[data-lesson-action="start"]');
-    if(startLessonBtn){
-      const row = startLessonBtn.closest('.lesson-row');
-      const popover = row?.querySelector('.lesson-popover');
-      closeLessonPopover(popover, { focusTrigger: true });
-      return;
-    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     const unitToggle = e.target.closest('[data-unit-toggle]');
     if(unitToggle){
@@ -386,61 +498,61 @@
     }
   }
 
-  function openLessonPopover(popover, trigger){
-    if(!popover || !trigger) return;
-    if(lessonPopoverState.activePopover && lessonPopoverState.activePopover !== popover){
-      closeLessonPopover();
-    }
-    const row = trigger.closest('.lesson-row');
-    if(row){
-      row.classList.add('lesson-row--popover-open');
-    }
-    popover.hidden = false;
-    popover.setAttribute('aria-hidden', 'false');
-    popover.classList.add('is-open');
-    trigger.setAttribute('aria-expanded', 'true');
-    lessonPopoverState.activePopover = popover;
-    lessonPopoverState.activeTrigger = trigger;
-  }
 
-  function closeLessonPopover(popover = lessonPopoverState.activePopover, { focusTrigger = false } = {}){
-    if(!popover){
-      lessonPopoverState.activePopover = null;
-      lessonPopoverState.activeTrigger = null;
-      return;
-    }
-    if(!popover.isConnected){
-      lessonPopoverState.activePopover = null;
-      lessonPopoverState.activeTrigger = null;
-      return;
-    }
-    const row = popover.closest('.lesson-row');
-    if(row){
-      row.classList.remove('lesson-row--popover-open');
-    }
-    popover.hidden = true;
-    popover.setAttribute('aria-hidden', 'true');
-    popover.classList.remove('is-open');
-    const trigger = row?.querySelector('.lesson') || lessonPopoverState.activeTrigger;
-    if(trigger && trigger.isConnected){
-      trigger.setAttribute('aria-expanded', 'false');
-      if(focusTrigger){
-        trigger.focus();
-      }
-    }
-    if(lessonPopoverState.activePopover === popover){
-      lessonPopoverState.activePopover = null;
-      lessonPopoverState.activeTrigger = null;
-    }
-  }
 
-  function resetLessonPopoverState(){
-    lessonPopoverState.activePopover = null;
-    lessonPopoverState.activeTrigger = null;
-  }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
   async function router(){
-    await ensureSections();
+ await ensureSections();
     const hash = location.hash || '#/learn';
     const m = hash.match(/^#\/section\/(\d+)/);
     if(m){
@@ -451,12 +563,12 @@
   }
 
   container.addEventListener('click', handleClick);
-  container.addEventListener('keydown', e => {
-    if(e.key === 'Escape' && lessonPopoverState.activePopover){
-      e.preventDefault();
-      closeLessonPopover(undefined, { focusTrigger: true });
-    }
-  });
+
+
+
+
+
+
   ensureSections().then(() => {
     router();
     window.addEventListener('hashchange', router);
@@ -484,11 +596,11 @@
               ]
             },
             {
-              title: 'Possession with “gé”',
-              explanation: 'Attach “gé” to people/animals for possession.',
+              title: 'Possession with “-gé”',
+              explanation: 'Attach “-gé” to people/animals for possession.',
               examples: [
-                { l1: 'o·yaa·gé na·mȧ mo·kak·dhȧ?', gloss: 'Your name, what? → What’s your name?' },
-                { l1: 'ma·gé ra·tȧ Shree lan·kaa·vȧ.', gloss: 'My country, Sri Lanka.' }
+                { l1: 'ඔයාගේ නම මොකක්ද? — oyāgé nama mokakda?', gloss: 'Your name, what? → What’s your name?' },
+                { l1: 'මගේ රට ශ්‍රී ලංකාව. — magé raṭa Śrī Lankāva.', gloss: 'My country, Sri Lanka.' }
               ]
             }
           ],
@@ -900,12 +1012,199 @@
     }, OVERVIEW_TRANSITION_MS + 50);
   }
 
+  async function ensureCourseHierarchy(){
+    if(courseHierarchyState.ready && !courseHierarchyState.promise) return courseHierarchyState;
+    if(courseHierarchyState.promise) return courseHierarchyState.promise;
+    const load = fetch('data/course.index.json', { cache: 'no-cache' })
+      .then(res => res.ok ? res.json() : null)
+      .then(data => {
+        const sections = Array.isArray(data)
+          ? data
+          : (data && Array.isArray(data.sections) ? data.sections : []);
+        courseHierarchyState.sections = sections;
+        courseHierarchyState.unitMap = new Map();
+        sections.forEach(section => {
+          const units = Array.isArray(section.units) ? section.units : [];
+          units.forEach(unit => {
+            courseHierarchyState.unitMap.set(unit.id, { unit, section });
+          });
+        });
+        courseHierarchyState.ready = true;
+        courseHierarchyState.promise = null;
+        return courseHierarchyState;
+      })
+      .catch(err => {
+        console.error('learn: failed to load course index', err);
+        courseHierarchyState.sections = [];
+        courseHierarchyState.unitMap = new Map();
+        courseHierarchyState.ready = true;
+        courseHierarchyState.promise = null;
+        return courseHierarchyState;
+      });
+    courseHierarchyState.promise = load;
+    return load;
+  }
+
+  async function ensureUnitLessonData(unitId){
+    if(!unitId) return null;
+    const cached = lessonDataCache.get(unitId);
+    if(cached){
+      if(typeof cached.then === 'function') return cached;
+      return Promise.resolve(cached);
+    }
+    const promise = fetch(`data/${unitId}.lessons.json`, { cache: 'no-cache' })
+      .then(res => res.ok ? res.json() : null)
+      .catch(err => {
+        console.warn('learn: failed to load lesson data for', unitId, err);
+        return null;
+      })
+      .then(data => {
+        lessonDataCache.set(unitId, data);
+        return data;
+      });
+    lessonDataCache.set(unitId, promise);
+    return promise;
+  }
+
+  function normalizeLevelLessons(level){
+    const refs = Array.isArray(level && level.lessons) ? level.lessons : [];
+    return refs.map((ref, index) => {
+      if(typeof ref === 'string'){
+        return { id: ref, order: index + 1 };
+      }
+      if(ref && typeof ref === 'object'){
+        return {
+          ...ref,
+          id: ref.id || ref.lessonId || '',
+          order: index + 1
+        };
+      }
+      return { id: '', order: index + 1 };
+    });
+  }
+
+  async function getLessonPositionMeta({ unitId, skillId, levelId, lessonId } = {}){
+    if(!unitId){
+      return {
+        currentIndex: 0,
+        totalLessons: 0,
+        lesson: null,
+        lessonId: '',
+        skill: null,
+        level: null,
+        unit: null,
+        section: null,
+        type: null,
+        isReview: false
+      };
+    }
+
+    const hierarchy = await ensureCourseHierarchy();
+    const entry = hierarchy.unitMap.get(unitId);
+    if(!entry || !entry.unit){
+      return {
+        currentIndex: 0,
+        totalLessons: 0,
+        lesson: null,
+        lessonId: lessonId || '',
+        skill: null,
+        level: null,
+        unit: null,
+        section: null,
+        type: null,
+        isReview: false
+      };
+    }
+
+    const skills = Array.isArray(entry.unit.skills) ? entry.unit.skills : [];
+    const skill = skills.find(s => (skillId && (s.skillId === skillId || s.id === skillId))) || skills[0] || null;
+    if(!skill){
+      return {
+        currentIndex: 0,
+        totalLessons: 0,
+        lesson: null,
+        lessonId: lessonId || '',
+        skill: null,
+        level: null,
+        unit: entry.unit,
+        section: entry.section,
+        type: null,
+        isReview: false
+      };
+    }
+
+    const levels = Array.isArray(skill.levels) ? skill.levels : [];
+    const level = levels.find(l => (levelId && (l.levelId === levelId || l.id === levelId))) || levels[0] || null;
+    if(!level){
+      return {
+        currentIndex: 0,
+        totalLessons: 0,
+        lesson: null,
+        lessonId: lessonId || '',
+        skill,
+        level: null,
+        unit: entry.unit,
+        section: entry.section,
+        type: null,
+        isReview: false
+      };
+    }
+
+    const lessons = normalizeLevelLessons(level);
+    const declaredTotal = Number(level.lessonCount) || 0;
+    const fallbackTotal = lessons.length;
+    const totalLessons = declaredTotal || fallbackTotal;
+
+    let targetId = lessonId || '';
+    let matchIndex = -1;
+    if(targetId){
+      matchIndex = lessons.findIndex(item => item.id === targetId);
+    }
+    if(matchIndex < 0 && lessons.length){
+      targetId = lessons[0].id;
+      matchIndex = 0;
+    }
+    const currentIndex = matchIndex >= 0 ? matchIndex + 1 : 0;
+
+    const lessonData = await ensureUnitLessonData(unitId);
+    let lessonDetail = null;
+    if(lessonData && Array.isArray(lessonData.lessons)){
+      lessonDetail = lessonData.lessons.find(item => item.id === targetId) || null;
+    }
+
+    const typeValue = lessonDetail && lessonDetail.type
+      ? lessonDetail.type
+      : (matchIndex >= 0 && lessons[matchIndex] && lessons[matchIndex].type ? lessons[matchIndex].type : null);
+    const isReview = typeValue === 'review';
+
+    return {
+      currentIndex,
+      totalLessons,
+      lesson: lessonDetail,
+      lessonId: targetId,
+      skill,
+      level,
+      unit: entry.unit,
+      section: entry.section,
+      type: typeValue,
+      isReview
+    };
+  }
+
+  async function getLessonCounterText(params = {}){
+    const meta = await getLessonPositionMeta(params);
+    if(!meta.totalLessons || !meta.currentIndex) return '';
+    return `Lesson ${meta.currentIndex} of ${meta.totalLessons}`;
+  }
+
   const learnAPI = {
     ensureSections,
     getSectionsSnapshot,
     setSectionState,
     setSectionProgress,
-    updateCTAForSection
+    updateCTAForSection,
+    getLessonPosition: getLessonPositionMeta,
+    getLessonCounterText
   };
   window.__LEARN__ = Object.assign(window.__LEARN__ || {}, learnAPI);
 })();
