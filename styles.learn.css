@@ -803,8 +803,24 @@
   left: 50%;
   transform: translateX(-50%);
   width: 4px;
-  background: rgba(255, 255, 255, 0.08);
+  background: none;
   z-index: -1;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.unit .unit-connector__trail {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  height: 100%;
+  width: clamp(52px, 12vw, 76px);
+  display: block;
+}
+
+.unit .unit-connector__fill {
+  width: 100%;
 }
 
 .unit .lesson-row {

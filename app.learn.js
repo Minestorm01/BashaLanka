@@ -252,7 +252,16 @@ let sectionsLoadedEventSent = false;
         <hr /><h2>${unit.title}</h2><hr />
       </header>
       <div class="unit-path">
-        <div class="unit-connector"></div>
+        <div class="unit-connector" aria-hidden="true">
+          <svg class="unit-connector__trail" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 72.94 100" preserveAspectRatio="xMidYMin slice">
+            <defs>
+              <pattern id="unit-connector-pattern-${sectionNum}-${unit.number}" patternUnits="userSpaceOnUse" width="72.94" height="80">
+                <image href="${assetRoot}/path.svg" width="72.94" height="31.31" x="0" y="24" preserveAspectRatio="xMidYMid meet" />
+              </pattern>
+            </defs>
+            <rect class="unit-connector__fill" width="72.94" height="100" fill="url(#unit-connector-pattern-${sectionNum}-${unit.number})" />
+          </svg>
+        </div>
         ${rows.join('')}
       </div>
     </section>`;
