@@ -140,8 +140,14 @@
     if(!overlay) return;
 
     const [startTitle, endTitle] = lessonTrailState.pair;
-    const startButton = findLessonButtonByTitle(root, startTitle);
-    const endButton = findLessonButtonByTitle(root, endTitle);
+    let startButton = findLessonButtonByTitle(root, startTitle);
+    let endButton = findLessonButtonByTitle(root, endTitle);
+
+    if(!startButton || !endButton){
+      const visibleButtons = Array.from(root.querySelectorAll('.lesson-row.lesson-row--lesson button.lesson'));
+      if(!startButton) startButton = visibleButtons[0] || null;
+      if(!endButton) endButton = visibleButtons[1] || null;
+    }
     if(!startButton || !endButton){
       overlay.innerHTML = '';
       return;
@@ -154,8 +160,8 @@
       return;
     }
     overlay.setAttribute('viewBox', `0 0 ${width} ${height}`);
-    overlay.setAttribute('width', width);
-    overlay.setAttribute('height', height);
+    overlay.style.width = `${width}px`;
+    overlay.style.height = `${height}px`;
 
     const toLocalPoint = button => {
       const rect = button.getBoundingClientRect();
@@ -195,9 +201,9 @@
       return;
     }
 
-    const pawSize = 28;
+    const pawSize = 22;
     const pawScale = pawSize / PAW_SYMBOL_DIMENSIONS.width;
-    const spacing = 60;
+    const spacing = 54;
     const printsGroup = document.createElementNS(SVG_NS, 'g');
     let index = 0;
 
@@ -208,7 +214,7 @@
       const tangentLength = Math.hypot(tangent.x, tangent.y) || 1;
       tangent = { x: tangent.x / tangentLength, y: tangent.y / tangentLength };
       const offsetDir = index % 2 === 0 ? 1 : -1;
-      const offsetAmount = 10 * offsetDir;
+      const offsetAmount = 12 * offsetDir;
       const offsetPoint = {
         x: point.x + (-tangent.y) * offsetAmount,
         y: point.y + tangent.x * offsetAmount
