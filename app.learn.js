@@ -23,6 +23,226 @@
     unitMap: new Map()
   };
   const lessonDataCache = new Map();
+  const SVG_NS = 'http://www.w3.org/2000/svg';
+  const PAW_SYMBOL_DIMENSIONS = { width: 72.94, height: 31.31 };
+  const lessonTrailState = {
+    pair: null,
+    resizeHandler: null,
+    rafId: null,
+    timeoutId: null
+  };
+  let pawSymbolPromise = null;
+
+  function normalizeLessonTitle(title = ''){
+    return title
+      .toString()
+      .replace(/[\u2018\u2019]/g, "'")
+      .replace(/[\u201c\u201d]/g, '"')
+      .replace(/["']/g, '')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .toLowerCase();
+  }
+
+  function findLessonButtonByTitle(root, title){
+    if(!root || !title) return null;
+    const target = normalizeLessonTitle(title);
+    if(!target) return null;
+    const rows = root.querySelectorAll('.lesson-row.lesson-row--lesson');
+    for(const row of rows){
+      const heading = row.querySelector('.lesson-popover__title');
+      const button = row.querySelector('button.lesson');
+      if(!heading || !button) continue;
+      if(normalizeLessonTitle(heading.textContent) === target){
+        return button;
+      }
+    }
+    return null;
+  }
+
+  function ensureLessonPathsOverlay(root){
+    if(!root) return null;
+    let overlay = root.querySelector('#lesson-paths');
+    if(!overlay){
+      overlay = document.createElementNS(SVG_NS, 'svg');
+      overlay.id = 'lesson-paths';
+      overlay.setAttribute('aria-hidden', 'true');
+      overlay.setAttribute('focusable', 'false');
+      overlay.setAttribute('preserveAspectRatio', 'none');
+      root.appendChild(overlay);
+    }
+    overlay.innerHTML = '';
+    return overlay;
+  }
+
+  function ensurePawSymbol(){
+    const existing = document.getElementById('lesson-path-symbols');
+    if(existing && existing.querySelector('#paw')){
+      return Promise.resolve(existing.querySelector('#paw'));
+    }
+    if(pawSymbolPromise) return pawSymbolPromise;
+    pawSymbolPromise = fetch('assets/general/path.svg')
+      .then(res => {
+        if(!res.ok) throw new Error(`Failed to load paw asset: ${res.status}`);
+        return res.text();
+      })
+      .then(svgText => {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(svgText, 'image/svg+xml');
+        const source = doc.documentElement;
+        if(!source) return null;
+        const symbol = document.createElementNS(SVG_NS, 'symbol');
+        symbol.id = 'paw';
+        const viewBox = source.getAttribute('viewBox');
+        if(viewBox) symbol.setAttribute('viewBox', viewBox);
+        Array.from(source.childNodes).forEach(node => {
+          symbol.appendChild(node.cloneNode(true));
+        });
+        const defs = document.createElementNS(SVG_NS, 'svg');
+        defs.id = 'lesson-path-symbols';
+        defs.setAttribute('aria-hidden', 'true');
+        defs.setAttribute('focusable', 'false');
+        defs.style.position = 'absolute';
+        defs.style.width = '0';
+        defs.style.height = '0';
+        defs.style.pointerEvents = 'none';
+        defs.style.overflow = 'hidden';
+        defs.appendChild(symbol);
+        document.body.appendChild(defs);
+        return symbol;
+      })
+      .catch(err => {
+        console.error('Unable to prepare paw symbol', err);
+        return null;
+      });
+    return pawSymbolPromise;
+  }
+
+  function scheduleLessonTrailRender(){
+    if(lessonTrailState.rafId){
+      cancelAnimationFrame(lessonTrailState.rafId);
+    }
+    lessonTrailState.rafId = requestAnimationFrame(() => {
+      lessonTrailState.rafId = null;
+      renderLessonConnection();
+    });
+  }
+
+  function renderLessonConnection(){
+    if(!lessonTrailState.pair) return;
+    const root = container.querySelector('.section-page');
+    if(!root) return;
+    const overlay = ensureLessonPathsOverlay(root);
+    if(!overlay) return;
+
+    const [startTitle, endTitle] = lessonTrailState.pair;
+    const startButton = findLessonButtonByTitle(root, startTitle);
+    const endButton = findLessonButtonByTitle(root, endTitle);
+    if(!startButton || !endButton){
+      overlay.innerHTML = '';
+      return;
+    }
+
+    const rootRect = root.getBoundingClientRect();
+    const width = rootRect.width || root.clientWidth || 0;
+    const height = Math.max(rootRect.height || 0, root.scrollHeight || 0);
+    if(width <= 0 || height <= 0){
+      return;
+    }
+    overlay.setAttribute('viewBox', `0 0 ${width} ${height}`);
+    overlay.setAttribute('width', width);
+    overlay.setAttribute('height', height);
+
+    const toLocalPoint = button => {
+      const rect = button.getBoundingClientRect();
+      return {
+        x: rect.left + rect.width / 2 - rootRect.left,
+        y: rect.top + rect.height / 2 - rootRect.top
+      };
+    };
+
+    const startPoint = toLocalPoint(startButton);
+    const endPoint = toLocalPoint(endButton);
+    const dx = endPoint.x - startPoint.x;
+    const dy = endPoint.y - startPoint.y;
+    const distance = Math.hypot(dx, dy) || 1;
+    const normal = { x: dx / distance, y: dy / distance };
+    const perpendicular = { x: -normal.y, y: normal.x };
+    const curveStrength = Math.min(120, distance * 0.35);
+    const curvature = startPoint.x <= endPoint.x ? 1 : -1;
+
+    const control1 = {
+      x: startPoint.x + dx * 0.25 + perpendicular.x * curveStrength * curvature,
+      y: startPoint.y + dy * 0.25 + perpendicular.y * curveStrength * curvature
+    };
+    const control2 = {
+      x: startPoint.x + dx * 0.75 - perpendicular.x * curveStrength * curvature,
+      y: startPoint.y + dy * 0.75 - perpendicular.y * curveStrength * curvature
+    };
+
+    const path = document.createElementNS(SVG_NS, 'path');
+    path.setAttribute('d', `M ${startPoint.x} ${startPoint.y} C ${control1.x} ${control1.y} ${control2.x} ${control2.y} ${endPoint.x} ${endPoint.y}`);
+    path.setAttribute('fill', 'none');
+    path.setAttribute('stroke', 'none');
+    overlay.appendChild(path);
+
+    const totalLength = path.getTotalLength();
+    if(!Number.isFinite(totalLength) || totalLength <= 0){
+      return;
+    }
+
+    const pawSize = 28;
+    const pawScale = pawSize / PAW_SYMBOL_DIMENSIONS.width;
+    const spacing = 60;
+    const printsGroup = document.createElementNS(SVG_NS, 'g');
+    let index = 0;
+
+    for(let dist = spacing * 0.5; dist < totalLength - spacing * 0.25; dist += spacing){
+      const point = path.getPointAtLength(dist);
+      const ahead = path.getPointAtLength(Math.min(dist + 0.1, totalLength));
+      let tangent = { x: ahead.x - point.x, y: ahead.y - point.y };
+      const tangentLength = Math.hypot(tangent.x, tangent.y) || 1;
+      tangent = { x: tangent.x / tangentLength, y: tangent.y / tangentLength };
+      const offsetDir = index % 2 === 0 ? 1 : -1;
+      const offsetAmount = 10 * offsetDir;
+      const offsetPoint = {
+        x: point.x + (-tangent.y) * offsetAmount,
+        y: point.y + tangent.x * offsetAmount
+      };
+      const angle = Math.atan2(tangent.y, tangent.x) * (180 / Math.PI);
+      const use = document.createElementNS(SVG_NS, 'use');
+      use.setAttribute('href', '#paw');
+      use.setAttributeNS('http://www.w3.org/1999/xlink', 'xlink:href', '#paw');
+      use.setAttribute('transform', `translate(${offsetPoint.x}, ${offsetPoint.y}) rotate(${angle}) scale(${pawScale}) translate(${-PAW_SYMBOL_DIMENSIONS.width / 2}, ${-PAW_SYMBOL_DIMENSIONS.height / 2})`);
+      use.setAttribute('opacity', '0.95');
+      printsGroup.appendChild(use);
+      index += 1;
+    }
+
+    overlay.appendChild(printsGroup);
+  }
+
+  function connectLessons(startTitle, endTitle){
+    lessonTrailState.pair = [startTitle, endTitle];
+    ensurePawSymbol().finally(() => {
+      scheduleLessonTrailRender();
+      if(lessonTrailState.timeoutId){
+        clearTimeout(lessonTrailState.timeoutId);
+      }
+      lessonTrailState.timeoutId = setTimeout(() => {
+        lessonTrailState.timeoutId = null;
+        scheduleLessonTrailRender();
+      }, 250);
+    });
+
+    if(lessonTrailState.resizeHandler){
+      window.removeEventListener('resize', lessonTrailState.resizeHandler);
+    }
+    lessonTrailState.resizeHandler = () => {
+      scheduleLessonTrailRender();
+    };
+    window.addEventListener('resize', lessonTrailState.resizeHandler, { passive: true });
+  }
 
   function trophySrc(progress){
     const file = progress >= 1 ? 'trophy-gold_1.svg' : 'trophy-silver_1.svg';
@@ -435,6 +655,7 @@
     ${unitsMarkup}
   </div>`;
     resetLessonPopoverState();
+    connectLessons('Pronouns + key words', "Ask 'How are you?'");
   }
 
   function handleClick(e){
@@ -1178,7 +1399,7 @@
       totalLessons,
       lesson: lessonDetail,
       lessonId: targetId,
-      skill,
+     skill,
       level,
       unit: entry.unit,
       section: entry.section,
@@ -1203,4 +1424,5 @@
     getLessonCounterText
   };
   window.__LEARN__ = Object.assign(window.__LEARN__ || {}, learnAPI);
+  window.connectLessons = connectLessons;
 })();
