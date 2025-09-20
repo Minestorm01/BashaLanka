@@ -827,6 +827,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
+  --popover-offset: 0px;
 }
 
 .unit .lesson-row > * {
@@ -886,7 +887,7 @@
   position: absolute;
   top: calc(100% + 18px);
   left: 50%;
-  transform: translateX(-50%);
+  transform: translateX(calc(-50% + var(--popover-offset)));
   min-width: clamp(200px, 26vw, 260px);
   max-width: clamp(220px, 32vw, 300px);
   padding: clamp(14px, 2vw, 18px) clamp(16px, 3vw, 22px);

@@ -501,6 +501,7 @@
     }
     const row = trigger.closest('.lesson-row');
     if(row){
+      setLessonPopoverOffset(row, trigger);
       row.classList.add('lesson-row--popover-open');
     }
     popover.hidden = false;
@@ -509,6 +510,28 @@
     trigger.setAttribute('aria-expanded', 'true');
     lessonPopoverState.activePopover = popover;
     lessonPopoverState.activeTrigger = trigger;
+  }
+
+  function setLessonPopoverOffset(row, trigger){
+    if(!row || !trigger) return;
+    const rowRect = row.getBoundingClientRect();
+    const triggerRect = trigger.getBoundingClientRect();
+    const rowCenter = rowRect.left + (rowRect.width / 2);
+    const triggerCenter = triggerRect.left + (triggerRect.width / 2);
+    const offset = triggerCenter - rowCenter;
+    if(Number.isFinite(offset)){
+      row.style.setProperty('--popover-offset', `${offset}px`);
+    }
+  }
+
+  function updateActiveLessonPopoverOffset(){
+    const trigger = lessonPopoverState.activeTrigger;
+    const popover = lessonPopoverState.activePopover;
+    if(!trigger || !trigger.isConnected || !popover || !popover.isConnected) return;
+    const row = trigger.closest('.lesson-row');
+    if(row && row.isConnected){
+      setLessonPopoverOffset(row, trigger);
+    }
   }
 
   function closeLessonPopover(popover = lessonPopoverState.activePopover, { focusTrigger = false } = {}){
@@ -524,6 +547,7 @@
     }
     const row = popover.closest('.lesson-row');
     if(row){
+      row.style.removeProperty('--popover-offset');
       row.classList.remove('lesson-row--popover-open');
     }
     popover.hidden = true;
@@ -565,6 +589,7 @@
       closeLessonPopover(undefined, { focusTrigger: true });
     }
   });
+  window.addEventListener('resize', updateActiveLessonPopoverOffset);
   ensureSections().then(() => {
     router();
     window.addEventListener('hashchange', router);
