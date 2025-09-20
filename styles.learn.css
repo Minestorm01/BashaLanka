@@ -85,9 +85,9 @@
 /* ============ Speech bubble ============ */
 .speech-bubble {
   position: absolute;
-  right: -10%;
+  left: 50%;
   bottom: 100%;
-  transform: translateY(-15px);
+  transform: translate(-50%, -15px);
 
   display: inline-block;
   width: max-content;
@@ -117,12 +117,13 @@
   content: "";
   position: absolute;
   top: 100%;
-  right: 22px;
+  left: 50%;
   width: 0;
   height: 0;
   border-left: 10px solid transparent;
   border-right: 10px solid transparent;
   border-top: 10px solid #1a6460;
+  transform: translateX(-50%);
   filter: drop-shadow(0 2px 2px rgba(0,0,0,.25));
 }
 
@@ -905,10 +906,11 @@
 
 .unit .lesson-popover {
   --lesson-popover-bg: var(--color-elev);
+  --lesson-popover-shift: 0px;
   position: absolute;
   top: calc(100% + 18px);
   left: 50%;
-  transform: translateX(-50%);
+  transform: translateX(calc(-50% + var(--lesson-popover-shift)));
   min-width: clamp(200px, 26vw, 260px);
   max-width: clamp(220px, 32vw, 300px);
   padding: clamp(14px, 2vw, 18px) clamp(16px, 3vw, 22px);
@@ -933,6 +935,14 @@
   border-left: 10px solid transparent;
   border-right: 10px solid transparent;
   border-bottom: 10px solid var(--lesson-popover-bg);
+}
+
+.unit .lesson-row--left .lesson-popover {
+  --lesson-popover-shift: calc(-1 * var(--sway));
+}
+
+.unit .lesson-row--right .lesson-popover {
+  --lesson-popover-shift: var(--sway);
 }
 
 .unit .lesson-popover__title {
