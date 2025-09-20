@@ -33,35 +33,12 @@
   };
   let pawSymbolPromise = null;
 
-  function normalizeLessonTitle(title = ''){
-    return title
-      .toString()
-      .normalize('NFKD')
-      .replace(/[\u2018\u2019]/g, "'")
-      .replace(/[\u201c\u201d]/g, '"')
-      .replace(/\(.*?\)/g, ' ')
-      .replace(/[^a-z0-9+]+/gi, ' ')
-      .replace(/\s+/g, ' ')
-      .trim()
-      .toLowerCase();
-  }
-
-  function findLessonButtonByTitle(root, title){
-    if(!root || !title) return null;
-    const target = normalizeLessonTitle(title);
-    if(!target) return null;
-    const rows = root.querySelectorAll('.lesson-row.lesson-row--lesson');
-    for(const row of rows){
-      const heading = row.querySelector('.lesson-popover__title');
-      const button = row.querySelector('button.lesson');
-      if(!heading || !button) continue;
-      const normalizedHeading = normalizeLessonTitle(heading.textContent);
-      if(!normalizedHeading) continue;
-      if(normalizedHeading === target || normalizedHeading.includes(target) || target.includes(normalizedHeading)){
-        return button;
-      }
-    }
-    return null;
+  function findLessonButtonById(root, id){
+    if(!root || !id) return null;
+    const value = String(id).trim();
+    if(!value) return null;
+    const escaped = typeof CSS !== 'undefined' && CSS.escape ? CSS.escape(value) : value.replace(/"/g, '\\"');
+    return root.querySelector(`button.lesson[data-lesson-id="${escaped}"]`);
   }
 
   function ensureLessonPathsOverlay(root){
@@ -139,15 +116,9 @@
     const overlay = ensureLessonPathsOverlay(root);
     if(!overlay) return;
 
-    const [startTitle, endTitle] = lessonTrailState.pair;
-    let startButton = findLessonButtonByTitle(root, startTitle);
-    let endButton = findLessonButtonByTitle(root, endTitle);
-
-    if(!startButton || !endButton){
-      const visibleButtons = Array.from(root.querySelectorAll('.lesson-row.lesson-row--lesson button.lesson'));
-      if(!startButton) startButton = visibleButtons[0] || null;
-      if(!endButton) endButton = visibleButtons[1] || null;
-    }
+    const [startId, endId] = lessonTrailState.pair;
+    const startButton = findLessonButtonById(root, startId);
+    const endButton = findLessonButtonById(root, endId);
     if(!startButton || !endButton){
       overlay.innerHTML = '';
       return;
@@ -155,11 +126,16 @@
 
     const rootRect = root.getBoundingClientRect();
     const width = rootRect.width || root.clientWidth || 0;
-    const height = Math.max(rootRect.height || 0, root.scrollHeight || 0);
+    const height = Math.max(rootRect.height || 0, root.clientHeight || 0, root.scrollHeight || 0);
     if(width <= 0 || height <= 0){
+      overlay.innerHTML = '';
       return;
     }
+
+    overlay.innerHTML = '';
     overlay.setAttribute('viewBox', `0 0 ${width} ${height}`);
+    overlay.setAttribute('width', width);
+    overlay.setAttribute('height', height);
     overlay.style.width = `${width}px`;
     overlay.style.height = `${height}px`;
 
@@ -178,8 +154,8 @@
     const distance = Math.hypot(dx, dy) || 1;
     const normal = { x: dx / distance, y: dy / distance };
     const perpendicular = { x: -normal.y, y: normal.x };
-    const curveStrength = Math.min(120, distance * 0.35);
-    const curvature = startPoint.x <= endPoint.x ? 1 : -1;
+    const curveStrength = Math.min(140, distance * 0.35);
+    const curvature = dx >= 0 ? 1 : -1;
 
     const control1 = {
       x: startPoint.x + dx * 0.25 + perpendicular.x * curveStrength * curvature,
@@ -198,16 +174,17 @@
 
     const totalLength = path.getTotalLength();
     if(!Number.isFinite(totalLength) || totalLength <= 0){
+      overlay.removeChild(path);
       return;
     }
 
-    const pawSize = 22;
+    const pawSize = 28;
     const pawScale = pawSize / PAW_SYMBOL_DIMENSIONS.width;
     const spacing = 54;
     const printsGroup = document.createElementNS(SVG_NS, 'g');
     let index = 0;
 
-    for(let dist = spacing * 0.5; dist < totalLength - spacing * 0.25; dist += spacing){
+    for(let dist = spacing * 0.4; dist < totalLength - spacing * 0.3; dist += spacing){
       const point = path.getPointAtLength(dist);
       const ahead = path.getPointAtLength(Math.min(dist + 0.1, totalLength));
       let tangent = { x: ahead.x - point.x, y: ahead.y - point.y };
@@ -232,9 +209,31 @@
     overlay.appendChild(printsGroup);
   }
 
-  function connectLessons(startTitle, endTitle){
-    lessonTrailState.pair = [startTitle, endTitle];
-    ensurePawSymbol().finally(() => {
+  function connectLessons(startLessonId, endLessonId){
+    const start = startLessonId ? String(startLessonId).trim() : '';
+    const end = endLessonId ? String(endLessonId).trim() : '';
+    if(!start || !end){
+      lessonTrailState.pair = null;
+      if(lessonTrailState.rafId){
+        cancelAnimationFrame(lessonTrailState.rafId);
+        lessonTrailState.rafId = null;
+      }
+      if(lessonTrailState.timeoutId){
+        clearTimeout(lessonTrailState.timeoutId);
+        lessonTrailState.timeoutId = null;
+      }
+      const root = container.querySelector('.section-page');
+      const overlay = root?.querySelector('#lesson-paths');
+      if(overlay) overlay.innerHTML = '';
+      if(lessonTrailState.resizeHandler){
+        window.removeEventListener('resize', lessonTrailState.resizeHandler);
+        lessonTrailState.resizeHandler = null;
+      }
+      return;
+    }
+
+    lessonTrailState.pair = [start, end];
+    ensurePawSymbol().then(() => {
       scheduleLessonTrailRender();
       if(lessonTrailState.timeoutId){
         clearTimeout(lessonTrailState.timeoutId);
@@ -665,7 +664,7 @@
     ${unitsMarkup}
   </div>`;
     resetLessonPopoverState();
-    connectLessons('Pronouns + key words', "Ask 'How are you?'");
+    connectLessons('lesson-01', 'lesson-02');
   }
 
   function handleClick(e){
@@ -1409,7 +1408,7 @@
       totalLessons,
       lesson: lessonDetail,
       lessonId: targetId,
-     skill,
+      skill,
       level,
       unit: entry.unit,
       section: entry.section,

@@ -451,7 +451,6 @@
   font-size: clamp(10px, 2vw, 12px);
   color: #a8b3c7;
 }
-
 .progress__trophy {
   flex: 0 0 var(--trophy-size);
   width: var(--trophy-size);
