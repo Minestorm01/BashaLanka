@@ -211,17 +211,11 @@
       printsGroup.removeChild(printsGroup.firstChild);
     }
 
-    const dx = end.x - start.x;
-    const dy = end.y - start.y;
-    const archLift = Math.max(60, Math.hypot(dx, dy) * 0.4);
-    const cp1 = {
-      x: start.x + dx * 0.25,
-      y: start.y - archLift
-    };
-    const cp2 = {
-      x: end.x - dx * 0.25,
-      y: end.y - archLift
-    };
+    const midX = (start.x + end.x) / 2;
+    const midY = (start.y + end.y) / 2;
+    const curveOffset = 80;
+    const cp1 = { x: midX, y: midY - curveOffset };
+    const cp2 = { x: midX, y: midY - curveOffset };
     const d = `M ${start.x} ${start.y} C ${cp1.x} ${cp1.y} ${cp2.x} ${cp2.y} ${end.x} ${end.y}`;
     path.setAttribute('d', d);
 
@@ -236,6 +230,7 @@
     const spacing = 54;
     const offsetDistance = 12;
     const maxDist = Math.max(0, length - spacing * 0.25);
+    const scale = pawWidth ? 22 / pawWidth : 1;
     let index = 0;
     for(let dist = spacing * 0.5; dist <= maxDist; dist += spacing){
       const point = path.getPointAtLength(dist);
@@ -254,7 +249,10 @@
       use.dataset.lessonConnection = 'paw';
       use.setAttribute('href', `#${LESSON_PAW_SYMBOL_ID}`);
       use.setAttributeNS(XLINK_NS, 'xlink:href', `#${LESSON_PAW_SYMBOL_ID}`);
-      use.setAttribute('transform', `translate(${centerX - pawWidth / 2}, ${centerY - pawHeight / 2}) rotate(${angle}, ${pawWidth / 2}, ${pawHeight / 2})`);
+      use.setAttribute(
+        'transform',
+        `translate(${centerX}, ${centerY}) rotate(${angle}) scale(${scale}) translate(${-pawWidth / 2}, ${-pawHeight / 2})`
+      );
       printsGroup.appendChild(use);
       index += 1;
     }
