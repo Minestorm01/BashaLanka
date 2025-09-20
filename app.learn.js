@@ -438,7 +438,7 @@
   }
 
   function handleClick(e){
-    if(lessonPopoverState.activePopover && !e.target.closest('.lesson-row')){
+    if(lessonPopoverState.activePopover && !e.target.closest('.lesson-row, .lesson-popover')){
       closeLessonPopover();
     }
 
@@ -473,8 +473,7 @@
 
     const startLessonBtn = e.target.closest('[data-lesson-action="start"]');
     if(startLessonBtn){
-      const row = startLessonBtn.closest('.lesson-row');
-      const popover = row?.querySelector('.lesson-popover');
+      const popover = startLessonBtn.closest('.lesson-popover');
       closeLessonPopover(popover, { focusTrigger: true });
       return;
     }
@@ -494,44 +493,62 @@
     }
   }
 
+  const LESSON_POPOVER_GAP = 18;
+
+  function getSectionPage(){
+    return container.querySelector('.section-page');
+  }
+
+  function positionLessonPopover(popover, trigger){
+    if(!popover || !trigger) return;
+    const page = getSectionPage();
+    if(!page) return;
+    const pageRect = page.getBoundingClientRect();
+    const triggerRect = trigger.getBoundingClientRect();
+    const popoverWidth = popover.offsetWidth;
+    const popoverHeight = popover.offsetHeight;
+    if(!popoverWidth || !popoverHeight) return;
+
+    const triggerCenterX = triggerRect.left + (triggerRect.width / 2) - pageRect.left;
+    popover.style.left = `${triggerCenterX}px`;
+
+    const viewportHeight = window.innerHeight;
+    const spaceBelow = viewportHeight - triggerRect.bottom;
+    const spaceAbove = triggerRect.top;
+    const shouldShowAbove = spaceBelow < popoverHeight + LESSON_POPOVER_GAP && spaceAbove >= popoverHeight + LESSON_POPOVER_GAP;
+
+    let top;
+    if(shouldShowAbove){
+      top = triggerRect.top - pageRect.top - popoverHeight - LESSON_POPOVER_GAP;
+    }else{
+      top = triggerRect.bottom - pageRect.top + LESSON_POPOVER_GAP;
+    }
+
+    popover.style.top = `${top}px`;
+    popover.classList.toggle('lesson-popover--above', shouldShowAbove);
+  }
+
   function openLessonPopover(popover, trigger){
     if(!popover || !trigger) return;
     if(lessonPopoverState.activePopover && lessonPopoverState.activePopover !== popover){
       closeLessonPopover();
     }
-    const row = trigger.closest('.lesson-row');
-    if(row){
-      setLessonPopoverOffset(row, trigger);
-      row.classList.add('lesson-row--popover-open');
-    }
     popover.hidden = false;
     popover.setAttribute('aria-hidden', 'false');
     popover.classList.add('is-open');
+    popover.style.visibility = 'hidden';
     trigger.setAttribute('aria-expanded', 'true');
     lessonPopoverState.activePopover = popover;
     lessonPopoverState.activeTrigger = trigger;
+    positionLessonPopover(popover, trigger);
+    popover.style.visibility = '';
   }
 
-  function setLessonPopoverOffset(row, trigger){
-    if(!row || !trigger) return;
-    const rowRect = row.getBoundingClientRect();
-    const triggerRect = trigger.getBoundingClientRect();
-    const rowCenter = rowRect.left + (rowRect.width / 2);
-    const triggerCenter = triggerRect.left + (triggerRect.width / 2);
-    const offset = triggerCenter - rowCenter;
-    if(Number.isFinite(offset)){
-      row.style.setProperty('--popover-offset', `${offset}px`);
-    }
-  }
-
-  function updateActiveLessonPopoverOffset(){
+  function updateActiveLessonPopoverPosition(){
     const trigger = lessonPopoverState.activeTrigger;
     const popover = lessonPopoverState.activePopover;
     if(!trigger || !trigger.isConnected || !popover || !popover.isConnected) return;
-    const row = trigger.closest('.lesson-row');
-    if(row && row.isConnected){
-      setLessonPopoverOffset(row, trigger);
-    }
+    positionLessonPopover(popover, trigger);
   }
 
   function closeLessonPopover(popover = lessonPopoverState.activePopover, { focusTrigger = false } = {}){
@@ -545,15 +562,14 @@
       lessonPopoverState.activeTrigger = null;
       return;
     }
-    const row = popover.closest('.lesson-row');
-    if(row){
-      row.style.removeProperty('--popover-offset');
-      row.classList.remove('lesson-row--popover-open');
-    }
     popover.hidden = true;
     popover.setAttribute('aria-hidden', 'true');
     popover.classList.remove('is-open');
-    const trigger = row?.querySelector('.lesson') || lessonPopoverState.activeTrigger;
+    popover.classList.remove('lesson-popover--above');
+    popover.style.removeProperty('top');
+    popover.style.removeProperty('left');
+    popover.style.removeProperty('visibility');
+    const trigger = lessonPopoverState.activeTrigger;
     if(trigger && trigger.isConnected){
       trigger.setAttribute('aria-expanded', 'false');
       if(focusTrigger){
@@ -589,7 +605,8 @@
       closeLessonPopover(undefined, { focusTrigger: true });
     }
   });
-  window.addEventListener('resize', updateActiveLessonPopoverOffset);
+  window.addEventListener('resize', updateActiveLessonPopoverPosition);
+  window.addEventListener('scroll', updateActiveLessonPopoverPosition, true);
   ensureSections().then(() => {
     router();
     window.addEventListener('hashchange', router);
