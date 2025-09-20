@@ -13,6 +13,22 @@
     activePopover: null,
     activeTrigger: null
   };
+  const SVG_NS = 'http://www.w3.org/2000/svg';
+  const XLINK_NS = 'http://www.w3.org/1999/xlink';
+  const LESSON_PATH_ID = 'lesson-connection-path';
+  const LESSON_PAW_SYMBOL_ID = 'paw';
+  const lessonConnectionState = {
+    host: null,
+    svg: null,
+    pawNodes: null,
+    pawBox: null,
+    pawPromise: null,
+    resizeListener: null,
+    resizeFrame: null,
+    currentFrom: null,
+    currentTo: null,
+    renderToken: 0
+  };
   let sections = [];
   let loadingPromise = null;
   let sectionsLoadedEventSent = false;
@@ -23,6 +39,297 @@
     unitMap: new Map()
   };
   const lessonDataCache = new Map();
+
+  function ensureLessonPathSvg(sectionPage){
+    let svg = sectionPage.querySelector('#lesson-paths');
+    if(!svg){
+      svg = document.createElementNS(SVG_NS, 'svg');
+      svg.id = 'lesson-paths';
+      svg.setAttribute('aria-hidden', 'true');
+      svg.setAttribute('focusable', 'false');
+      svg.setAttribute('role', 'presentation');
+      sectionPage.appendChild(svg);
+    }
+    lessonConnectionState.svg = svg;
+    return svg;
+  }
+
+  function ensureDefs(svg){
+    let defs = svg.querySelector('defs');
+    if(!defs){
+      defs = document.createElementNS(SVG_NS, 'defs');
+      svg.insertBefore(defs, svg.firstChild);
+    }
+    return defs;
+  }
+
+  function parseViewBox(viewBox){
+    if(!viewBox) return null;
+    const parts = viewBox.trim().split(/[\s,]+/).map(Number);
+    if(parts.length !== 4 || parts.some(num => Number.isNaN(num))){
+      return null;
+    }
+    const [minX, minY, width, height] = parts;
+    return { minX, minY, width, height, viewBox };
+  }
+
+  function appendPawSymbol(svg){
+    if(!lessonConnectionState.pawNodes || !lessonConnectionState.pawNodes.length){
+      return null;
+    }
+    const defs = ensureDefs(svg);
+    let symbol = svg.querySelector(`#${LESSON_PAW_SYMBOL_ID}`);
+    if(symbol){
+      return symbol;
+    }
+    symbol = document.createElementNS(SVG_NS, 'symbol');
+    symbol.id = LESSON_PAW_SYMBOL_ID;
+    const box = lessonConnectionState.pawBox;
+    if(box){
+      const viewBox = box.viewBox || `0 0 ${box.width} ${box.height}`;
+      symbol.setAttribute('viewBox', viewBox);
+    }
+    lessonConnectionState.pawNodes.forEach(node => {
+      symbol.appendChild(node.cloneNode(true));
+    });
+    defs.appendChild(symbol);
+    return symbol;
+  }
+
+  function ensurePawSymbol(svg){
+    const existing = svg.querySelector(`#${LESSON_PAW_SYMBOL_ID}`);
+    if(existing){
+      if(!lessonConnectionState.pawBox){
+        const parsed = parseViewBox(existing.getAttribute('viewBox'));
+        lessonConnectionState.pawBox = parsed || { minX: 0, minY: 0, width: 72.94, height: 31.31, viewBox: '0 0 72.94 31.31' };
+      }
+      return Promise.resolve(existing);
+    }
+    if(lessonConnectionState.pawNodes){
+      const symbol = appendPawSymbol(svg);
+      return Promise.resolve(symbol);
+    }
+    if(lessonConnectionState.pawPromise){
+      return lessonConnectionState.pawPromise.then(() => ensurePawSymbol(svg));
+    }
+    const defs = ensureDefs(svg);
+    const promise = fetch('assets/general/path.svg')
+      .then(res => res.ok ? res.text() : '')
+      .then(markup => {
+        if(!markup){
+          return null;
+        }
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(markup, 'image/svg+xml');
+        const root = doc.documentElement;
+        const viewBox = root ? (root.getAttribute('viewBox') || '0 0 72.94 31.31') : '0 0 72.94 31.31';
+        const nodes = root ? Array.from(root.childNodes).filter(node => node.nodeType === 1) : [];
+        lessonConnectionState.pawNodes = nodes.map(node => node.cloneNode(true));
+        lessonConnectionState.pawBox = parseViewBox(viewBox) || { minX: 0, minY: 0, width: 72.94, height: 31.31, viewBox };
+        lessonConnectionState.pawBox.viewBox = viewBox;
+        const symbol = document.createElementNS(SVG_NS, 'symbol');
+        symbol.id = LESSON_PAW_SYMBOL_ID;
+        symbol.setAttribute('viewBox', viewBox);
+        lessonConnectionState.pawNodes.forEach(node => {
+          symbol.appendChild(node.cloneNode(true));
+        });
+        defs.appendChild(symbol);
+        return symbol;
+      })
+      .catch(err => {
+        console.error('learn: failed to load lesson path icon', err);
+        return null;
+      })
+      .finally(() => {
+        lessonConnectionState.pawPromise = null;
+      });
+    lessonConnectionState.pawPromise = promise;
+    return promise;
+  }
+
+  function ensureConnectionPath(svg){
+    let path = svg.querySelector(`#${LESSON_PATH_ID}`);
+    if(!path){
+      path = document.createElementNS(SVG_NS, 'path');
+      path.id = LESSON_PATH_ID;
+      path.dataset.lessonConnection = 'path';
+      path.setAttribute('fill', 'none');
+      path.setAttribute('stroke', 'rgba(234, 118, 36, 0.28)');
+      path.setAttribute('stroke-width', '2');
+      path.setAttribute('stroke-linecap', 'round');
+      path.setAttribute('stroke-linejoin', 'round');
+      svg.appendChild(path);
+    }
+    return path;
+  }
+
+  function ensurePrintGroup(svg){
+    let group = svg.querySelector('[data-lesson-connection="prints"]');
+    if(!group){
+      group = document.createElementNS(SVG_NS, 'g');
+      group.dataset.lessonConnection = 'prints';
+      group.setAttribute('aria-hidden', 'true');
+      svg.appendChild(group);
+    }
+    return group;
+  }
+
+  function clearLessonConnection(){
+    const { svg } = lessonConnectionState;
+    if(!svg) return;
+    const path = svg.querySelector(`#${LESSON_PATH_ID}`);
+    if(path){
+      path.removeAttribute('d');
+    }
+    const prints = svg.querySelector('[data-lesson-connection="prints"]');
+    if(prints){
+      while(prints.firstChild){
+        prints.removeChild(prints.firstChild);
+      }
+    }
+  }
+
+  function destroyLessonConnection(){
+    clearLessonConnection();
+    if(lessonConnectionState.svg && lessonConnectionState.svg.parentNode){
+      lessonConnectionState.svg.parentNode.removeChild(lessonConnectionState.svg);
+    }
+    lessonConnectionState.svg = null;
+    lessonConnectionState.host = null;
+    lessonConnectionState.currentFrom = null;
+    lessonConnectionState.currentTo = null;
+    if(lessonConnectionState.resizeListener){
+      window.removeEventListener('resize', lessonConnectionState.resizeListener);
+      lessonConnectionState.resizeListener = null;
+    }
+  }
+
+  function drawLessonTrail(svg, start, end){
+    const path = ensureConnectionPath(svg);
+    const printsGroup = ensurePrintGroup(svg);
+    while(printsGroup.firstChild){
+      printsGroup.removeChild(printsGroup.firstChild);
+    }
+
+    const dx = end.x - start.x;
+    const dy = end.y - start.y;
+    const archLift = Math.max(60, Math.hypot(dx, dy) * 0.4);
+    const cp1 = {
+      x: start.x + dx * 0.25,
+      y: start.y - archLift
+    };
+    const cp2 = {
+      x: end.x - dx * 0.25,
+      y: end.y - archLift
+    };
+    const d = `M ${start.x} ${start.y} C ${cp1.x} ${cp1.y} ${cp2.x} ${cp2.y} ${end.x} ${end.y}`;
+    path.setAttribute('d', d);
+
+    const length = path.getTotalLength();
+    if(!length){
+      return;
+    }
+
+    const pawBox = lessonConnectionState.pawBox || { minX: 0, minY: 0, width: 72.94, height: 31.31 };
+    const pawWidth = pawBox.width || 72.94;
+    const pawHeight = pawBox.height || 31.31;
+    const spacing = 54;
+    const offsetDistance = 12;
+    const maxDist = Math.max(0, length - spacing * 0.25);
+    let index = 0;
+    for(let dist = spacing * 0.5; dist <= maxDist; dist += spacing){
+      const point = path.getPointAtLength(dist);
+      const ahead = path.getPointAtLength(Math.min(length, dist + 0.5));
+      const tangentX = ahead.x - point.x;
+      const tangentY = ahead.y - point.y;
+      const tangentMag = Math.hypot(tangentX, tangentY) || 1;
+      const normalX = -tangentY / tangentMag;
+      const normalY = tangentX / tangentMag;
+      const direction = index % 2 === 0 ? 1 : -1;
+      const centerX = point.x + normalX * offsetDistance * direction;
+      const centerY = point.y + normalY * offsetDistance * direction;
+      const angle = Math.atan2(tangentY, tangentX) * (180 / Math.PI);
+
+      const use = document.createElementNS(SVG_NS, 'use');
+      use.dataset.lessonConnection = 'paw';
+      use.setAttribute('href', `#${LESSON_PAW_SYMBOL_ID}`);
+      use.setAttributeNS(XLINK_NS, 'xlink:href', `#${LESSON_PAW_SYMBOL_ID}`);
+      use.setAttribute('transform', `translate(${centerX - pawWidth / 2}, ${centerY - pawHeight / 2}) rotate(${angle}, ${pawWidth / 2}, ${pawHeight / 2})`);
+      printsGroup.appendChild(use);
+      index += 1;
+    }
+  }
+
+  function renderLessonConnection(sectionPage, fromId, toId){
+    if(!sectionPage || !sectionPage.isConnected){
+      destroyLessonConnection();
+      return;
+    }
+    const startLesson = sectionPage.querySelector(`[data-lesson-id="${fromId}"]`);
+    const endLesson = sectionPage.querySelector(`[data-lesson-id="${toId}"]`);
+    if(!startLesson || !endLesson){
+      clearLessonConnection();
+      return;
+    }
+
+    const svg = ensureLessonPathSvg(sectionPage);
+    const pageRect = sectionPage.getBoundingClientRect();
+    const startRect = startLesson.getBoundingClientRect();
+    const endRect = endLesson.getBoundingClientRect();
+    const width = Math.max(pageRect.width, 1);
+    const height = Math.max(pageRect.height, 1);
+    svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+    svg.setAttribute('width', width);
+    svg.setAttribute('height', height);
+
+    const start = {
+      x: startRect.left - pageRect.left + startRect.width / 2,
+      y: startRect.top - pageRect.top + startRect.height / 2
+    };
+    const end = {
+      x: endRect.left - pageRect.left + endRect.width / 2,
+      y: endRect.top - pageRect.top + endRect.height / 2
+    };
+
+    const token = ++lessonConnectionState.renderToken;
+    ensurePawSymbol(svg).then(symbol => {
+      if(!symbol || lessonConnectionState.renderToken !== token){
+        return;
+      }
+      drawLessonTrail(svg, start, end);
+    });
+  }
+
+  function connectLessons(fromId = 'lesson-01', toId = 'lesson-02'){
+    const sectionPage = container.querySelector('.section-page');
+    if(!sectionPage){
+      destroyLessonConnection();
+      return;
+    }
+
+    lessonConnectionState.host = sectionPage;
+    lessonConnectionState.currentFrom = fromId;
+    lessonConnectionState.currentTo = toId;
+
+    renderLessonConnection(sectionPage, fromId, toId);
+
+    if(!lessonConnectionState.resizeListener){
+      lessonConnectionState.resizeListener = () => {
+        if(lessonConnectionState.resizeFrame){
+          window.cancelAnimationFrame(lessonConnectionState.resizeFrame);
+        }
+        lessonConnectionState.resizeFrame = window.requestAnimationFrame(() => {
+          lessonConnectionState.resizeFrame = null;
+          if(!lessonConnectionState.host || !lessonConnectionState.host.isConnected){
+            destroyLessonConnection();
+            return;
+          }
+          renderLessonConnection(lessonConnectionState.host, lessonConnectionState.currentFrom, lessonConnectionState.currentTo);
+        });
+      };
+      window.addEventListener('resize', lessonConnectionState.resizeListener);
+    }
+  }
   function trophySrc(progress){
     const file = progress >= 1 ? 'trophy-gold_1.svg' : 'trophy-silver_1.svg';
     return `assets/general/${file}`;
@@ -228,6 +535,7 @@
   }
 
   function renderLearn(){
+    destroyLessonConnection();
     const cards = sections.map(sec => sectionCard(sec)).join('');
     const listMarkup = cards || '<p class="unit-path__empty">No sections available yet.</p>';
     container.innerHTML = `<div class="learn-wrap"><div class="sections-list">${listMarkup}</div><aside class="learn-rail hide-mobile"><h3>Coming soon</h3></aside></div>`;
@@ -1199,6 +1507,7 @@
     setSectionState,
     setSectionProgress,
     updateCTAForSection,
+    connectLessons,
     getLessonPosition: getLessonPositionMeta,
     getLessonCounterText
   };
