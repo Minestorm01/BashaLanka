@@ -36,9 +36,11 @@
   function normalizeLessonTitle(title = ''){
     return title
       .toString()
+      .normalize('NFKD')
       .replace(/[\u2018\u2019]/g, "'")
       .replace(/[\u201c\u201d]/g, '"')
-      .replace(/["']/g, '')
+      .replace(/\(.*?\)/g, ' ')
+      .replace(/[^a-z0-9+]+/gi, ' ')
       .replace(/\s+/g, ' ')
       .trim()
       .toLowerCase();
@@ -53,7 +55,9 @@
       const heading = row.querySelector('.lesson-popover__title');
       const button = row.querySelector('button.lesson');
       if(!heading || !button) continue;
-      if(normalizeLessonTitle(heading.textContent) === target){
+      const normalizedHeading = normalizeLessonTitle(heading.textContent);
+      if(!normalizedHeading) continue;
+      if(normalizedHeading === target || normalizedHeading.includes(target) || target.includes(normalizedHeading)){
         return button;
       }
     }
