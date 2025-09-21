@@ -478,7 +478,6 @@
   display: flex;
   flex-direction: column;
   gap: clamp(20px, 4vw, 32px);
-  position: relative;
 }
 
 .section-page__hero {
@@ -877,11 +876,16 @@
   filter: drop-shadow(0 0 4px rgba(143, 176, 255, 0.6));
 }
 
+.unit .lesson-row--popover-open {
+  z-index: 6;
+  padding-bottom: clamp(112px, 18vh, 152px);
+}
+
 .unit .lesson-popover {
-  --lesson-popover-bg: rgba(18, 31, 54, 0.94);
+  --lesson-popover-bg: var(--color-elev);
   position: absolute;
-  top: 0;
-  left: 0;
+  top: calc(100% + 18px);
+  left: 50%;
   transform: translateX(-50%);
   min-width: clamp(200px, 26vw, 260px);
   max-width: clamp(220px, 32vw, 300px);
@@ -895,7 +899,7 @@
   gap: clamp(8px, 1.6vw, 14px);
   justify-items: center;
   text-align: center;
-  z-index: 999;
+  z-index: 7;
 }
 
 .unit .lesson-popover::after {
@@ -907,13 +911,6 @@
   border-left: 10px solid transparent;
   border-right: 10px solid transparent;
   border-bottom: 10px solid var(--lesson-popover-bg);
-}
-
-.unit .lesson-popover--above::after {
-  top: auto;
-  bottom: -10px;
-  border-bottom: none;
-  border-top: 10px solid var(--lesson-popover-bg);
 }
 
 .unit .lesson-popover__title {
@@ -1000,6 +997,10 @@
 }
 
 @media (max-width: 700px) {
+  .unit .lesson-row--popover-open {
+    padding-bottom: 132px;
+  }
+
   .unit .lesson-popover {
     min-width: min(78vw, 240px);
     max-width: min(88vw, 280px);

@@ -438,7 +438,7 @@
   }
 
   function handleClick(e){
-    if(lessonPopoverState.activePopover && !e.target.closest('.lesson-row, .lesson-popover')){
+    if(lessonPopoverState.activePopover && !e.target.closest('.lesson-row')){
       closeLessonPopover();
     }
 
@@ -473,7 +473,8 @@
 
     const startLessonBtn = e.target.closest('[data-lesson-action="start"]');
     if(startLessonBtn){
-      const popover = startLessonBtn.closest('.lesson-popover');
+      const row = startLessonBtn.closest('.lesson-row');
+      const popover = row?.querySelector('.lesson-popover');
       closeLessonPopover(popover, { focusTrigger: true });
       return;
     }
@@ -493,71 +494,21 @@
     }
   }
 
-  const LESSON_POPOVER_GAP = 18;
-  const LESSON_POPOVER_HORIZONTAL_SHIFT = 16;
-  const LESSON_POPOVER_VERTICAL_NUDGE = 6;
-
-  function getSectionPage(){
-    return container.querySelector('.section-page');
-  }
-
-  function positionLessonPopover(popover, trigger){
-    if(!popover || !trigger) return;
-    const page = getSectionPage();
-    if(!page) return;
-    const triggerRect = trigger.getBoundingClientRect();
-    const popoverWidth = popover.offsetWidth;
-    const popoverHeight = popover.offsetHeight;
-    if(!popoverWidth || !popoverHeight) return;
-
-    const offsetParent = popover.offsetParent instanceof Element ? popover.offsetParent : page;
-    const parentRect = offsetParent.getBoundingClientRect();
-
-    let triggerCenterX = triggerRect.left + (triggerRect.width / 2) - parentRect.left - LESSON_POPOVER_HORIZONTAL_SHIFT;
-    const minCenterX = popoverWidth / 2;
-    const maxCenterX = parentRect.width - (popoverWidth / 2);
-    if(maxCenterX >= minCenterX){
-      triggerCenterX = Math.min(Math.max(triggerCenterX, minCenterX), maxCenterX);
-    }
-    popover.style.left = `${triggerCenterX}px`;
-
-    const viewportHeight = window.innerHeight;
-    const spaceBelow = viewportHeight - triggerRect.bottom;
-    const spaceAbove = triggerRect.top;
-    const shouldShowAbove = spaceBelow < popoverHeight + LESSON_POPOVER_GAP && spaceAbove >= popoverHeight + LESSON_POPOVER_GAP;
-
-    let top;
-    if(shouldShowAbove){
-      top = triggerRect.top - parentRect.top - popoverHeight - LESSON_POPOVER_GAP - LESSON_POPOVER_VERTICAL_NUDGE;
-    }else{
-      top = triggerRect.bottom - parentRect.top + LESSON_POPOVER_GAP - LESSON_POPOVER_VERTICAL_NUDGE;
-    }
-
-    popover.style.top = `${top}px`;
-    popover.classList.toggle('lesson-popover--above', shouldShowAbove);
-  }
-
   function openLessonPopover(popover, trigger){
     if(!popover || !trigger) return;
     if(lessonPopoverState.activePopover && lessonPopoverState.activePopover !== popover){
       closeLessonPopover();
     }
+    const row = trigger.closest('.lesson-row');
+    if(row){
+      row.classList.add('lesson-row--popover-open');
+    }
     popover.hidden = false;
     popover.setAttribute('aria-hidden', 'false');
     popover.classList.add('is-open');
-    popover.style.visibility = 'hidden';
     trigger.setAttribute('aria-expanded', 'true');
     lessonPopoverState.activePopover = popover;
     lessonPopoverState.activeTrigger = trigger;
-    positionLessonPopover(popover, trigger);
-    popover.style.visibility = '';
-  }
-
-  function updateActiveLessonPopoverPosition(){
-    const trigger = lessonPopoverState.activeTrigger;
-    const popover = lessonPopoverState.activePopover;
-    if(!trigger || !trigger.isConnected || !popover || !popover.isConnected) return;
-    positionLessonPopover(popover, trigger);
   }
 
   function closeLessonPopover(popover = lessonPopoverState.activePopover, { focusTrigger = false } = {}){
@@ -571,14 +522,14 @@
       lessonPopoverState.activeTrigger = null;
       return;
     }
+    const row = popover.closest('.lesson-row');
+    if(row){
+      row.classList.remove('lesson-row--popover-open');
+    }
     popover.hidden = true;
     popover.setAttribute('aria-hidden', 'true');
     popover.classList.remove('is-open');
-    popover.classList.remove('lesson-popover--above');
-    popover.style.removeProperty('top');
-    popover.style.removeProperty('left');
-    popover.style.removeProperty('visibility');
-    const trigger = lessonPopoverState.activeTrigger;
+    const trigger = row?.querySelector('.lesson') || lessonPopoverState.activeTrigger;
     if(trigger && trigger.isConnected){
       trigger.setAttribute('aria-expanded', 'false');
       if(focusTrigger){
@@ -614,8 +565,6 @@
       closeLessonPopover(undefined, { focusTrigger: true });
     }
   });
-  window.addEventListener('resize', updateActiveLessonPopoverPosition);
-  window.addEventListener('scroll', updateActiveLessonPopoverPosition, true);
   ensureSections().then(() => {
     router();
     window.addEventListener('hashchange', router);
