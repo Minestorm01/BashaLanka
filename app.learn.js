@@ -483,11 +483,21 @@
   }
 
   function closeLessonBubbles(except){
-    const bubbles = container.querySelectorAll('.lesson-bubble.is-open');
+    const bubbles = container.querySelectorAll('.lesson-bubble:not([hidden])');
     bubbles.forEach(bubble => {
       if(except && bubble === except) return;
+      const wasOpen = bubble.classList.contains('is-open');
       bubble.classList.remove('is-open');
-      if(!bubble.hasAttribute('hidden')){
+      if(wasOpen){
+        const handle = event => {
+          if(event.target !== bubble) return;
+          if(!bubble.classList.contains('is-open')){
+            bubble.setAttribute('hidden', '');
+          }
+          bubble.removeEventListener('transitionend', handle);
+        };
+        bubble.addEventListener('transitionend', handle);
+      }else if(!bubble.hasAttribute('hidden')){
         bubble.setAttribute('hidden', '');
       }
       const button = bubble.previousElementSibling;
@@ -500,8 +510,9 @@
   function openLessonBubble(button, bubble){
     if(!bubble || !button) return;
     closeLessonBubbles(bubble);
-    bubble.classList.add('is-open');
     bubble.removeAttribute('hidden');
+    bubble.getBoundingClientRect();
+    bubble.classList.add('is-open');
     button.setAttribute('aria-expanded', 'true');
   }
 
