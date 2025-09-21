@@ -78,8 +78,6 @@ const ROUTES = ['home','learn','characters','practice','quests','profile','setti
    State
 ------------------------- */
 const AppState = {
-  courses: [],
-  filtered: [],
   installPromptEvt: null,
   user: loadStoredUser(),
   prefs: {
@@ -483,142 +481,6 @@ function initProfile(){
   on(view, 'click', handleProfileClick);
 }
 
-// Courses (point to data/)
-async function loadCourses(){
-  const grid = $('#courseGrid');
-  if (!grid) return;
-  try{
-    const res = await fetch('data/course.index.json',{cache:'no-cache'});
-    const data = await res.json();
-    AppState.courses = Array.isArray(data) ? data : (data.courses || []);
-    AppState.filtered = [...AppState.courses];
-    renderCourses(AppState.filtered, grid);
-  }catch(e){
-    grid.innerHTML = `<div class="card" role="alert">Couldn’t load courses (offline?).</div>`;
-  }
-}
-
-// Keep existing renderCourses() + courseCard()
-
-function appLogoPicture(alt){
-  return `<picture>
-    <source srcset="assets/SVG/app_logo.svg" type="image/svg+xml" />
-    <img src="assets/PNG/app_logo.png" alt="${alt}" loading="lazy" decoding="async" />
-  </picture>`;
-}
-
-function renderCourses(items, grid){
-  grid.innerHTML = '';
-  if (!items.length) {
-    grid.innerHTML = '<p class="muted">No courses match your filters.</p>';
-    return;
-  }
-  const frag = document.createDocumentFragment();
-  items.forEach((c) => frag.appendChild(courseCard(c)));
-  grid.appendChild(frag);
-}
-
-function courseCard(course){
-  const { id, title, lang, level, progress, cover } = course;
-  const card = document.createElement('article');
-  card.className = 'course-card card';
-  card.tabIndex = 0;
-  card.setAttribute('data-id', id);
-  const imgMarkup = cover
-    ? `<img loading="lazy" decoding="async" src="${cover}" alt="${title || 'Course'} cover" />`
-    : appLogoPicture(`${title || 'Course'} cover`);
-  card.innerHTML = `
-    <div class="media">
-      ${imgMarkup}
-    </div>
-    <div class="content">
-      <header class="row between">
-        <h3 class="title">${title || 'Untitled'}</h3>
-        <span class="badge">${lang || ''}</span>
-      </header>
-      <p class="muted">Level ${level ?? '—'}</p>
-      <div class="progress" aria-label="Progress">
-        <div class="bar" style="width:${Math.max(0, Math.min(100, Number(progress) || 0))}%"></div>
-      </div>
-      <footer class="row gap">
-        <button class="btn primary" data-action="continue">Continue</button>
-        <button class="btn ghost" data-action="details">Details</button>
-      </footer>
-    </div>
-  `;
-
-  on(card, 'click', (e) => {
-    const btn = e.target.closest('button[data-action]');
-    if (!btn) return;
-    const action = btn.getAttribute('data-action');
-    if (action === 'continue') {
-      navigateToCourse(id);
-    } else if (action === 'details') {
-      openCourseDetails(course);
-    }
-  });
-
-  return card;
-}
-
-function navigateToCourse(id) {
-  location.hash = `course=${encodeURIComponent(id)}`;
-}
-
-function openCourseDetails(course) {
-  const panel = $('#detailsPanel');
-  const scrim = $('#detailsScrim');
-  if (!panel) return;
-
-  const titleEl = panel.querySelector('.details-title');
-  if (titleEl) titleEl.textContent = course.title || 'Course';
-
-  const langEl = panel.querySelector('.details-lang');
-  if (langEl) langEl.textContent = course.lang || '';
-
-  const levelEl = panel.querySelector('.details-level');
-  if (levelEl) levelEl.textContent = String(course.level ?? '—');
-
-  const imgWrap = panel.querySelector('.details-cover');
-  if (imgWrap) {
-    imgWrap.innerHTML = course.cover
-      ? `<img src="${course.cover}" alt="${(course.title || 'Course')} cover" loading="lazy" decoding="async" />`
-      : appLogoPicture(`${course.title || 'Course'} cover`);
-  }
-
-  panel.classList.add('open');
-  if (scrim) scrim.classList.add('show');
-  const untrap = trapFocus(panel);
-
-  const close = () => {
-    panel.classList.remove('open');
-    if (scrim) scrim.classList.remove('show');
-    untrap();
-  };
-
-  on($('#detailsClose'), 'click', close, { once: true });
-  on(scrim, 'click', close, { once: true });
-  on(document, 'keydown', (e) => { if (e.key === 'Escape') close(); }, { once: true });
-}
-
-// Search + filters (optional)
-function initSearch() {
-  const input = $('#searchInput');
-  const grid = $('#courseGrid');
-  if (!input || !grid) return;
-
-  const apply = () => {
-    const q = input.value.trim().toLowerCase();
-    AppState.filtered = AppState.courses.filter((c) =>
-      (c.title || '').toLowerCase().includes(q) ||
-      (c.lang || '').toLowerCase().includes(q)
-    );
-    renderCourses(AppState.filtered, grid);
-  };
-
-  on(input, 'input', debounce(apply, 120));
-}
-
 // Install (PWA)
 function initInstall() {
   const btn = $('#installBtn');
@@ -667,7 +529,7 @@ function initServiceWorker() {
 
 // Debug helpers
 function exposeForDebug() {
-  window.__APP__ = { AppState, renderCourses };
+  window.__APP__ = { AppState };
 }
 
 // Init
@@ -678,10 +540,8 @@ window.addEventListener('DOMContentLoaded', () => {
   initServiceWorker();
   initSettingsForm();
   initProfile();
-  initSearch();     // optional
-  loadCourses();    // populates Learn view
   initRouter(sidebarCtl);
   exposeForDebug();
 });
 
-typeof module !== 'undefined' && (module.exports = { debounce, trapFocus });
+typeof module !== 'undefined' && (module.exports = { debounce, trapFocus });typeof module !== 'undefined' && (module.exports = { debounce, trapFocus });
