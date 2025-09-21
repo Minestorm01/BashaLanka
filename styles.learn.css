@@ -840,7 +840,8 @@
   position: absolute;
   top: calc(100% + 12px);
   left: 50%;
-transform: translate(calc(-50% + var(--lesson-offset) - 30px), -6px);
+  --bubble-nudge: -20px; /* adjust as needed */
+  transform: translate(calc(-50% + var(--lesson-offset) - 30px), -6px);
   width: min(260px, 82vw);
   pointer-events: none;
   opacity: 0;
@@ -850,7 +851,7 @@ transform: translate(calc(-50% + var(--lesson-offset) - 30px), -6px);
 
 .unit .lesson-bubble.is-open {
   opacity: 1;
-  transform: translate(calc(-50% + var(--lesson-offset)), 0);
+  transform: translate(calc(-50% + var(--lesson-offset) + var(--bubble-nudge)), 0);
 }
 
 .unit .lesson-bubble[hidden] {
