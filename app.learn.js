@@ -9,10 +9,6 @@
     activePanel: null,
     activeTrigger: null
   };
-  const lessonPopoverState = {
-    activePopover: null,
-    activeTrigger: null
-  };
   let sections = [];
   let loadingPromise = null;
   let sectionsLoadedEventSent = false;
@@ -344,31 +340,13 @@
       const skillAttr = lesson && lesson.skillId ? ` data-skill-id="${escapeAttribute(lesson.skillId)}"` : '';
       const levelAttr = lesson && lesson.levelId ? ` data-level-id="${escapeAttribute(lesson.levelId)}"` : '';
       const lessonNumber = typeof lesson.lessonIndex === 'number' ? lesson.lessonIndex : index + 1;
-      const totalLessons = lessons.length;
-      const popoverId = `lesson-popover-${sectionNum}-${unit.number}-${index + 1}`;
-      const popoverTitleId = `${popoverId}-title`;
-      const popoverClasses = ['lesson-popover'];
-      if(status === 'locked') popoverClasses.push('lesson-popover--locked');
-      const metaMarkup = totalLessons ? `<p class="lesson-popover__meta">Lesson ${lessonNumber} out of ${totalLessons}</p>` : '';
-      const lockedMessage = status === 'locked'
-        ? '<p class="lesson-popover__message">Complete all levels above to unlock this!</p>'
-        : '';
-      const actionAttrs = status === 'locked'
-        ? 'type="button" class="lesson-popover__action lesson-popover__action--locked" disabled'
-        : 'type="button" class="lesson-popover__action lesson-popover__action--start" data-lesson-action="start"';
-      const actionLabel = status === 'locked' ? 'Locked' : 'Begin lesson!';
-      const safeTitle = escapeHtml(lesson && lesson.title ? lesson.title : `Lesson ${lessonNumber}`);
+      const rawTitle = lesson && lesson.title ? lesson.title : `Lesson ${lessonNumber}`;
+      const titleAttr = rawTitle ? ` aria-label="${escapeAttribute(rawTitle)}"` : '';
       rows.push(`
         <div class="${rowClasses.join(' ')}">
-          <button type="button" class="${buttonClasses.join(' ')}"${lessonIdAttr}${skillAttr}${levelAttr} aria-expanded="false" aria-haspopup="true" aria-controls="${popoverId}">
+          <button type="button" class="${buttonClasses.join(' ')}"${lessonIdAttr}${skillAttr}${levelAttr}${titleAttr}>
             <img src="${iconSrc}" alt="${altText}" />
           </button>
-          <div class="${popoverClasses.join(' ')}" id="${popoverId}" role="group" aria-hidden="true" aria-labelledby="${popoverTitleId}" hidden>
-            <h3 id="${popoverTitleId}" class="lesson-popover__title">${safeTitle}</h3>
-            ${metaMarkup}
-            ${lockedMessage}
-            <button ${actionAttrs}>${actionLabel}</button>
-          </div>
         </div>`);
       if(index === midpoint - 1){
         rows.push(`
@@ -433,15 +411,10 @@
     <button class="btn-back" data-action="back">← Back</button>
     ${unitsMarkup}
   </div>`;
-    resetLessonPopoverState();
     connectLessons('lesson-01', 'lesson-02');
   }
 
   function handleClick(e){
-    if(lessonPopoverState.activePopover && !e.target.closest('.lesson-row')){
-      closeLessonPopover();
-    }
-
     const continueBtn = e.target.closest('.btn-continue, .overview-cta .btn-primary');
     if(continueBtn){
       const id = continueBtn.dataset.id;
@@ -453,29 +426,6 @@
     const backBtn = e.target.closest('[data-action="back"]');
     if(backBtn){
       location.hash = '#/learn';
-      return;
-    }
-
-    const lessonTrigger = e.target.closest('.lesson');
-    if(lessonTrigger){
-      const row = lessonTrigger.closest('.lesson-row');
-      const popoverId = lessonTrigger.getAttribute('aria-controls');
-      const popover = popoverId ? row?.querySelector(`#${popoverId}`) : row?.querySelector('.lesson-popover');
-      if(popover){
-        if(popover.hidden){
-          openLessonPopover(popover, lessonTrigger);
-        }else{
-          closeLessonPopover(popover);
-        }
-      }
-      return;
-    }
-
-    const startLessonBtn = e.target.closest('[data-lesson-action="start"]');
-    if(startLessonBtn){
-      const row = startLessonBtn.closest('.lesson-row');
-      const popover = row?.querySelector('.lesson-popover');
-      closeLessonPopover(popover, { focusTrigger: true });
       return;
     }
 
@@ -494,59 +444,6 @@
     }
   }
 
-  function openLessonPopover(popover, trigger){
-    if(!popover || !trigger) return;
-    if(lessonPopoverState.activePopover && lessonPopoverState.activePopover !== popover){
-      closeLessonPopover();
-    }
-    const row = trigger.closest('.lesson-row');
-    if(row){
-      row.classList.add('lesson-row--popover-open');
-    }
-    popover.hidden = false;
-    popover.setAttribute('aria-hidden', 'false');
-    popover.classList.add('is-open');
-    trigger.setAttribute('aria-expanded', 'true');
-    lessonPopoverState.activePopover = popover;
-    lessonPopoverState.activeTrigger = trigger;
-  }
-
-  function closeLessonPopover(popover = lessonPopoverState.activePopover, { focusTrigger = false } = {}){
-    if(!popover){
-      lessonPopoverState.activePopover = null;
-      lessonPopoverState.activeTrigger = null;
-      return;
-    }
-    if(!popover.isConnected){
-      lessonPopoverState.activePopover = null;
-      lessonPopoverState.activeTrigger = null;
-      return;
-    }
-    const row = popover.closest('.lesson-row');
-    if(row){
-      row.classList.remove('lesson-row--popover-open');
-    }
-    popover.hidden = true;
-    popover.setAttribute('aria-hidden', 'true');
-    popover.classList.remove('is-open');
-    const trigger = row?.querySelector('.lesson') || lessonPopoverState.activeTrigger;
-    if(trigger && trigger.isConnected){
-      trigger.setAttribute('aria-expanded', 'false');
-      if(focusTrigger){
-        trigger.focus();
-      }
-    }
-    if(lessonPopoverState.activePopover === popover){
-      lessonPopoverState.activePopover = null;
-      lessonPopoverState.activeTrigger = null;
-    }
-  }
-
-  function resetLessonPopoverState(){
-    lessonPopoverState.activePopover = null;
-    lessonPopoverState.activeTrigger = null;
-  }
-
   async function router(){
     await ensureSections();
     const hash = location.hash || '#/learn';
@@ -559,12 +456,6 @@
   }
 
   container.addEventListener('click', handleClick);
-  container.addEventListener('keydown', e => {
-    if(e.key === 'Escape' && lessonPopoverState.activePopover){
-      e.preventDefault();
-      closeLessonPopover(undefined, { focusTrigger: true });
-    }
-  });
   ensureSections().then(() => {
     router();
     window.addEventListener('hashchange', router);
