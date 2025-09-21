@@ -840,7 +840,7 @@
   position: absolute;
   top: calc(100% + 12px);
   left: 50%;
-  --bubble-nudge: -10px; /* adjust as needed */
+  --bubble-nudge: -13px; /* adjust as needed */
   transform: translate(calc(-50% + var(--lesson-offset) - 10px), -6px);
   width: min(260px, 82vw);
   pointer-events: none;
