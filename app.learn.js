@@ -280,6 +280,43 @@
     const midpoint = lessons.length ? Math.ceil(lessons.length / 2) : 0;
     const mascotSide = unit.number % 2 === 0 ? 'left' : 'right';
     const rows = [];
+    const fallbackBubbleTitle = unit.title || '';
+    const fallbackBubbleTotal = lessons.length || 0;
+    const lessonBubbleMeta = new Map();
+    const skillTitleById = new Map();
+
+    if(Array.isArray(unit.skills)){
+      unit.skills.forEach(skill => {
+        if(!skill || typeof skill !== 'object') return;
+        const skillId = skill.skillId || skill.id || '';
+        const skillTitle = skill.title || fallbackBubbleTitle;
+        if(skillId){
+          skillTitleById.set(skillId, skillTitle);
+        }
+        const levels = Array.isArray(skill.levels) ? skill.levels : [];
+        if(levels.length){
+          levels.forEach(level => {
+            if(!level || typeof level !== 'object') return;
+            const levelKey = level.levelId || level.id || '';
+            const levelTotal = Number(level.lessonCount) || (Array.isArray(level.lessons) ? level.lessons.length : 0);
+            if(levelKey){
+              lessonBubbleMeta.set(levelKey, {
+                title: skillTitle,
+                total: levelTotal
+              });
+            }
+          });
+        }else if(skillId){
+          const levelTotal = Number(skill.lessonCount) || 0;
+          if(levelTotal > 0){
+            lessonBubbleMeta.set(skillId, {
+              title: skillTitle,
+              total: levelTotal
+            });
+          }
+        }
+      });
+    }
     const iconForStatus = status => {
       switch(status){
         case 'completed':
@@ -342,11 +379,42 @@
       const lessonNumber = typeof lesson.lessonIndex === 'number' ? lesson.lessonIndex : index + 1;
       const rawTitle = lesson && lesson.title ? lesson.title : `Lesson ${lessonNumber}`;
       const titleAttr = rawTitle ? ` aria-label="${escapeAttribute(rawTitle)}"` : '';
+      const bubbleKey = lesson && (lesson.levelId || lesson.skillId) ? (lesson.levelId || lesson.skillId) : '__unit__';
+      if(!lessonBubbleMeta.has(bubbleKey)){
+        const derivedTitle = (lesson && lesson.skillId && skillTitleById.get(lesson.skillId)) || fallbackBubbleTitle || rawTitle;
+        const groupTotal = lessons.filter(item => {
+          const groupKey = item && (item.levelId || item.skillId) ? (item.levelId || item.skillId) : '__unit__';
+          return groupKey === bubbleKey;
+        }).length;
+        lessonBubbleMeta.set(bubbleKey, {
+          title: derivedTitle,
+          total: groupTotal || fallbackBubbleTotal || lessons.length || 1
+        });
+      }
+      const bubbleMeta = lessonBubbleMeta.get(bubbleKey) || { title: fallbackBubbleTitle || rawTitle, total: fallbackBubbleTotal || lessons.length || 1 };
+      const bubbleTitle = bubbleMeta.title || rawTitle;
+      const totalLessons = bubbleMeta.total || fallbackBubbleTotal || lessons.length || 1;
+      const isLocked = status === 'locked';
+      const bubbleCta = isLocked
+        ? 'Complete all levels above to unlock this!'
+        : 'Start Lesson!!';
+
       rows.push(`
         <div class="${rowClasses.join(' ')}">
-          <button type="button" class="${buttonClasses.join(' ')}"${lessonIdAttr}${skillAttr}${levelAttr}${titleAttr}>
+          <button type="button" class="${buttonClasses.join(' ')}"${lessonIdAttr}${skillAttr}${levelAttr}${titleAttr} aria-expanded="false">
             <img src="${iconSrc}" alt="${altText}" />
           </button>
+          <div class="lesson-bubble" data-lesson-bubble hidden>
+            <div class="lesson-bubble__content">
+              <div class="lesson-bubble__header">
+                <p class="lesson-bubble__title">${escapeHtml(bubbleTitle)}</p>
+                <p class="lesson-bubble__meta">Lesson ${lessonNumber} of ${totalLessons}</p>
+              </div>
+              <div class="lesson-bubble__footer">
+                <button type="button" class="lesson-bubble__cta" data-lesson-status="${status}"${isLocked ? ' disabled' : ''}>${escapeHtml(bubbleCta)}</button>
+              </div>
+            </div>
+          </div>
         </div>`);
       if(index === midpoint - 1){
         rows.push(`
@@ -414,7 +482,54 @@
     connectLessons('lesson-01', 'lesson-02');
   }
 
+  function closeLessonBubbles(except){
+    const bubbles = container.querySelectorAll('.lesson-bubble.is-open');
+    bubbles.forEach(bubble => {
+      if(except && bubble === except) return;
+      bubble.classList.remove('is-open');
+      if(!bubble.hasAttribute('hidden')){
+        bubble.setAttribute('hidden', '');
+      }
+      const button = bubble.previousElementSibling;
+      if(button && button.matches('.lesson')){
+        button.setAttribute('aria-expanded', 'false');
+      }
+    });
+  }
+
+  function openLessonBubble(button, bubble){
+    if(!bubble || !button) return;
+    closeLessonBubbles(bubble);
+    bubble.classList.add('is-open');
+    bubble.removeAttribute('hidden');
+    button.setAttribute('aria-expanded', 'true');
+  }
+
+  function toggleLessonBubble(button){
+    if(!button) return;
+    const row = button.closest('.lesson-row');
+    if(!row) return;
+    const bubble = row.querySelector('.lesson-bubble');
+    if(!bubble) return;
+    const isOpen = bubble.classList.contains('is-open');
+    if(isOpen){
+      closeLessonBubbles();
+    }else{
+      openLessonBubble(button, bubble);
+    }
+  }
+
   function handleClick(e){
+    const lessonButton = e.target.closest('.lesson-row--lesson .lesson');
+    if(lessonButton){
+      toggleLessonBubble(lessonButton);
+      return;
+    }
+
+    if(!e.target.closest('.lesson-bubble__content')){
+      closeLessonBubbles();
+    }
+
     const continueBtn = e.target.closest('.btn-continue, .overview-cta .btn-primary');
     if(continueBtn){
       const id = continueBtn.dataset.id;

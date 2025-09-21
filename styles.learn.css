@@ -822,6 +822,8 @@
 }
 
 .unit .lesson-row {
+  --lesson-offset: 0px;
+
   position: relative;
   width: 100%;
   display: flex;
@@ -832,19 +834,126 @@
 .unit .lesson-row > * {
   position: relative;
   z-index: 1;
-  transform: translateX(0);
 }
 
-.unit .lesson-row--left > * {
-  transform: translateX(calc(-1 * var(--sway)));
+.unit .lesson-bubble {
+  position: absolute;
+  top: calc(100% + 12px);
+  left: 50%;
+  transform: translate(calc(-50% + var(--lesson-offset)), -6px);
+  width: min(260px, 82vw);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 180ms ease, transform 180ms ease;
+  z-index: 5;
 }
 
-.unit .lesson-row--right > * {
-  transform: translateX(var(--sway));
+.unit .lesson-bubble.is-open {
+  opacity: 1;
+  transform: translate(calc(-50% + var(--lesson-offset)), 0);
 }
 
-.unit .lesson-row--center > * {
-  transform: translateX(0);
+.unit .lesson-bubble[hidden] {
+  display: none;
+}
+
+.lesson-bubble__content {
+  background: rgba(8, 19, 33, 0.96);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  padding: 16px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+  color: #f1f6ff;
+  font-size: 0.875rem;
+  pointer-events: auto;
+  position: relative;
+}
+
+.lesson-bubble__content::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translate(-50%, -100%);
+  width: 0;
+  height: 0;
+  border-left: 14px solid transparent;
+  border-right: 14px solid transparent;
+  border-bottom: 14px solid rgba(8, 19, 33, 0.96);
+  filter: drop-shadow(0 6px 6px rgba(0, 0, 0, 0.35));
+}
+
+.lesson-bubble__header {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: flex-start;
+}
+
+.lesson-bubble__title {
+  margin: 0;
+  font-weight: 700;
+  font-size: clamp(0.9rem, 2.4vw, 1.05rem);
+}
+
+.lesson-bubble__meta {
+  margin: 0;
+  font-size: clamp(0.75rem, 2vw, 0.85rem);
+  color: rgba(214, 231, 255, 0.78);
+  letter-spacing: 0.2px;
+}
+
+.lesson-bubble__footer {
+  margin-top: 14px;
+}
+
+.lesson-bubble__cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  background: linear-gradient(90deg, #2ee6a6, #1dd4f2);
+  color: #04121f;
+  font-weight: 700;
+  font-size: clamp(0.75rem, 2vw, 0.85rem);
+  border: none;
+  border-radius: 999px;
+  padding: 10px 16px;
+  cursor: pointer;
+  transition: transform 120ms ease, box-shadow 120ms ease;
+}
+
+.lesson-bubble__cta[data-lesson-status="locked"] {
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(241, 246, 255, 0.72);
+  cursor: not-allowed;
+}
+
+.lesson-bubble__cta:not([data-lesson-status="locked"]):hover,
+.lesson-bubble__cta:not([data-lesson-status="locked"]):focus-visible {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(29, 212, 242, 0.35);
+}
+
+.lesson-bubble__cta:focus-visible {
+  outline: 2px solid rgba(241, 246, 255, 0.85);
+  outline-offset: 2px;
+}
+
+.unit .lesson-row--left {
+  --lesson-offset: calc(-1 * var(--sway));
+}
+
+.unit .lesson-row--right {
+  --lesson-offset: var(--sway);
+}
+
+.unit .lesson-row > :not(.lesson-bubble) {
+  transform: translateX(var(--lesson-offset));
+}
+
+.unit .lesson-row--center {
+  --lesson-offset: 0px;
 }
 
 .unit .lesson {
