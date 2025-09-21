@@ -494,6 +494,8 @@
   }
 
   const LESSON_POPOVER_GAP = 18;
+  const LESSON_POPOVER_HORIZONTAL_SHIFT = 16;
+  const LESSON_POPOVER_VERTICAL_NUDGE = 6;
 
   function getSectionPage(){
     return container.querySelector('.section-page');
@@ -503,13 +505,20 @@
     if(!popover || !trigger) return;
     const page = getSectionPage();
     if(!page) return;
-    const pageRect = page.getBoundingClientRect();
     const triggerRect = trigger.getBoundingClientRect();
     const popoverWidth = popover.offsetWidth;
     const popoverHeight = popover.offsetHeight;
     if(!popoverWidth || !popoverHeight) return;
 
-    const triggerCenterX = triggerRect.left + (triggerRect.width / 2) - pageRect.left;
+    const offsetParent = popover.offsetParent instanceof Element ? popover.offsetParent : page;
+    const parentRect = offsetParent.getBoundingClientRect();
+
+    let triggerCenterX = triggerRect.left + (triggerRect.width / 2) - parentRect.left - LESSON_POPOVER_HORIZONTAL_SHIFT;
+    const minCenterX = popoverWidth / 2;
+    const maxCenterX = parentRect.width - (popoverWidth / 2);
+    if(maxCenterX >= minCenterX){
+      triggerCenterX = Math.min(Math.max(triggerCenterX, minCenterX), maxCenterX);
+    }
     popover.style.left = `${triggerCenterX}px`;
 
     const viewportHeight = window.innerHeight;
@@ -519,9 +528,9 @@
 
     let top;
     if(shouldShowAbove){
-      top = triggerRect.top - pageRect.top - popoverHeight - LESSON_POPOVER_GAP;
+      top = triggerRect.top - parentRect.top - popoverHeight - LESSON_POPOVER_GAP - LESSON_POPOVER_VERTICAL_NUDGE;
     }else{
-      top = triggerRect.bottom - pageRect.top + LESSON_POPOVER_GAP;
+      top = triggerRect.bottom - parentRect.top + LESSON_POPOVER_GAP - LESSON_POPOVER_VERTICAL_NUDGE;
     }
 
     popover.style.top = `${top}px`;
