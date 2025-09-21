@@ -878,7 +878,7 @@
 }
 
 .unit .lesson-popover {
-  --lesson-popover-bg: var(--color-elev);
+  --lesson-popover-bg: rgba(18, 31, 54, 0.94);
   position: absolute;
   top: 0;
   left: 0;
