@@ -288,11 +288,6 @@ const DebugTools = (() => {
     2,
   );
 
-  const LESSON_FORMAT = {
-    MARKDOWN: 'markdown',
-    JSON: 'json',
-  };
-
   function isTranslateToBaseConfig(candidate) {
     if (!candidate || typeof candidate !== 'object') return false;
     if (!candidate.prompt || !String(candidate.prompt).trim().length) return false;
@@ -354,292 +349,6 @@ const DebugTools = (() => {
       ...rest,
       choices: normalisedChoices,
     };
-  }
-
-  function extractTranslateToBaseConfig(data) {
-    const candidates = [];
-
-    if (isTranslateToBaseConfig(data)) {
-      candidates.push(data);
-    }
-
-    if (data && typeof data === 'object') {
-      const direct =
-        data.exercise_translateToBase ||
-        data.exerciseTranslateToBase ||
-        data.translateToBase ||
-        (typeof data.exercises === 'object' && !Array.isArray(data.exercises)
-          ? data.exercises.translateToBase || data.exercises.TranslateToBase
-          : null);
-
-      if (direct) {
-        candidates.push(direct);
-      }
-
-      if (Array.isArray(data.exercises)) {
-        data.exercises.forEach((entry) => {
-          if (!entry || typeof entry !== 'object') return;
-          if (isTranslateToBaseConfig(entry)) {
-            candidates.push(entry);
-          }
-
-          const entryConfig = entry.config || entry.data;
-          const type = String(entry.type || entry.exercise || '').toLowerCase();
-          if (entryConfig && type === 'translatetobase') {
-            candidates.push(entryConfig);
-          }
-        });
-      }
-    }
-
-    for (const candidate of candidates) {
-      const normalised = normaliseTranslateToBaseConfig(candidate);
-      if (normalised) {
-        return normalised;
-      }
-    }
-
-    return null;
-  }
-
-  function extractExerciseConfig(type, data) {
-    if (!data) return null;
-
-    switch (type) {
-      case 'TranslateToBase':
-        return extractTranslateToBaseConfig(data);
-      default:
-        return null;
-    }
-  }
-
-  function countIndentation(line) {
-    let count = 0;
-    while (count < line.length && line[count] === ' ') {
-      count += 1;
-    }
-    return count;
-  }
-
-  function splitInlineValues(value) {
-    const items = [];
-    let current = '';
-    let depthBraces = 0;
-    let depthBrackets = 0;
-    let inSingle = false;
-    let inDouble = false;
-
-    for (let index = 0; index < value.length; index += 1) {
-      const char = value[index];
-      const prevChar = value[index - 1];
-
-      if (char === "'" && !inDouble && prevChar !== '\\') {
-        inSingle = !inSingle;
-      } else if (char === '"' && !inSingle && prevChar !== '\\') {
-        inDouble = !inDouble;
-      }
-
-      if (!inSingle && !inDouble) {
-        if (char === '{') depthBraces += 1;
-        if (char === '}') depthBraces -= 1;
-        if (char === '[') depthBrackets += 1;
-        if (char === ']') depthBrackets -= 1;
-
-        if (char === ',' && depthBraces === 0 && depthBrackets === 0) {
-          items.push(current.trim());
-          current = '';
-          continue;
-        }
-      }
-
-      current += char;
-    }
-
-    if (current.trim().length) {
-      items.push(current.trim());
-    }
-
-    return items;
-  }
-
-  function stripQuotes(value) {
-    if (!value) return value;
-    if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) {
-      return value.slice(1, -1).replace(/\\(["'\\])/g, '$1');
-    }
-    return value;
-  }
-
-  function parseInlineArray(value) {
-    const inner = value.slice(1, -1).trim();
-    if (!inner) return [];
-    return splitInlineValues(inner).map((item) => parseYamlScalar(item.trim()));
-  }
-
-  function parseInlineObject(value) {
-    const inner = value.slice(1, -1).trim();
-    if (!inner) return {};
-    const result = {};
-    splitInlineValues(inner).forEach((pair) => {
-      if (!pair) return;
-      const separatorIndex = pair.indexOf(':');
-      if (separatorIndex === -1) return;
-      const key = pair.slice(0, separatorIndex).trim();
-      const rawValue = pair.slice(separatorIndex + 1).trim();
-      result[stripQuotes(key)] = parseYamlScalar(rawValue);
-    });
-    return result;
-  }
-
-  function parseYamlScalar(value) {
-    if (value === null || value === undefined) return value;
-    const trimmed = value.trim();
-
-    if (!trimmed.length) return '';
-
-    if (trimmed === 'null' || trimmed === '~') return null;
-    if (trimmed === 'true') return true;
-    if (trimmed === 'false') return false;
-
-    if (!Number.isNaN(Number(trimmed)) && /^-?\d+(\.\d+)?$/.test(trimmed)) {
-      return Number(trimmed);
-    }
-
-    if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
-      return parseInlineArray(trimmed);
-    }
-
-    if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
-      return parseInlineObject(trimmed);
-    }
-
-    return stripQuotes(trimmed);
-  }
-
-  function parseMultilineString(lines, startIndex, indent) {
-    const collected = [];
-    let index = startIndex;
-
-    while (index < lines.length) {
-      const line = lines[index];
-      const trimmed = line.trim();
-      if (!trimmed.length) {
-        collected.push('');
-        index += 1;
-        continue;
-      }
-
-      const lineIndent = countIndentation(line);
-      if (lineIndent < indent) {
-        break;
-      }
-
-      collected.push(line.slice(indent));
-      index += 1;
-    }
-
-    return { value: collected.join('\n'), nextIndex: index };
-  }
-
-  function parseYamlNode(lines, startIndex, indent) {
-    let index = startIndex;
-    let mode = null;
-    const arrayResult = [];
-    const objectResult = {};
-
-    while (index < lines.length) {
-      const line = lines[index];
-      const trimmed = line.trim();
-
-      if (!trimmed.length || trimmed.startsWith('#')) {
-        index += 1;
-        continue;
-      }
-
-      const lineIndent = countIndentation(line);
-      if (lineIndent < indent) {
-        break;
-      }
-
-      if (trimmed.startsWith('- ')) {
-        if (mode === 'object') {
-          break;
-        }
-        mode = 'array';
-        const content = trimmed.slice(2).trim();
-        if (/^[|>]/.test(content)) {
-          const multiline = parseMultilineString(lines, index + 1, indent + 2);
-          arrayResult.push(multiline.value);
-          index = multiline.nextIndex;
-          continue;
-        }
-
-        if (content.length) {
-          arrayResult.push(parseYamlScalar(content));
-        } else {
-          const child = parseYamlNode(lines, index + 1, indent + 2);
-          arrayResult.push(child.value);
-          index = child.nextIndex - 1;
-        }
-
-        index += 1;
-        continue;
-      }
-
-      if (mode === 'array') {
-        break;
-      }
-
-      mode = 'object';
-      const separatorIndex = trimmed.indexOf(':');
-      if (separatorIndex === -1) {
-        index += 1;
-        continue;
-      }
-
-      const key = trimmed.slice(0, separatorIndex).trim();
-      let rawValue = trimmed.slice(separatorIndex + 1).trim();
-
-      if (!rawValue.length) {
-        const child = parseYamlNode(lines, index + 1, indent + 2);
-        objectResult[stripQuotes(key)] = child.value;
-        index = child.nextIndex;
-        continue;
-      }
-
-      if (/^[|>]/.test(rawValue)) {
-        const multiline = parseMultilineString(lines, index + 1, indent + 2);
-        objectResult[stripQuotes(key)] = multiline.value;
-        index = multiline.nextIndex;
-        continue;
-      }
-
-      objectResult[stripQuotes(key)] = parseYamlScalar(rawValue);
-      index += 1;
-    }
-
-    return {
-      value: mode === 'array' ? arrayResult : objectResult,
-      nextIndex: index,
-    };
-  }
-
-  function parseLessonFrontMatter(rawText) {
-    const normalised = rawText.replace(/\r\n?/g, '\n');
-    if (normalised.startsWith('---')) {
-      const withoutStart = normalised.slice(3);
-      const closingIndex = withoutStart.indexOf('\n---');
-      const frontMatter = closingIndex === -1 ? withoutStart : withoutStart.slice(0, closingIndex);
-      return frontMatter.replace(/^\s*\n/, '');
-    }
-    return normalised;
-  }
-
-  function parseLessonMarkdown(text) {
-    const frontMatter = parseLessonFrontMatter(text);
-    const lines = frontMatter.split('\n');
-    const { value } = parseYamlNode(lines, 0, 0);
-    return value;
   }
 
   function appendControl(entry){
@@ -715,14 +424,7 @@ const DebugTools = (() => {
           <div class="field">
             <label class="label" for="debugLessonPath">Lesson data path</label>
             <input id="debugLessonPath" class="input" type="text" placeholder="./assets/Lessions/.../lesson-01.md" autocomplete="off" />
-            <p class="help">Enter a site-relative path such as <code>./assets/Lessions/.../lesson-01.md</code> or <code>./data/s1u1.lessons.json</code>.</p>
-          </div>
-          <div class="field">
-            <label class="label" for="debugLessonFormat">Lesson data format</label>
-            <select id="debugLessonFormat" class="select">
-              <option value="markdown" selected>Markdown (YAML front matter)</option>
-              <option value="json">JSON</option>
-            </select>
+            <p class="help">Enter a site-relative path such as <code>./assets/Lessions/.../lesson-01.md</code>. Markdown lessons can be passed directly without copying configs.</p>
           </div>
           <label class="debug-tester__inline-toggle" for="debugInlineToggle">
             <input id="debugInlineToggle" type="checkbox" />
@@ -742,7 +444,6 @@ const DebugTools = (() => {
 
     const typeSelect = container.querySelector('#debugExerciseType');
     const lessonPathInput = container.querySelector('#debugLessonPath');
-    const lessonFormatSelect = container.querySelector('#debugLessonFormat');
     const inlineToggle = container.querySelector('#debugInlineToggle');
     const inlineConfigWrap = container.querySelector('[data-inline-config]');
     const inlineConfigInput = container.querySelector('#debugInlineConfig');
@@ -764,33 +465,6 @@ const DebugTools = (() => {
       const useInline = inlineToggle.checked;
       inlineConfigWrap.hidden = !useInline;
       lessonPathInput.disabled = useInline;
-      if (lessonFormatSelect) {
-        lessonFormatSelect.disabled = useInline;
-      }
-    }
-
-    async function loadLessonDataFromPath(path, format) {
-      const response = await fetch(path, { cache: 'no-cache' });
-      if (!response.ok) {
-        throw new Error(`Failed to load lesson data (${response.status}).`);
-      }
-
-      const text = await response.text();
-
-      if (format === LESSON_FORMAT.MARKDOWN) {
-        try {
-          return parseLessonMarkdown(text);
-        } catch (error) {
-          console.error('Failed to parse lesson markdown.', error);
-          throw new Error('Lesson markdown could not be parsed. Ensure the front matter is valid YAML.');
-        }
-      }
-
-      try {
-        return JSON.parse(text);
-      } catch (error) {
-        throw new Error('Lesson data must be valid JSON that maps to the exercise config.');
-      }
     }
 
     function normaliseConfigForType(type, config) {
@@ -826,26 +500,7 @@ const DebugTools = (() => {
         throw new Error('Enter a lesson data path or enable inline config.');
       }
 
-      const format = lessonFormatSelect?.value || LESSON_FORMAT.MARKDOWN;
-      const lessonData = await loadLessonDataFromPath(lessonPath, format);
-
-      if (!lessonData) {
-        throw new Error('Lesson data did not contain any usable content.');
-      }
-
-      const extracted = extractExerciseConfig(type, lessonData);
-      if (!extracted) {
-        if (format === LESSON_FORMAT.MARKDOWN) {
-          throw new Error('Lesson markdown does not include a TranslateToBase config block.');
-        }
-        if (isTranslateToBaseConfig(lessonData)) {
-          const normalised = normaliseConfigForType(type, lessonData);
-          if (normalised) return normalised;
-        }
-        throw new Error('Lesson data must include a config for the selected exercise.');
-      }
-
-      return extracted;
+      return lessonPath;
     }
 
     async function runTest() {
