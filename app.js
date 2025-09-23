@@ -271,6 +271,22 @@ const DebugTools = (() => {
   let controlsContainer = null;
   let sectionSelect = null;
   let hostEl = null;
+  let exerciseTesterCleanup = null;
+
+  const DEFAULT_INLINE_CONFIG = JSON.stringify(
+    {
+      prompt: 'මම',
+      transliteration: 'mama',
+      instructions: 'Pick the correct translation.',
+      choices: [
+        { label: 'I', correct: true },
+        { label: 'You', correct: false },
+        { label: 'Fine', correct: false },
+      ],
+    },
+    null,
+    2,
+  );
 
   function appendControl(entry){
     if(!controlsContainer) return;
@@ -326,6 +342,127 @@ const DebugTools = (() => {
     return entry;
   }
 
+  function setupExerciseTester(container) {
+    if (!container) return null;
+
+    container.innerHTML = `
+      <section class="debug-tester" aria-labelledby="debug-exercise-tester-title">
+        <div class="debug-tester__header">
+          <h3 id="debug-exercise-tester-title">Test exercises</h3>
+          <p class="help">Preview exercises with lesson JSON or inline config without leaving the app.</p>
+        </div>
+        <div class="debug-tester__controls">
+          <div class="field">
+            <label class="label" for="debugExerciseType">Exercise type</label>
+            <select id="debugExerciseType" class="select">
+              <option value="TranslateToBase">TranslateToBase</option>
+            </select>
+          </div>
+          <div class="field">
+            <label class="label" for="debugLessonPath">Lesson data path</label>
+            <input id="debugLessonPath" class="input" type="text" placeholder="/lessons/example.json" autocomplete="off" />
+            <p class="help">Fetches JSON relative to the site root.</p>
+          </div>
+          <label class="debug-tester__inline-toggle" for="debugInlineToggle">
+            <input id="debugInlineToggle" type="checkbox" />
+            Use inline config
+          </label>
+          <div class="debug-tester__inline-config" data-inline-config hidden>
+            <label class="label" for="debugInlineConfig">Inline config (JSON)</label>
+            <textarea id="debugInlineConfig" class="textarea" rows="10" spellcheck="false"></textarea>
+            <p class="help">Paste an exercise config to test it instantly.</p>
+          </div>
+          <div>
+            <button type="button" class="btn btn--primary" id="debugRunExerciseTest">Run test</button>
+          </div>
+        </div>
+        <div class="debug-tester__preview" id="debugExercisePreview" role="region" aria-live="polite" aria-label="Exercise preview"></div>
+      </section>`;
+
+    const typeSelect = container.querySelector('#debugExerciseType');
+    const lessonPathInput = container.querySelector('#debugLessonPath');
+    const inlineToggle = container.querySelector('#debugInlineToggle');
+    const inlineConfigWrap = container.querySelector('[data-inline-config]');
+    const inlineConfigInput = container.querySelector('#debugInlineConfig');
+    const runButton = container.querySelector('#debugRunExerciseTest');
+    const preview = container.querySelector('#debugExercisePreview');
+
+    if (inlineConfigInput) {
+      inlineConfigInput.value = DEFAULT_INLINE_CONFIG;
+    }
+
+    function syncInlineVisibility() {
+      if (!inlineToggle || !inlineConfigWrap || !lessonPathInput) return;
+      const useInline = inlineToggle.checked;
+      inlineConfigWrap.hidden = !useInline;
+      lessonPathInput.disabled = useInline;
+    }
+
+    async function resolveConfig() {
+      if (inlineToggle?.checked) {
+        const raw = inlineConfigInput?.value?.trim();
+        if (!raw) {
+          throw new Error('Provide inline JSON to test the exercise.');
+        }
+        try {
+          return JSON.parse(raw);
+        } catch (error) {
+          throw new Error('Inline config must be valid JSON.');
+        }
+      }
+
+      const lessonPath = lessonPathInput?.value?.trim();
+      if (!lessonPath) {
+        throw new Error('Enter a lesson data path or enable inline config.');
+      }
+
+      const response = await fetch(lessonPath, { cache: 'no-cache' });
+      if (!response.ok) {
+        throw new Error(`Failed to load lesson data (${response.status}).`);
+      }
+
+      const text = await response.text();
+      try {
+        return JSON.parse(text);
+      } catch (error) {
+        throw new Error('Lesson data must be valid JSON that maps to the exercise config.');
+      }
+    }
+
+    async function runTest() {
+      if (!preview) return;
+      const type = typeSelect?.value || '';
+      const loader = window?.BashaLanka?.exercises?.[type];
+
+      preview.innerHTML = '<p>Loading exercise…</p>';
+
+      if (typeof loader !== 'function') {
+        preview.innerHTML = `<p class="debug-tester__error">Exercise loader for "${escapeHTML(type)}" is unavailable.</p>`;
+        return;
+      }
+
+      try {
+        if (runButton) runButton.disabled = true;
+        const config = await resolveConfig();
+        await loader({ target: preview, config });
+      } catch (error) {
+        console.error('Exercise test failed:', error);
+        preview.innerHTML = `<p class="debug-tester__error">${escapeHTML(error.message || 'Exercise test failed.')}</p>`;
+      } finally {
+        if (runButton) runButton.disabled = false;
+      }
+    }
+
+    inlineToggle?.addEventListener('change', syncInlineVisibility);
+    runButton?.addEventListener('click', runTest);
+    syncInlineVisibility();
+
+    return () => {
+      inlineToggle?.removeEventListener('change', syncInlineVisibility);
+      runButton?.removeEventListener('click', runTest);
+    };
+  }
+
   function mount(root){
     if(!root) return;
     hostEl = root;
@@ -339,20 +476,27 @@ const DebugTools = (() => {
           <select id="debugSectionSelect" class="select"></select>
         </div>
         <div class="debug-panel__controls"></div>
+        <div class="debug-panel__tester" data-debug-tester></div>
       </section>`;
     controlsContainer = root.querySelector('.debug-panel__controls');
     sectionSelect = root.querySelector('#debugSectionSelect');
     populateSections();
     controls.forEach(appendControl);
+    const testerHost = root.querySelector('[data-debug-tester]');
+    exerciseTesterCleanup = setupExerciseTester(testerHost);
   }
 
   function unmount(){
     if(hostEl){
       hostEl.innerHTML = '';
     }
+    if (typeof exerciseTesterCleanup === 'function') {
+      exerciseTesterCleanup();
+    }
     controlsContainer = null;
     sectionSelect = null;
     hostEl = null;
+    exerciseTesterCleanup = null;
   }
 
   window.addEventListener('learn:sections-loaded', () => {
