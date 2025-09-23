@@ -360,8 +360,8 @@ const DebugTools = (() => {
           </div>
           <div class="field">
             <label class="label" for="debugLessonPath">Lesson data path</label>
-            <input id="debugLessonPath" class="input" type="text" placeholder="/lessons/example.json" autocomplete="off" />
-            <p class="help">Fetches JSON relative to the site root.</p>
+            <input id="debugLessonPath" class="input" type="text" placeholder="./data/s1u1.lessons.json" autocomplete="off" />
+            <p class="help">Enter a site-relative path such as <code>./data/s1u1.lessons.json</code>.</p>
           </div>
           <label class="debug-tester__inline-toggle" for="debugInlineToggle">
             <input id="debugInlineToggle" type="checkbox" />
@@ -386,6 +386,12 @@ const DebugTools = (() => {
     const inlineConfigInput = container.querySelector('#debugInlineConfig');
     const runButton = container.querySelector('#debugRunExerciseTest');
     const preview = container.querySelector('#debugExercisePreview');
+
+    const EXERCISE_MODULE_LOADERS = {
+      TranslateToBase: () => import('./exercises/TranslateToBase/index.js'),
+    };
+
+    const exerciseModulePromises = {};
 
     if (inlineConfigInput) {
       inlineConfigInput.value = DEFAULT_INLINE_CONFIG;
@@ -432,9 +438,31 @@ const DebugTools = (() => {
     async function runTest() {
       if (!preview) return;
       const type = typeSelect?.value || '';
-      const loader = window?.BashaLanka?.exercises?.[type];
-
       preview.innerHTML = '<p>Loading exercise…</p>';
+
+      let loader = window?.BashaLanka?.exercises?.[type];
+
+      if (!loader) {
+        const moduleLoader = EXERCISE_MODULE_LOADERS[type];
+        if (moduleLoader) {
+          if (!exerciseModulePromises[type]) {
+            exerciseModulePromises[type] = moduleLoader().catch((error) => {
+              console.error(`Failed to load ${type} exercise module.`, error);
+              throw error;
+            });
+          }
+
+          try {
+            await exerciseModulePromises[type];
+          } catch (error) {
+            preview.innerHTML = `<p class="debug-tester__error">Could not load the ${escapeHTML(type)} exercise module.</p>`;
+            exerciseModulePromises[type] = null;
+            return;
+          }
+
+          loader = window?.BashaLanka?.exercises?.[type];
+        }
+      }
 
       if (typeof loader !== 'function') {
         preview.innerHTML = `<p class="debug-tester__error">Exercise loader for "${escapeHTML(type)}" is unavailable.</p>`;
