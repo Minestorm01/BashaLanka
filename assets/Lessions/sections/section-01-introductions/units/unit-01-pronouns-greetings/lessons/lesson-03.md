@@ -1,4 +1,3 @@
----
 id: lesson-03
 title: "Answers + Formal Greeting"
 duration_min: 7
@@ -26,4 +25,3 @@ content_blocks:
     body: "Roleplay: greet → ask → answer → close."
 
 unlock_next: null
----
