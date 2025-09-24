@@ -540,7 +540,11 @@ const DebugTools = (() => {
       try {
         if (runButton) runButton.disabled = true;
         const config = await resolveConfig(type);
-        await loader({ target: preview, config });
+        const preparedConfig =
+          typeof config === 'string' && config.toLowerCase().endsWith('.md')
+            ? { lessonPath: config }
+            : config;
+        await loader({ target: preview, config: preparedConfig });
       } catch (error) {
         console.error('Exercise test failed:', error);
         preview.innerHTML = `<p class="debug-tester__error">${escapeHTML(error.message || 'Exercise test failed.')}</p>`;
