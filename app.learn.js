@@ -544,28 +544,16 @@
     const overviewTrigger = e.target.closest('.see-details');
     if(overviewTrigger){
       e.preventDefault();
-      const card = overviewTrigger.closest('.section-card');
-      if(card){
-        const panelId = overviewTrigger.getAttribute('aria-controls');
-        let panel = null;
-        if(panelId){
-          const selectorId = (typeof CSS !== 'undefined' && CSS.escape)
-            ? CSS.escape(panelId)
-            : panelId;
-          panel = card.querySelector(`#${selectorId}`);
-        }
-        if(!panel){
-          panel = card.querySelector('.section-overview');
-        }
-        if(panel){
-          const isExpanded = panel.getAttribute('aria-expanded') === 'true';
-          if(isExpanded){
-            collapsePanel(panel);
-          }else{
-            closeAll(panel);
-            expandPanel(panel, overviewTrigger);
-          }
-        }
+      const panelId = overviewTrigger.getAttribute('aria-controls');
+      if(!panelId) return;
+      const panel = document.getElementById(panelId);
+      if(!panel) return;
+      const isExpanded = overviewTrigger.getAttribute('aria-expanded') === 'true';
+      if(isExpanded){
+        collapsePanel(panel, { trigger: overviewTrigger });
+      }else{
+        closeAll();
+        expandPanel(panel, overviewTrigger);
       }
       return;
     }
@@ -944,14 +932,33 @@
     return escapeHtml(value).replace(/`/g, '&#96;');
   }
 
+  function getOverviewTrigger(panel){
+    if(!panel) return null;
+    const panelId = panel.id;
+    const card = panel.closest('.section-card');
+    const searchRoot = card || container;
+    if(panelId){
+      const safeId = (typeof CSS !== 'undefined' && CSS.escape)
+        ? CSS.escape(panelId)
+        : panelId;
+      const selector = `.see-details[aria-controls="${safeId}"]`;
+      if(searchRoot){
+        const trigger = searchRoot.querySelector(selector);
+        if(trigger) return trigger;
+      }
+      return container.querySelector(selector);
+    }
+    return searchRoot ? searchRoot.querySelector('.see-details') : null;
+  }
+
   function expandPanel(panel, trigger){
     if(!panel || panel.dataset.transitioning === 'true') return;
-    closeAll(panel);
+    const associatedTrigger = trigger || getOverviewTrigger(panel);
     panel.hidden = false;
     panel.dataset.transitioning = 'true';
     panel.setAttribute('aria-expanded', 'true');
-    if(trigger){
-      trigger.setAttribute('aria-expanded', 'true');
+    if(associatedTrigger){
+      associatedTrigger.setAttribute('aria-expanded', 'true');
     }
     panel.style.maxHeight = '0px';
     requestAnimationFrame(() => {
@@ -962,13 +969,13 @@
       panel.style.maxHeight = `${panel.scrollHeight}px`;
       focusPanelHeading(panel);
       overviewState.activePanel = panel;
-      overviewState.activeTrigger = trigger || null;
+      overviewState.activeTrigger = associatedTrigger || null;
     });
   }
 
-  function collapsePanel(panel, { focusTrigger = false } = {}){
+  function collapsePanel(panel, { focusTrigger = false, trigger: providedTrigger = null } = {}){
     if(!panel || panel.dataset.transitioning === 'true') return;
-    const trigger = panel.closest('.section-card')?.querySelector('.see-details');
+    const trigger = providedTrigger || getOverviewTrigger(panel);
     panel.dataset.transitioning = 'true';
     panel.setAttribute('aria-expanded', 'false');
     if(trigger){
