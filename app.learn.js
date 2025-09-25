@@ -960,10 +960,11 @@
     if(associatedTrigger){
       associatedTrigger.setAttribute('aria-expanded', 'true');
     }
+    const targetHeight = panel.scrollHeight;
     panel.style.maxHeight = '0px';
-    requestAnimationFrame(() => {
-      panel.style.maxHeight = `${panel.scrollHeight}px`;
-    });
+    // force reflow so the transition runs when max-height grows
+    void panel.offsetHeight;
+    panel.style.maxHeight = `${targetHeight}px`;
     onPanelTransition(panel, () => {
       panel.dataset.transitioning = 'false';
       panel.style.maxHeight = `${panel.scrollHeight}px`;
@@ -981,7 +982,8 @@
     if(trigger){
       trigger.setAttribute('aria-expanded', 'false');
     }
-    panel.style.maxHeight = `${panel.scrollHeight}px`;
+    const startHeight = panel.scrollHeight;
+    panel.style.maxHeight = `${startHeight}px`;
     requestAnimationFrame(() => {
       panel.style.maxHeight = '0px';
     });
