@@ -241,7 +241,7 @@
     const sectionId = String(sec.number);
     const subtitle = getSectionSubtitle(sectionId, sec);
     const titleId = `section-${sectionId}-title`;
-    const detailsHref = `#section-overview-${sectionId}`;
+    const detailsPanelId = `section-overview-${sectionId}`;
     return `<article class="section-card" data-section-id="${sectionId}"><div class="section-card__left">
       <div class="section-card__header">
         <h2 class="section-title" id="${titleId}">${sec.title}</h2>
@@ -256,7 +256,7 @@
       </div>
       ${note}
       <div class="section-card__actions">
-        <a class="see-details" href="${detailsHref}" aria-expanded="false">See details</a>
+        <button class="see-details" type="button" aria-expanded="false" aria-controls="${detailsPanelId}">See details</button>
         <button class="btn-continue" data-id="${sec.number}" ${locked?'disabled':''}>${btnLabel}</button>
       </div>
     </div>
@@ -697,7 +697,7 @@
 
     trigger.addEventListener('click', handleToggle);
     trigger.addEventListener('keydown', event => {
-      if(event.key === ' '){
+      if(event.key === ' ' && trigger.tagName === 'A'){
         event.preventDefault();
         handleToggle(event);
       }
