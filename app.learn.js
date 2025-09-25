@@ -688,6 +688,13 @@
       trigger.insertAdjacentElement('afterend', panel);
     }
 
+    if(!panel.dataset.transitioning){
+      panel.dataset.transitioning = 'false';
+    }
+    if(!panel.style.maxHeight){
+      panel.style.maxHeight = '0px';
+    }
+
     panel.setAttribute('role', 'region');
     if(titleEl){
       panel.setAttribute('aria-labelledby', titleEl.id);
@@ -960,6 +967,7 @@
     if(associatedTrigger){
       associatedTrigger.setAttribute('aria-expanded', 'true');
     }
+    panel.style.maxHeight = 'none';
     const targetHeight = panel.scrollHeight;
     panel.style.maxHeight = '0px';
     // force reflow so the transition runs when max-height grows
@@ -967,7 +975,7 @@
     panel.style.maxHeight = `${targetHeight}px`;
     onPanelTransition(panel, () => {
       panel.dataset.transitioning = 'false';
-      panel.style.maxHeight = `${panel.scrollHeight}px`;
+      panel.style.maxHeight = 'none';
       focusPanelHeading(panel);
       overviewState.activePanel = panel;
       overviewState.activeTrigger = associatedTrigger || null;
@@ -988,6 +996,7 @@
       panel.style.maxHeight = '0px';
     });
     onPanelTransition(panel, () => {
+      panel.style.maxHeight = '0px';
       panel.hidden = true;
       panel.dataset.transitioning = 'false';
       if(overviewState.activePanel === panel){
