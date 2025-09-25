@@ -516,7 +516,7 @@
     button.setAttribute('aria-expanded', 'true');
   }
 
-  function toggleLessonBubble(button){
+ function toggleLessonBubble(button){
     if(!button) return;
     const row = button.closest('.lesson-row');
     if(!row) return;
@@ -539,6 +539,35 @@
 
     if(!e.target.closest('.lesson-bubble__content')){
       closeLessonBubbles();
+    }
+
+    const overviewTrigger = e.target.closest('.see-details');
+    if(overviewTrigger){
+      e.preventDefault();
+      const card = overviewTrigger.closest('.section-card');
+      if(card){
+        const panelId = overviewTrigger.getAttribute('aria-controls');
+        let panel = null;
+        if(panelId){
+          const selectorId = (typeof CSS !== 'undefined' && CSS.escape)
+            ? CSS.escape(panelId)
+            : panelId;
+          panel = card.querySelector(`#${selectorId}`);
+        }
+        if(!panel){
+          panel = card.querySelector('.section-overview');
+        }
+        if(panel){
+          const isExpanded = panel.getAttribute('aria-expanded') === 'true';
+          if(isExpanded){
+            collapsePanel(panel);
+          }else{
+            closeAll(panel);
+            expandPanel(panel, overviewTrigger);
+          }
+        }
+      }
+      return;
     }
 
     const continueBtn = e.target.closest('.btn-continue, .overview-cta .btn-primary');
@@ -683,25 +712,6 @@
 
     trigger.setAttribute('aria-expanded', 'false');
     trigger.setAttribute('aria-controls', panelId);
-
-    const handleToggle = event => {
-      event.preventDefault();
-      event.stopPropagation();
-      const isExpanded = panel.getAttribute('aria-expanded') === 'true';
-      if(isExpanded){
-        collapsePanel(panel, { focusTrigger: true });
-      }else{
-        expandPanel(panel, trigger);
-      }
-    };
-
-    trigger.addEventListener('click', handleToggle);
-    trigger.addEventListener('keydown', event => {
-      if(event.key === ' ' && trigger.tagName === 'A'){
-        event.preventDefault();
-        handleToggle(event);
-      }
-    });
 
     panel.addEventListener('click', event => {
       if(event.target.closest('.overview-close')){
