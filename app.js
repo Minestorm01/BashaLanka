@@ -273,20 +273,35 @@ const DebugTools = (() => {
   let hostEl = null;
   let exerciseTesterCleanup = null;
 
-  const DEFAULT_INLINE_CONFIG = JSON.stringify(
-    {
-      prompt: 'මම',
-      transliteration: 'mama',
-      instructions: 'Pick the correct translation.',
-      choices: [
-        { label: 'I', isCorrect: true },
-        { label: 'You', isCorrect: false },
-        { label: 'Fine', isCorrect: false },
-      ],
-    },
-    null,
-    2,
-  );
+  const DEFAULT_INLINE_CONFIGS = {
+    TranslateToBase: JSON.stringify(
+      {
+        prompt: 'මම',
+        transliteration: 'mama',
+        instructions: 'Tap the correct English meaning.',
+        choices: [
+          { label: 'I', isCorrect: true },
+          { label: 'You', isCorrect: false },
+          { label: 'Fine', isCorrect: false },
+        ],
+      },
+      null,
+      2,
+    ),
+    TranslateToTarget: JSON.stringify(
+      {
+        prompt: 'I',
+        instructions: 'Tap the matching Sinhala word.',
+        choices: [
+          { label: 'මම', transliteration: 'mama', isCorrect: true },
+          { label: 'ඔයා', transliteration: 'oyā', isCorrect: false },
+          { label: 'ඔහු', transliteration: 'ohu', isCorrect: false },
+        ],
+      },
+      null,
+      2,
+    ),
+  };
 
   function isTranslateToBaseConfig(candidate) {
     if (!candidate || typeof candidate !== 'object') return false;
@@ -341,6 +356,78 @@ const DebugTools = (() => {
 
     const { choices = [], ...rest } = config;
     const normalisedChoices = normaliseTranslateToBaseChoices(choices);
+    if (!normalisedChoices.length) {
+      return null;
+    }
+
+    return {
+      ...rest,
+      choices: normalisedChoices,
+    };
+  }
+
+  function isTranslateToTargetConfig(candidate) {
+    if (!candidate || typeof candidate !== 'object') return false;
+    if (!candidate.prompt || !String(candidate.prompt).trim().length) return false;
+    if (!Array.isArray(candidate.choices) || candidate.choices.length === 0) return false;
+    return true;
+  }
+
+  function normaliseTranslateToTargetChoices(choices) {
+    if (!Array.isArray(choices)) return [];
+    return choices
+      .map((choice) => {
+        if (choice === null || choice === undefined) {
+          return null;
+        }
+
+        if (typeof choice === 'string' || typeof choice === 'number') {
+          return { label: String(choice), transliteration: '', isCorrect: false };
+        }
+
+        if (typeof choice !== 'object') {
+          return null;
+        }
+
+        const next = { ...choice };
+
+        if (next.label === undefined && next.si !== undefined) {
+          next.label = String(next.si);
+        }
+
+        if (next.label === undefined && next.value !== undefined) {
+          next.label = String(next.value);
+        }
+
+        if (next.transliteration === undefined && next.translit !== undefined) {
+          next.transliteration = String(next.translit);
+        }
+
+        if (next.label === undefined || String(next.label).trim().length === 0) {
+          return null;
+        }
+
+        if (next.isCorrect === undefined && next.correct !== undefined) {
+          next.isCorrect = Boolean(next.correct);
+        }
+
+        return {
+          ...next,
+          label: String(next.label),
+          transliteration: next.transliteration ? String(next.transliteration) : '',
+          isCorrect: Boolean(next.isCorrect),
+        };
+      })
+      .filter((choice) => choice && choice.label);
+  }
+
+  function normaliseTranslateToTargetConfig(config) {
+    if (!isTranslateToTargetConfig(config)) {
+      return null;
+    }
+
+    const { choices = [], ...rest } = config;
+    const normalisedChoices = normaliseTranslateToTargetChoices(choices);
     if (!normalisedChoices.length) {
       return null;
     }
@@ -419,6 +506,7 @@ const DebugTools = (() => {
             <label class="label" for="debugExerciseType">Exercise type</label>
             <select id="debugExerciseType" class="select">
               <option value="TranslateToBase">TranslateToBase</option>
+              <option value="TranslateToTarget">TranslateToTarget</option>
             </select>
           </div>
           <div class="field">
@@ -452,12 +540,24 @@ const DebugTools = (() => {
 
     const EXERCISE_MODULE_LOADERS = {
       TranslateToBase: () => import('./exercises/TranslateToBase/index.js'),
+      TranslateToTarget: () => import('./exercises/TranslateToTarget/index.js'),
     };
 
     const exerciseModulePromises = {};
 
+    function syncInlineConfigValue() {
+      if (!inlineConfigInput || !typeSelect) return;
+      const type = typeSelect.value;
+      inlineConfigInput.value = DEFAULT_INLINE_CONFIGS[type] || '';
+    }
+
+    const handleTypeChange = () => {
+      syncInlineConfigValue();
+      syncInlineVisibility();
+    };
+
     if (inlineConfigInput) {
-      inlineConfigInput.value = DEFAULT_INLINE_CONFIG;
+      syncInlineConfigValue();
     }
 
     function syncInlineVisibility() {
@@ -472,6 +572,8 @@ const DebugTools = (() => {
       switch (type) {
         case 'TranslateToBase':
           return normaliseTranslateToBaseConfig(config);
+        case 'TranslateToTarget':
+          return normaliseTranslateToTargetConfig(config);
         default:
           return config;
       }
@@ -553,11 +655,13 @@ const DebugTools = (() => {
       }
     }
 
+    typeSelect?.addEventListener('change', handleTypeChange);
     inlineToggle?.addEventListener('change', syncInlineVisibility);
     runButton?.addEventListener('click', runTest);
     syncInlineVisibility();
 
     return () => {
+      typeSelect?.removeEventListener('change', handleTypeChange);
       inlineToggle?.removeEventListener('change', syncInlineVisibility);
       runButton?.removeEventListener('click', runTest);
     };
