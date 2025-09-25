@@ -241,7 +241,7 @@
     const sectionId = String(sec.number);
     const subtitle = getSectionSubtitle(sectionId, sec);
     const titleId = `section-${sectionId}-title`;
-    const detailsHref = `/sections/${sectionId}`;
+    const detailsHref = `#section-overview-${sectionId}`;
     return `<article class="section-card" data-section-id="${sectionId}"><div class="section-card__left">
       <div class="section-card__header">
         <h2 class="section-title" id="${titleId}">${sec.title}</h2>
