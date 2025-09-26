@@ -733,7 +733,14 @@ const DebugTools = (() => {
             <label class="label" for="debugExerciseType">Exercise type</label>
             <select id="debugExerciseType" class="select"></select>
           </div>
-          <div class="field">
+          <div class="field" data-lesson-select-field>
+            <label class="label" for="debugLessonSelect">Lesson</label>
+            <select id="debugLessonSelect" class="select" disabled>
+              <option value="" disabled selected>Loading lessons…</option>
+            </select>
+            <p class="help" data-lesson-select-help>Select a lesson Markdown file to load its exercises automatically.</p>
+          </div>
+          <div class="field" data-lesson-path-field>
             <label class="label" for="debugLessonPath">Lesson data path</label>
             <input id="debugLessonPath" class="input" type="text" placeholder="./assets/Lessions/.../lesson-01.md" autocomplete="off" />
             <p class="help" data-lesson-help>Enter a site-relative path to a JSON config such as <code>./assets/Lessions/exercises/TranslateToBase/config.json</code> or a Markdown lesson like <code>./assets/Lessions/section-1/lesson-01.md</code>.</p>
@@ -755,6 +762,9 @@ const DebugTools = (() => {
       </section>`;
 
     const typeSelect = container.querySelector('#debugExerciseType');
+    const lessonSelectField = container.querySelector('[data-lesson-select-field]');
+    const lessonSelect = container.querySelector('#debugLessonSelect');
+    const lessonPathField = container.querySelector('[data-lesson-path-field]');
     const lessonPathInput = container.querySelector('#debugLessonPath');
     const inlineToggle = container.querySelector('#debugInlineToggle');
     const inlineConfigWrap = container.querySelector('[data-inline-config]');
@@ -762,6 +772,12 @@ const DebugTools = (() => {
     const runButton = container.querySelector('#debugRunExerciseTest');
     const preview = container.querySelector('#debugExercisePreview');
     const lessonHelp = container.querySelector('[data-lesson-help]');
+    const lessonSelectHelp = container.querySelector('[data-lesson-select-help]');
+
+    const CUSTOM_LESSON_VALUE = '__custom__';
+    const LESSON_MANIFEST_PATH = './assets/Lessions/lesson.manifest.json';
+    let lessonManifestEntries = [];
+    let lessonManifestLoaded = false;
 
     if (typeSelect) {
       typeSelect.innerHTML = EXERCISE_TYPES.map(({ value, label }) =>
@@ -792,8 +808,21 @@ const DebugTools = (() => {
       inlineConfigInput.value = def?.inlineExample || '';
     }
 
+    function getSelectedManifestLessonPath() {
+      if (!lessonSelect || lessonSelect.disabled) return null;
+      const value = lessonSelect.value;
+      if (!value || value === CUSTOM_LESSON_VALUE) return null;
+      return value;
+    }
+
     function syncLessonPathInfo() {
       if (!lessonPathInput) return;
+      const manifestPath = getSelectedManifestLessonPath();
+      if (manifestPath) {
+        lessonPathInput.value = manifestPath;
+        lessonPathInput.dataset.autofilled = 'true';
+        return;
+      }
       const def = getCurrentDefinition();
       const samplePath = def?.samplePath || './assets/Lessions/exercises/TranslateToBase/config.json';
       lessonPathInput.placeholder = samplePath;
@@ -812,6 +841,7 @@ const DebugTools = (() => {
       syncInlineConfigValue();
       syncLessonPathInfo();
       syncInlineVisibility();
+      attemptAutoRun();
     };
 
     if (inlineConfigInput) {
@@ -829,10 +859,13 @@ const DebugTools = (() => {
     }
 
     function syncInlineVisibility() {
-      if (!inlineToggle || !inlineConfigWrap || !lessonPathInput) return;
+      if (!inlineToggle || !inlineConfigWrap) return;
       const useInline = inlineToggle.checked;
       inlineConfigWrap.hidden = !useInline;
-      lessonPathInput.disabled = useInline;
+      if (lessonPathInput) {
+        lessonPathInput.disabled = useInline;
+      }
+      updateLessonPathFieldVisibility();
     }
 
     function normaliseConfigForType(type, config) {
@@ -842,6 +875,31 @@ const DebugTools = (() => {
         return def.normalise(config);
       }
       return config;
+    }
+
+    function updateLessonPathFieldVisibility() {
+      if (!lessonPathField || !lessonPathInput) return;
+      const manifestPath = getSelectedManifestLessonPath();
+      const useInline = inlineToggle?.checked;
+      const showPathField = useInline || !lessonSelect || lessonSelect.disabled || !manifestPath;
+      lessonPathField.hidden = !showPathField;
+      if (lessonSelectField) {
+        lessonSelectField.hidden = Boolean(useInline);
+      }
+      if (lessonSelect) {
+        lessonSelect.disabled = Boolean(useInline);
+      }
+    }
+
+    function attemptAutoRun() {
+      if (inlineToggle?.checked) return;
+      const manifestPath = getSelectedManifestLessonPath();
+      if (manifestPath && typeSelect?.value) {
+        // Delay to allow UI updates to settle before running the test.
+        setTimeout(() => {
+          runTest();
+        }, 0);
+      }
     }
 
     async function resolveConfig(type) {
@@ -860,6 +918,11 @@ const DebugTools = (() => {
         } catch (error) {
           throw new Error('Inline config must be valid JSON.');
         }
+      }
+
+      const manifestPath = getSelectedManifestLessonPath();
+      if (manifestPath) {
+        return manifestPath;
       }
 
       const lessonPath = lessonPathInput?.value?.trim();
@@ -928,14 +991,82 @@ const DebugTools = (() => {
       }
     }
 
+    function handleLessonSelectChange() {
+      if (!lessonSelect) return;
+      const value = lessonSelect.value;
+      const manifestPath = value && value !== CUSTOM_LESSON_VALUE ? value : null;
+      if (manifestPath && lessonPathInput) {
+        lessonPathInput.value = manifestPath;
+        lessonPathInput.dataset.autofilled = 'true';
+      } else if (value === CUSTOM_LESSON_VALUE && lessonPathInput) {
+        lessonPathInput.dataset.autofilled = lessonPathInput.value ? 'false' : 'true';
+      }
+      syncLessonPathInfo();
+      updateLessonPathFieldVisibility();
+      if (manifestPath) {
+        attemptAutoRun();
+      }
+    }
+
+    async function populateLessonSelect() {
+      if (!lessonSelect) return;
+      if (!lessonManifestEntries.length) {
+        lessonSelect.innerHTML = '<option value="" disabled selected>No lessons found</option>';
+        lessonSelect.disabled = true;
+        if (lessonSelectHelp) {
+          lessonSelectHelp.textContent = 'No lesson manifest available. Use a custom path instead.';
+        }
+        updateLessonPathFieldVisibility();
+        return;
+      }
+
+      const options = lessonManifestEntries.map((entry) => {
+        const label = escapeHTML(entry.label || entry.path || 'Lesson');
+        const value = escapeHTML(entry.path);
+        return `<option value="${value}">${label}</option>`;
+      });
+      options.push('<option value="__custom__">Custom path…</option>');
+      lessonSelect.innerHTML = options.join('');
+      lessonSelect.disabled = false;
+      if (lessonSelectHelp) {
+        lessonSelectHelp.textContent = 'Pick a lesson to simulate how the exercise runs inside an actual lesson.';
+      }
+      if (!lessonSelect.value && lessonManifestEntries.length) {
+        lessonSelect.value = lessonManifestEntries[0].path;
+      }
+      handleLessonSelectChange();
+    }
+
+    async function loadLessonManifest() {
+      if (lessonManifestLoaded || !lessonSelect) return;
+      lessonManifestLoaded = true;
+      try {
+        const res = await fetch(LESSON_MANIFEST_PATH, { cache: 'no-cache' });
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status}`);
+        }
+        const json = await res.json();
+        const lessons = Array.isArray(json?.lessons) ? json.lessons : [];
+        lessonManifestEntries = lessons.filter((entry) => entry && entry.path);
+      } catch (error) {
+        console.warn('Debug tester: unable to load lesson manifest.', error);
+        lessonManifestEntries = [];
+      } finally {
+        populateLessonSelect();
+      }
+    }
+
     typeSelect?.addEventListener('change', handleTypeChange);
     inlineToggle?.addEventListener('change', syncInlineVisibility);
+    lessonSelect?.addEventListener('change', handleLessonSelectChange);
     runButton?.addEventListener('click', runTest);
     syncInlineVisibility();
+    loadLessonManifest();
 
     return () => {
       typeSelect?.removeEventListener('change', handleTypeChange);
       inlineToggle?.removeEventListener('change', syncInlineVisibility);
+      lessonSelect?.removeEventListener('change', handleLessonSelectChange);
       runButton?.removeEventListener('click', runTest);
       lessonPathInput?.removeEventListener('input', handleLessonPathInput);
     };
