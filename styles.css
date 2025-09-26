@@ -463,6 +463,83 @@ background: var(--color-surface);
   width: 100%;
 }
 
+.debug-panel__simulator {
+  display: grid;
+  gap: var(--space-sm);
+  padding: var(--space-md);
+  background: color-mix(in oklab, var(--color-elev) 85%, transparent);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.debug-panel__simulator-header {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.debug-panel__simulator-header h3 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.debug-panel__simulator-hint {
+  margin: 0;
+  font-size: 0.9em;
+  color: var(--color-muted);
+}
+
+.debug-panel__field {
+  display: grid;
+  gap: var(--space-xs);
+  font-size: 0.95em;
+}
+
+.debug-panel__field > span {
+  font-weight: 600;
+}
+
+.debug-multiselect {
+  display: grid;
+  gap: var(--space-xs);
+  position: relative;
+}
+
+.debug-multiselect__toggle {
+  justify-self: start;
+}
+
+.debug-multiselect__menu {
+  position: absolute;
+  top: calc(100% + 0.35rem);
+  left: 0;
+  width: max(220px, 100%);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: var(--space-sm);
+  box-shadow: var(--shadow-1);
+  display: grid;
+  gap: var(--space-xs);
+  z-index: 30;
+}
+
+.debug-multiselect__option {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  font-size: 0.95em;
+}
+
+.debug-multiselect__option input {
+  accent-color: var(--color-accent);
+}
+
+.debug-multiselect__summary {
+  margin: 0;
+  font-size: 0.9em;
+  color: var(--color-muted);
+}
+
 /* Inline form layout that auto-stacks on small screens */
 .form-inline {
   display: grid; gap: var(--space-md);
@@ -518,6 +595,202 @@ background: var(--color-surface);
 .badge--ok { background: color-mix(in oklab, var(--color-positive) 25%, transparent); border-color: color-mix(in oklab, var(--color-positive), black 10%); }
 .badge--warn { background: color-mix(in oklab, var(--color-warning) 25%, transparent); border-color: color-mix(in oklab, var(--color-warning), black 10%); }
 .badge--danger { background: color-mix(in oklab, var(--color-danger) 25%, transparent); border-color: color-mix(in oklab, var(--color-danger), black 10%); }
+
+/* Lesson simulator overlay */
+body.lesson-simulator-open {
+  overflow: hidden;
+}
+
+.lesson-simulator-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 400;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(1rem, 3vw, 3rem);
+  background: rgba(6, 12, 20, 0.82);
+  backdrop-filter: blur(4px);
+}
+
+.lesson-simulator-overlay[hidden] {
+  display: none;
+}
+
+.lesson-simulator-overlay__scrim {
+  position: absolute;
+  inset: 0;
+}
+
+.lesson-simulator {
+  position: relative;
+  width: min(960px, 100%);
+  max-height: min(90vh, 100%);
+  overflow: hidden;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-2);
+  padding: clamp(1.5rem, 2vw, 2.5rem);
+}
+
+.lesson-simulator__close {
+  position: absolute;
+  top: 0.85rem;
+  right: 0.85rem;
+  border: none;
+  background: transparent;
+  color: var(--color-muted);
+  font-size: 1.6rem;
+  line-height: 1;
+}
+
+.lesson-simulator__close:hover,
+.lesson-simulator__close:focus-visible {
+  color: var(--color-text);
+}
+
+.lesson-simulator__content {
+  max-height: calc(90vh - 3rem);
+  overflow-y: auto;
+  padding-top: 1.5rem;
+  display: grid;
+  gap: var(--space-lg);
+}
+
+.lesson-simulator__header {
+  display: grid;
+  gap: var(--space-xs);
+}
+
+.lesson-simulator__eyebrow {
+  margin: 0;
+  font-size: 0.9em;
+  color: var(--color-accent);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.lesson-simulator__meta {
+  margin: 0;
+  color: var(--color-muted);
+  font-size: 0.95em;
+}
+
+.lesson-simulator__section {
+  display: grid;
+  gap: var(--space-xs);
+}
+
+.lesson-simulator__section h3 {
+  margin: 0;
+  font-size: var(--fs-400);
+}
+
+.lesson-simulator__objectives,
+.lesson-simulator__exercise-list,
+.lesson-simulator__vocab {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-xs);
+}
+
+.lesson-simulator__exercise {
+  padding: 0.6rem 0.8rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  background: color-mix(in oklab, var(--color-elev) 70%, transparent);
+}
+
+.lesson-simulator__exercise-name {
+  font-weight: 600;
+}
+
+.lesson-simulator__exercise-desc {
+  margin: 0.25rem 0 0;
+  font-size: 0.9em;
+  color: var(--color-muted);
+}
+
+.lesson-simulator__empty {
+  margin: 0;
+  font-style: italic;
+  color: var(--color-muted);
+  font-size: 0.95em;
+}
+
+.lesson-simulator__vocab {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-sm);
+  background: color-mix(in oklab, var(--color-elev) 60%, transparent);
+}
+
+.lesson-simulator__vocab li {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-sm);
+  padding: 0.35rem 0;
+  font-size: 0.95em;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.lesson-simulator__vocab li:last-child {
+  border-bottom: none;
+}
+
+.lesson-simulator__vocab-si {
+  font-weight: 600;
+}
+
+.lesson-simulator__vocab-translit {
+  color: var(--color-muted);
+  font-style: italic;
+}
+
+.lesson-simulator__blocks {
+  display: grid;
+  gap: var(--space-sm);
+}
+
+.lesson-simulator__block {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-sm);
+  background: color-mix(in oklab, var(--color-elev) 70%, transparent);
+}
+
+.lesson-simulator__block-header {
+  margin: 0 0 0.25rem;
+  font-size: 0.95em;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+}
+
+.lesson-simulator__block-body {
+  margin: 0;
+  white-space: pre-wrap;
+  font-size: 0.95em;
+}
+
+@media (max-width: 720px) {
+  .lesson-simulator {
+    padding: 1.25rem;
+  }
+
+  .lesson-simulator__close {
+    top: 0.65rem;
+    right: 0.65rem;
+  }
+
+  .lesson-simulator__content {
+    max-height: calc(90vh - 2.5rem);
+  }
+}
 
 /* -----------------------------
    12) Progress / Bars
