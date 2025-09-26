@@ -156,176 +156,6 @@
   z-index: 2;
 }
 
-.see-details {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 0;
-  border: 0;
-  background: none;
-  cursor: pointer;
-  font-weight: 600;
-  letter-spacing: 0.5px;
-  color: #8fb0ff;
-  text-decoration: none;
-  text-transform: uppercase;
-  font-size: clamp(12px, 2vw, 13px);
-}
-
-.see-details::after {
-  content: '▾';
- font-size: 0.9em;
-  transition: transform 0.3s ease;
-}
-
-.see-details[aria-expanded="true"]::after {
-  transform: rotate(180deg);
-}
-
-.see-details:focus-visible {
-  outline: 2px solid #8fb0ff;
-  outline-offset: 3px;
-}
-
-.section-overview {
-  --overview-padding-block: clamp(14px, 2.2vw, 18px);
-  --overview-padding-inline: clamp(14px, 2.2vw, 18px);
-  --overview-gap: clamp(10px, 2vw, 16px);
-
-  position: relative;
-  z-index: 0;
-  margin-top: 0;
-  padding: var(--overview-padding-block) var(--overview-padding-inline);
-  border-radius: 12px;
-  border: 1px solid rgba(143, 176, 255, 0.2);
-  background: rgba(13, 22, 35, 0.9);
-  box-shadow: 0 20px 45px rgba(8, 15, 26, 0.55);
-  overflow: hidden;
-  transition: max-height 0.3s ease, opacity 0.24s ease, margin-top 0.24s ease;
-  box-sizing: border-box;
-  grid-column: 1 / -1;
-  width: auto;
-  max-height: 0;
-  opacity: 0;
-  pointer-events: none;
-}
-
-.section-overview[aria-expanded="true"] {
-  margin-top: var(--overview-gap);
-  opacity: 1;
-  pointer-events: auto;
-}
-
-.section-overview[hidden] {
-  display: none;
-  max-height: 0;
-}
-
-.overview-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  margin-bottom: clamp(10px, 1.8vw, 14px);
-}
-
-.overview-heading {
-  margin: 0;
-  font-size: clamp(16px, 2.6vw, 18px);
-  color: #e4ecff;
-}
-
-.overview-close {
-  border: none;
-  background: none;
-  color: #9ab0d6;
-  font-size: clamp(20px, 4vw, 24px);
-  cursor: pointer;
-  line-height: 1;
-  padding: 4px 6px;
-  border-radius: 8px;
-}
-
-.overview-close:hover,
-.overview-close:focus-visible {
-  color: #ffffff;
-  outline: none;
-  background: rgba(143, 176, 255, 0.1);
-}
-
-.overview-tagline {
-  margin: 0 0 4px;
-  font-weight: 600;
-  color: #a7c7ff;
-}
-
-.overview-summary {
-  margin: 0 0 16px;
-  color: #d3def0;
-  line-height: 1.55;
-}
-
-.overview-subheading {
-  margin: 20px 0 10px;
-  font-size: clamp(14px, 2.3vw, 16px);
-  color: #e6ecff;
-}
-
-.overview-hints {
-  margin: 0;
-  padding-left: 20px;
-  display: grid;
-  gap: 8px;
-  color: #c1cee2;
-}
-
-.overview-concepts {
-  display: grid;
-  gap: clamp(14px, 2.4vw, 18px);
-}
-
-.overview-concept h5 {
-  margin: 0 0 6px;
-  font-size: clamp(13px, 2.2vw, 15px);
-  color: #f2f5ff;
-}
-
-.overview-concept p {
-  margin: 0 0 12px;
-  color: #c3d4ea;
-  line-height: 1.5;
-}
-
-.overview-examples {
-  display: grid;
-  gap: 10px;
-}
-
-.overview-example {
-  padding: 10px 12px;
-  border-radius: 10px;
-  background: rgba(20, 32, 48, 0.85);
-  border: 1px solid rgba(143, 176, 255, 0.15);
-}
-
-.example-l1 {
-  display: block;
-  font-weight: 600;
-  color: #f1f5ff;
-}
-
-.example-gloss {
-  display: block;
-  color: #99acc9;
-  font-size: 0.95em;
-  margin-top: 2px;
-}
-
-.overview-cta {
-  margin: clamp(16px, 3vw, 22px) 0 0;
-}
-
-.overview-cta .btn-continue,
 .btn-continue {
   display: inline-flex;
   align-items: center;
@@ -337,31 +167,10 @@
   border: none;
 }
 
-.overview-cta .btn-continue {
-  padding: 10px 18px;
-  text-decoration: none;
-  min-width: 0;
-}
-
-.overview-cta .btn-continue:hover,
-.overview-cta .btn-continue:focus-visible,
 .btn-continue:hover,
 .btn-continue:focus-visible {
   filter: brightness(1.05);
   outline: none;
-}
-
-.overview-placeholder {
-  margin: 0;
-  color: #a2afc6;
-  font-style: italic;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .section-overview,
-  .see-details::after {
-    transition: none;
-  }
 }
 
 @media (max-width: 700px) {
@@ -414,12 +223,6 @@
   }
   .speech-bubble {
     max-width: min(46ch, 94vw);
-  }
-
-    .section-overview {
-    width: calc(100% + 80px);
-    margin-right: -100px;
-    max-width: none;
   }
 }
 

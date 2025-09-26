@@ -3,12 +3,6 @@
   if(!container) return;
 
   const SECTION_ROOT = 'assets/sections';
-  const OVERVIEW_TRANSITION_MS = 320;
-  const overviewData = readOverviewData();
-  const overviewState = {
-    activePanel: null,
-    activeTrigger: null
-  };
   let sections = [];
   let loadingPromise = null;
   let sectionsLoadedEventSent = false;
@@ -228,7 +222,6 @@
     const listMarkup = cards || '<p class="unit-path__empty">No sections available yet.</p>';
     container.innerHTML = `<div class="learn-wrap"><div class="sections-list">${listMarkup}</div><aside class="learn-rail hide-mobile"><h3>Coming soon</h3></aside></div>`;
     resetLessonPopoverState();
-    setupSectionOverviews();
   }
 
   function sectionCard(sec){
@@ -239,9 +232,8 @@
     const completed = sec.status === 'completed' || sec.progress >= 1;
     const btnLabel = locked ? 'Locked' : completed ? 'Completed!' : sec.cta;
     const sectionId = String(sec.number);
-    const subtitle = getSectionSubtitle(sectionId, sec);
+    const subtitle = sec.description || '';
     const titleId = `section-${sectionId}-title`;
-    const detailsPanelId = `section-overview-${sectionId}`;
     return `<article class="section-card" data-section-id="${sectionId}"><div class="section-card__left">
       <div class="section-card__header">
         <h2 class="section-title" id="${titleId}">${sec.title}</h2>
@@ -256,7 +248,6 @@
       </div>
       ${note}
       <div class="section-card__actions">
-        <button class="see-details" type="button" aria-expanded="false" aria-controls="${detailsPanelId}">See details</button>
         <button class="btn-continue" data-id="${sec.number}" ${locked?'disabled':''}>${btnLabel}</button>
       </div>
     </div>
@@ -541,24 +532,7 @@
       closeLessonBubbles();
     }
 
-    const overviewTrigger = e.target.closest('.see-details');
-    if(overviewTrigger){
-      e.preventDefault();
-      const panelId = overviewTrigger.getAttribute('aria-controls');
-      if(!panelId) return;
-      const panel = document.getElementById(panelId);
-      if(!panel) return;
-      const isExpanded = overviewTrigger.getAttribute('aria-expanded') === 'true';
-      if(isExpanded){
-        collapsePanel(panel, { trigger: overviewTrigger });
-      }else{
-        closeAll();
-        expandPanel(panel, overviewTrigger);
-      }
-      return;
-    }
-
-    const continueBtn = e.target.closest('.btn-continue, .overview-cta .btn-primary');
+    const continueBtn = e.target.closest('.btn-continue');
     if(continueBtn){
       const id = continueBtn.dataset.id;
       const sec = sections.find(s=>String(s.number) === String(id));
@@ -604,202 +578,6 @@
     window.addEventListener('hashchange', router);
   });
 
-  function readOverviewData(){
-    const el = document.getElementById('sections-overview-data');
-    if(!el){
-      return {
-        '1': {
-          tagline: 'Start with essential phrases and simple grammar concepts',
-          summary: 'Focus on must-know phrases, SOV word order, and subject omission.',
-          helpfulHints: [
-            'Sinhala often drops “am/is/are” in simple present.',
-            'The question marker “da” (ද) turns a statement into a question.',
-            'Use “-gé” (ගේ) for possession with people and animals.'
-          ],
-          grammarConcepts: [
-            {
-              title: 'Word order (Sinhala)',
-              explanation: 'Verb typically comes at the end; “is/are/am” may be implied.',
-              examples: [
-                { l1: 'මම හොඳින් ඉන්නවා. — mama hondin innavā.', gloss: 'I (am) fine.' },
-                { l1: 'ඔයා කතා කරනවා. — oyā kathā karanavā.', gloss: 'You speak / are speaking.' }
-              ]
-            },
-            {
-              title: 'Possession with “-gé”',
-              explanation: 'Attach “-gé” to people/animals for possession.',
-              examples: [
-                { l1: 'ඔයාගේ නම මොකක්ද? — oyāgé nama mokakda?', gloss: 'Your name, what? → What’s your name?' },
-                { l1: 'මගේ රට ශ්‍රී ලංකාව. — magé raṭa Śrī Lankāva.', gloss: 'My country, Sri Lanka.' }
-              ]
-            }
-          ],
-          cta: {
-            text: 'Start Section 1',
-            href: '#/section/1'
-          }
-        }
-      };
-    }
-    try{
-      return JSON.parse(el.textContent.trim());
-    }catch(err){
-      console.error('Failed to parse overview data', err);
-      return {};
-    }
-  }
-
-  function getSectionSubtitle(sectionId, sec){
-    const data = overviewData[sectionId];
-    if(data && data.tagline) return data.tagline;
-    if(sec.description) return sec.description;
-    return '';
-  }
-
-  function setupSectionOverviews(){
-    const cards = container.querySelectorAll('.section-card');
-    cards.forEach(card => initialiseOverview(card));
-  }
-
-  function initialiseOverview(card){
-    if(card.dataset.overviewBound === 'true') return;
-    const sectionId = card.getAttribute('data-section-id');
-    if(!sectionId) return;
-    const trigger = card.querySelector('.see-details');
-    if(!trigger) return;
-
-    const titleEl = card.querySelector('.section-title');
-    if(titleEl && !titleEl.id){
-      titleEl.id = `section-${sectionId}-title`;
-    }
-
-    const panelId = `section-overview-${sectionId}`;
-    const subtitleEl = card.querySelector('.section-subtitle');
-    let panel = card.querySelector(`#${panelId}`);
-    if(!panel){
-      panel = document.createElement('div');
-      panel.className = 'section-overview';
-      panel.id = panelId;
-      panel.hidden = true;
-      panel.setAttribute('aria-live', 'polite');
-      panel.setAttribute('aria-expanded', 'false');
-      panel.dataset.transitioning = 'false';
-      panel.style.maxHeight = '0px';
-      trigger.insertAdjacentElement('afterend', panel);
-    }
-
-    if(!panel.dataset.transitioning){
-      panel.dataset.transitioning = 'false';
-    }
-    if(!panel.style.maxHeight){
-      panel.style.maxHeight = '0px';
-    }
-
-    panel.setAttribute('role', 'region');
-    if(titleEl){
-      panel.setAttribute('aria-labelledby', titleEl.id);
-    }else{
-      panel.setAttribute('aria-label', `Section ${sectionId} overview`);
-    }
-
-    const subtitleText = subtitleEl ? subtitleEl.textContent.trim() : '';
-    renderOverviewPanel(panel, overviewData[sectionId], sectionId, titleEl, subtitleText);
-
-    trigger.setAttribute('aria-expanded', 'false');
-    trigger.setAttribute('aria-controls', panelId);
-
-    panel.addEventListener('click', event => {
-      if(event.target.closest('.overview-close')){
-        event.preventDefault();
-        collapsePanel(panel, { focusTrigger: true });
-      }
-    });
-
-    panel.addEventListener('keydown', event => {
-      if(event.key === 'Escape'){
-        event.preventDefault();
-        collapsePanel(panel, { focusTrigger: true });
-      }
-    });
-
-    card.dataset.overviewBound = 'true';
-  }
-
-  function renderOverviewPanel(panel, sectionData = {}, sectionId, titleEl, subtitleText = ''){
-    const headingText = titleEl ? `${titleEl.textContent.trim()} overview` : `Section ${sectionId} overview`;
-    const headingId = `${panel.id}-heading`;
-    const safeHeading = escapeHtml(headingText);
-    const taglineText = sectionData && sectionData.tagline ? sectionData.tagline : subtitleText;
-    const tagline = taglineText ? `<p class="overview-tagline">${escapeHtml(taglineText)}</p>` : '';
-    const summary = sectionData && sectionData.summary ? `<p class="overview-summary">${escapeHtml(sectionData.summary)}</p>` : '';
-    const hints = Array.isArray(sectionData && sectionData.helpfulHints) ? sectionData.helpfulHints.slice(0) : [];
-    const concepts = Array.isArray(sectionData && sectionData.grammarConcepts) ? sectionData.grammarConcepts.slice(0) : [];
-    const hasContent = Boolean(summary || hints.length || concepts.length || (sectionData && sectionData.cta));
-    const hintsMarkup = hints.length ? `
-      <h4 class="overview-subheading">Helpful hints</h4>
-      <ul class="overview-hints">
-        ${hints.map(item => `<li>${escapeHtml(item)}</li>`).join('')}
-      </ul>
-    ` : '';
-
-    const conceptsMarkup = concepts.length ? `
-      <h4 class="overview-subheading">Grammar concepts</h4>
-      <div class="overview-concepts">
-        ${concepts.map(concept => renderConcept(concept)).join('')}
-      </div>
-    ` : '';
-
-    const sectionInfo = sections.find(sec => String(sec.number) === String(sectionId));
-    const canShowCTA = sectionInfo && sectionInfo.status !== 'locked';
-        const ctaMarkup = canShowCTA
-      ? '<div class="overview-cta"></div>'
-      : '';
-
-    const placeholder = hasContent ? '' : '<p class="overview-placeholder">Overview coming soon.</p>';
-
-    panel.innerHTML = `
-      <div class="overview-header">
-        <h3 class="overview-heading" id="${headingId}">${safeHeading}</h3>
-        <button type="button" class="overview-close" aria-label="Close overview for ${escapeAttribute(titleEl ? titleEl.textContent.trim() : `Section ${sectionId}`)}">×</button>
-      </div>
-      ${tagline || ''}
-      ${summary || ''}
-      ${hintsMarkup}
-      ${conceptsMarkup}
-      ${ctaMarkup}
-      ${placeholder}
-    `;
-
-    panel.setAttribute('aria-expanded', 'false');
-    panel.hidden = true;
-
-    panel.dataset.sectionId = sectionId;
-
-    if(canShowCTA){
-      updateCTAForSection(sectionInfo.number);
-    }
-  }
-
-  function updateCTAForSection(sectionId){
-    const { section } = getSectionRecord(sectionId);
-    if(!section) return;
-    const card = container.querySelector(`.section-card[data-section-id="${sectionId}"]`);
-    if(!card) return;
-    const ctaContainer = card.querySelector('.overview-cta');
-    if(!ctaContainer) return;
-
-    ctaContainer.innerHTML = '';
-    if(section.status === 'locked') return;
-
-    const button = document.createElement('button');
-    button.type = 'button';
-    button.setAttribute('data-id', sectionId);
-    button.className = 'btn-continue';
-    const label = section.cta || (section.progress > 0 ? 'Continue' : `Start Section ${sectionId}`);
-    button.textContent = label;
-    ctaContainer.appendChild(button);
-  }
-
   function getSectionRecord(sectionId){
     const index = sections.findIndex(sec => String(sec.number) === String(sectionId));
     return { index, section: index >= 0 ? sections[index] : null };
@@ -838,7 +616,6 @@
         mainBtn.textContent = label;
       }
     }
-    updateCTAForSection(section.number);
   }
 
   function refreshSectionDetailIfActive(section){
@@ -897,35 +674,6 @@
     return sections.map(sec => ({ ...sec }));
   }
 
-  function renderConcept(concept){
-    const title = concept && concept.title ? escapeHtml(concept.title) : '';
-    const explanation = concept && concept.explanation ? `<p>${escapeHtml(concept.explanation)}</p>` : '';
-    const examples = Array.isArray(concept && concept.examples) ? concept.examples.slice(0, 2) : [];
-    const examplesMarkup = examples.length ? `
-      <div class="overview-examples">
-        ${examples.map(example => renderExample(example)).join('')}
-      </div>
-    ` : '';
-    return `
-      <section class="overview-concept">
-        ${title ? `<h5>${title}</h5>` : ''}
-        ${explanation}
-        ${examplesMarkup}
-      </section>
-    `;
-  }
-
-  function renderExample(example){
-    const l1 = example && example.l1 ? escapeHtml(example.l1) : '';
-    const gloss = example && example.gloss ? escapeHtml(example.gloss) : '';
-    return `
-      <div class="overview-example">
-        ${l1 ? `<span class="example-l1">${l1}</span>` : ''}
-        ${gloss ? `<span class="example-gloss">${gloss}</span>` : ''}
-      </div>
-    `;
-  }
-
   function escapeHtml(value){
     return String(value || '')
       .replace(/&/g, '&amp;')
@@ -937,120 +685,6 @@
 
   function escapeAttribute(value){
     return escapeHtml(value).replace(/`/g, '&#96;');
-  }
-
-  function getOverviewTrigger(panel){
-    if(!panel) return null;
-    const panelId = panel.id;
-    const card = panel.closest('.section-card');
-    const searchRoot = card || container;
-    if(panelId){
-      const safeId = (typeof CSS !== 'undefined' && CSS.escape)
-        ? CSS.escape(panelId)
-        : panelId;
-      const selector = `.see-details[aria-controls="${safeId}"]`;
-      if(searchRoot){
-        const trigger = searchRoot.querySelector(selector);
-        if(trigger) return trigger;
-      }
-      return container.querySelector(selector);
-    }
-    return searchRoot ? searchRoot.querySelector('.see-details') : null;
-  }
-
-  function expandPanel(panel, trigger){
-    if(!panel || panel.dataset.transitioning === 'true') return;
-    const associatedTrigger = trigger || getOverviewTrigger(panel);
-    panel.hidden = false;
-    panel.dataset.transitioning = 'true';
-    panel.setAttribute('aria-expanded', 'true');
-    if(associatedTrigger){
-      associatedTrigger.setAttribute('aria-expanded', 'true');
-    }
-    panel.style.maxHeight = 'none';
-    const targetHeight = panel.scrollHeight;
-    panel.style.maxHeight = '0px';
-    // force reflow so the transition runs when max-height grows
-    void panel.offsetHeight;
-    panel.style.maxHeight = `${targetHeight}px`;
-    onPanelTransition(panel, () => {
-      panel.dataset.transitioning = 'false';
-      panel.style.maxHeight = 'none';
-      focusPanelHeading(panel);
-      overviewState.activePanel = panel;
-      overviewState.activeTrigger = associatedTrigger || null;
-    });
-  }
-
-  function collapsePanel(panel, { focusTrigger = false, trigger: providedTrigger = null } = {}){
-    if(!panel || panel.dataset.transitioning === 'true') return;
-    const trigger = providedTrigger || getOverviewTrigger(panel);
-    panel.dataset.transitioning = 'true';
-    panel.setAttribute('aria-expanded', 'false');
-    if(trigger){
-      trigger.setAttribute('aria-expanded', 'false');
-    }
-    const startHeight = panel.scrollHeight;
-    panel.style.maxHeight = `${startHeight}px`;
-    requestAnimationFrame(() => {
-      panel.style.maxHeight = '0px';
-    });
-    onPanelTransition(panel, () => {
-      panel.style.maxHeight = '0px';
-      panel.hidden = true;
-      panel.dataset.transitioning = 'false';
-      if(overviewState.activePanel === panel){
-        overviewState.activePanel = null;
-        overviewState.activeTrigger = null;
-      }
-      if(focusTrigger && trigger){
-        trigger.focus();
-      }
-    });
-  }
-
-  function closeAll(except){
-    container.querySelectorAll('.section-overview[aria-expanded="true"]').forEach(panel => {
-      if(panel !== except){
-        collapsePanel(panel);
-      }
-    });
-  }
-
-  function focusPanelHeading(panel){
-    const heading = panel.querySelector('.overview-heading');
-    if(!heading) return;
-    heading.setAttribute('tabindex', '-1');
-    heading.focus({ preventScroll: true });
-    const removeTabIndex = () => {
-      heading.removeAttribute('tabindex');
-      heading.removeEventListener('blur', removeTabIndex);
-    };
-    heading.addEventListener('blur', removeTabIndex);
-  }
-
-  function onPanelTransition(panel, callback){
-    const styles = window.getComputedStyle(panel);
-    const duration = parseFloat(styles.transitionDuration || '0') + parseFloat(styles.transitionDelay || '0');
-    if(!duration){
-      callback();
-      return;
-    }
-    let settled = false;
-    const handle = event => {
-      if(event.target === panel && event.propertyName === 'max-height'){
-        settled = true;
-        panel.removeEventListener('transitionend', handle);
-        callback();
-      }
-    };
-    panel.addEventListener('transitionend', handle);
-    window.setTimeout(() => {
-      if(!settled){
-        panel.removeEventListener('transitionend', handle);
-        callback();
-      }
-    }, OVERVIEW_TRANSITION_MS + 50);
   }
 
   async function ensureCourseHierarchy(){
@@ -1078,7 +712,6 @@
         console.error('learn: failed to load course index', err);
         courseHierarchyState.sections = [];
         courseHierarchyState.unitMap = new Map();
-        courseHierarchyState.ready = true;
         courseHierarchyState.promise = null;
         return courseHierarchyState;
       });
