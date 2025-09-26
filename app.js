@@ -892,23 +892,40 @@ const DebugTools = (() => {
       inlineConfigInput.value = def?.inlineExample || '';
     }
 
-    function getSelectedManifestLessonPath() {
+    const getSelectedManifestEntry = () => {
       if (!lessonSelect || lessonSelect.disabled) return null;
       const value = lessonSelect.value;
       if (!value || value === CUSTOM_LESSON_VALUE) return null;
-      return value;
+      return lessonManifestEntries.find((entry) => entry?.path === value) || null;
+    };
+
+    function getSelectedManifestLessonPath() {
+      const entry = getSelectedManifestEntry();
+      return entry?.path || null;
     }
 
     function syncLessonPathInfo() {
       if (!lessonPathInput) return;
-      const manifestPath = getSelectedManifestLessonPath();
+      const manifestEntry = getSelectedManifestEntry();
+      const manifestPath = manifestEntry?.path || null;
+      const manifestIsMarkdown = Boolean(manifestPath && manifestPath.toLowerCase().endsWith('.md'));
+      const def = getCurrentDefinition();
+      const samplePath = def?.samplePath || './assets/Lessions/exercises/TranslateToBase/config.json';
       if (manifestPath) {
+        if (manifestIsMarkdown) {
+          lessonPathInput.value = samplePath;
+          lessonPathInput.dataset.autofilled = 'true';
+          if (lessonSelectHelp) {
+            lessonSelectHelp.textContent =
+              'Lesson manifest entries currently contain Markdown. Using the sample exercise config for testing.';
+          }
+          return;
+        }
+
         lessonPathInput.value = manifestPath;
         lessonPathInput.dataset.autofilled = 'true';
         return;
       }
-      const def = getCurrentDefinition();
-      const samplePath = def?.samplePath || './assets/Lessions/exercises/TranslateToBase/config.json';
       lessonPathInput.placeholder = samplePath;
       const shouldAutofill = !lessonPathInput.value || lessonPathInput.dataset.autofilled !== 'false';
       if (shouldAutofill) {
@@ -984,8 +1001,13 @@ const DebugTools = (() => {
 
     function attemptAutoRun() {
       if (inlineToggle?.checked) return;
-      const manifestPath = getSelectedManifestLessonPath();
-      if (manifestPath && typeSelect?.value) {
+      const manifestEntry = getSelectedManifestEntry();
+      const manifestPath = manifestEntry?.path;
+      const manifestIsMarkdown = Boolean(manifestPath && manifestPath.toLowerCase().endsWith('.md'));
+      const def = getCurrentDefinition();
+      const canFallbackToSample = Boolean(def?.samplePath);
+      const hasUsableManifest = Boolean(manifestPath && !manifestIsMarkdown);
+      if (typeSelect?.value && (hasUsableManifest || canFallbackToSample)) {
         // Delay to allow UI updates to settle before running the test.
         setTimeout(() => {
           runTest();
@@ -1020,9 +1042,18 @@ const DebugTools = (() => {
         }
       }
 
-      const manifestPath = getSelectedManifestLessonPath();
-      if (manifestPath) {
+      const manifestEntry = getSelectedManifestEntry();
+      const manifestPath = manifestEntry?.path;
+      const manifestIsMarkdown = Boolean(manifestPath && manifestPath.toLowerCase().endsWith('.md'));
+      if (manifestPath && !manifestIsMarkdown) {
         return manifestPath;
+      }
+
+      if (manifestIsMarkdown) {
+        const def = getCurrentDefinition();
+        if (def?.samplePath) {
+          return def.samplePath;
+        }
       }
 
       const lessonPath = lessonPathInput?.value?.trim();
@@ -1094,18 +1125,27 @@ const DebugTools = (() => {
     function handleLessonSelectChange() {
       if (!lessonSelect) return;
       const value = lessonSelect.value;
-      const manifestPath = value && value !== CUSTOM_LESSON_VALUE ? value : null;
+      const entry = value && value !== CUSTOM_LESSON_VALUE ? getSelectedManifestEntry() : null;
+      const manifestPath = entry?.path || null;
+      const manifestIsMarkdown = Boolean(manifestPath && manifestPath.toLowerCase().endsWith('.md'));
       if (manifestPath && lessonPathInput) {
-        lessonPathInput.value = manifestPath;
-        lessonPathInput.dataset.autofilled = 'true';
+        if (manifestIsMarkdown) {
+          const def = getCurrentDefinition();
+          const samplePath = def?.samplePath || lessonPathInput.value || '';
+          if (samplePath) {
+            lessonPathInput.value = samplePath;
+            lessonPathInput.dataset.autofilled = 'true';
+          }
+        } else {
+          lessonPathInput.value = manifestPath;
+          lessonPathInput.dataset.autofilled = 'true';
+        }
       } else if (value === CUSTOM_LESSON_VALUE && lessonPathInput) {
         lessonPathInput.dataset.autofilled = lessonPathInput.value ? 'false' : 'true';
       }
       syncLessonPathInfo();
       updateLessonPathFieldVisibility();
-      if (manifestPath) {
-        attemptAutoRun();
-      }
+      attemptAutoRun();
     }
 
     async function populateLessonSelect() {
@@ -1129,7 +1169,8 @@ const DebugTools = (() => {
       lessonSelect.innerHTML = options.join('');
       lessonSelect.disabled = false;
       if (lessonSelectHelp) {
-        lessonSelectHelp.textContent = 'Pick a lesson to simulate how the exercise runs inside an actual lesson.';
+        lessonSelectHelp.textContent =
+          'Pick a lesson to simulate how the exercise runs inside an actual lesson. Markdown lessons fall back to sample configs.';
       }
       if (!lessonSelect.value && lessonManifestEntries.length) {
         lessonSelect.value = lessonManifestEntries[0].path;
