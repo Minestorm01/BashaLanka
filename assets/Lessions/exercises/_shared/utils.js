@@ -54,6 +54,46 @@ export function createAudio(src) {
   return audio;
 }
 
+function resolveConfigUrl(path, { isCustomPath } = {}) {
+  if (!path || typeof path !== 'string') {
+    return null;
+  }
+
+  const trimmed = path.trim();
+
+  if (/^https?:\/\//i.test(trimmed)) {
+    return trimmed;
+  }
+
+  const candidateBases = [];
+
+  if (isCustomPath) {
+    if (typeof document !== 'undefined' && document.baseURI) {
+      candidateBases.push(document.baseURI);
+    }
+
+    if (
+      typeof window !== 'undefined' &&
+      window.location &&
+      typeof window.location.href === 'string'
+    ) {
+      candidateBases.push(window.location.href);
+    }
+  }
+
+  candidateBases.push(import.meta.url);
+
+  for (const base of candidateBases) {
+    try {
+      return new URL(trimmed, base).toString();
+    } catch (error) {
+      // Continue trying the next base candidate.
+    }
+  }
+
+  return null;
+}
+
 export async function loadConfig(options = {}) {
   const { config, fallbackPath = './config.json' } = options;
 
@@ -61,13 +101,10 @@ export async function loadConfig(options = {}) {
     return config;
   }
 
-  let path = config;
+  const isCustomPath = typeof config === 'string' && config.trim().length > 0;
+  const path = isCustomPath ? config : fallbackPath;
 
-  if (!path) {
-    path = fallbackPath;
-  }
-
-  if (typeof path !== 'string') {
+  if (typeof path !== 'string' || !path.trim()) {
     throw new Error('Exercise configuration must be an object or JSON path.');
   }
 
@@ -75,7 +112,13 @@ export async function loadConfig(options = {}) {
     throw new Error('Fetching exercise configuration requires a browser environment.');
   }
 
-  const response = await fetch(new URL(path, import.meta.url), DEFAULT_FETCH_OPTIONS);
+  const resolvedUrl = resolveConfigUrl(path, { isCustomPath });
+
+  if (!resolvedUrl) {
+    throw new Error(`Failed to resolve configuration path: ${path}`);
+  }
+
+  const response = await fetch(resolvedUrl, DEFAULT_FETCH_OPTIONS);
   if (!response.ok) {
     throw new Error(`Failed to load configuration file: ${path}`);
   }
