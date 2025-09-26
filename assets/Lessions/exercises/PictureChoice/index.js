@@ -84,7 +84,7 @@ export async function initPictureChoiceExercise(options = {}) {
   }
 
   ensureStylesheet(STYLESHEET_ID, './styles.css');
-  const config = await loadConfig({ config: configOverride });
+  const config = await loadConfig({ config: configOverride, baseUrl: import.meta.url });
   const { wrapper, choices, feedback } = buildLayout(config);
   target.innerHTML = '';
   target.appendChild(wrapper);

@@ -54,7 +54,7 @@ export function createAudio(src) {
   return audio;
 }
 
-function resolveConfigUrl(path, { isCustomPath } = {}) {
+function resolveConfigUrl(path, { isCustomPath, baseUrl } = {}) {
   if (!path || typeof path !== 'string') {
     return null;
   }
@@ -81,6 +81,10 @@ function resolveConfigUrl(path, { isCustomPath } = {}) {
     }
   }
 
+  if (baseUrl) {
+    candidateBases.push(baseUrl);
+  }
+
   candidateBases.push(import.meta.url);
 
   for (const base of candidateBases) {
@@ -95,7 +99,7 @@ function resolveConfigUrl(path, { isCustomPath } = {}) {
 }
 
 export async function loadConfig(options = {}) {
-  const { config, fallbackPath = './config.json' } = options;
+  const { config, fallbackPath = './config.json', baseUrl = null } = options;
 
   if (config && typeof config === 'object') {
     return config;
@@ -112,7 +116,7 @@ export async function loadConfig(options = {}) {
     throw new Error('Fetching exercise configuration requires a browser environment.');
   }
 
-  const resolvedUrl = resolveConfigUrl(path, { isCustomPath });
+  const resolvedUrl = resolveConfigUrl(path, { isCustomPath, baseUrl });
 
   if (!resolvedUrl) {
     throw new Error(`Failed to resolve configuration path: ${path}`);

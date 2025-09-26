@@ -77,7 +77,7 @@ export async function initTranslateToBaseExercise(options = {}) {
   }
 
   ensureStylesheet(STYLESHEET_ID, './styles.css');
-  const config = await loadConfig({ config: configOverride });
+  const config = await loadConfig({ config: configOverride, baseUrl: import.meta.url });
   const { wrapper, choicesContainer, feedback } = buildLayout(config);
   target.innerHTML = '';
   target.appendChild(wrapper);

@@ -80,7 +80,7 @@ export async function initSpeakExercise(options = {}) {
   }
 
   ensureStylesheet(STYLESHEET_ID, './styles.css');
-  const config = await loadConfig({ config: configOverride });
+  const config = await loadConfig({ config: configOverride, baseUrl: import.meta.url });
   const { wrapper, button, feedback, transcript } = buildLayout(config);
   target.innerHTML = '';
   target.appendChild(wrapper);

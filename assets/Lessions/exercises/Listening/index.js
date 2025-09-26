@@ -141,7 +141,7 @@ export async function initListeningExercise(options = {}) {
   }
 
   ensureStylesheet(STYLESHEET_ID, './styles.css');
-  const config = await loadConfig({ config: configOverride });
+  const config = await loadConfig({ config: configOverride, baseUrl: import.meta.url });
   const { wrapper, playButton, answerGroup, feedback } = buildLayout(config);
   target.innerHTML = '';
   target.appendChild(wrapper);
