@@ -711,7 +711,7 @@
 }
 
 .unit .unit-path {
-  --node-size: clamp(60px, 15vw, 78px);
+  --node-size: clamp(72px, 18vw, 96px); /* bumped up from 60–78px */
   --sway: clamp(42px, 12vw, 96px);
   position: relative;
   display: flex;
