@@ -273,13 +273,45 @@ const DebugTools = (() => {
   let hostEl = null;
   let exerciseTesterCleanup = null;
 
+  const createModuleLoader = (...paths) => {
+    const sources = paths.flat().filter(Boolean);
+    return async () => {
+      if (!sources.length) {
+        throw new Error('No module sources provided for exercise loader.');
+      }
+
+      let lastError = null;
+      for (let index = 0; index < sources.length; index += 1) {
+        const source = sources[index];
+        try {
+          // Dynamic import returns the module namespace but the modules used here
+          // register themselves on window.BashaLanka when evaluated. We only need
+          // evaluation side-effects, so the namespace object is ignored.
+          // eslint-disable-next-line no-await-in-loop
+          return await import(source);
+        } catch (error) {
+          lastError = error;
+          const hasFallback = index < sources.length - 1;
+          if (hasFallback) {
+            console.warn(`Failed to load exercise module from ${source}. Trying fallback…`, error);
+          }
+        }
+      }
+
+      throw lastError || new Error('Failed to load exercise module from any source.');
+    };
+  };
+
   const EXERCISE_TYPES = (() => {
     const toInlineJSON = (value) => JSON.stringify(value, null, 2);
     return [
       {
         value: 'TranslateToBase',
         label: 'Translate → English',
-        loader: () => import('./assets/Lessions/exercises/TranslateToBase/index.js'),
+        loader: createModuleLoader(
+          './assets/Lessions/exercises/TranslateToBase/index.js',
+          './exercises/TranslateToBase/index.js'
+        ),
         samplePath: './assets/Lessions/exercises/TranslateToBase/config.json',
         inlineExample: toInlineJSON({
           id: 'translate-to-base-1',
@@ -303,7 +335,10 @@ const DebugTools = (() => {
       {
         value: 'TranslateToTarget',
         label: 'Translate → Sinhala',
-        loader: () => import('./assets/Lessions/exercises/TranslateToTarget/index.js'),
+        loader: createModuleLoader(
+          './assets/Lessions/exercises/TranslateToTarget/index.js',
+          './exercises/TranslateToTarget/index.js'
+        ),
         samplePath: './assets/Lessions/exercises/TranslateToTarget/config.json',
         inlineExample: toInlineJSON({
           id: 'translate-to-target-1',
@@ -329,42 +364,6 @@ const DebugTools = (() => {
         value: 'WordBank',
         label: 'Word Bank',
         loader: () => import('./assets/Lessions/exercises/WordBank/index.js'),
-        samplePath: './assets/Lessions/exercises/WordBank/config.json',
-        inlineExample: toInlineJSON({
-          id: 'word-bank-1',
-          prompt: 'Build the sentence in Sinhala',
-          instructions: 'Tap the tiles to build the sentence in the correct order.',
-          wordBank: ['මම', 'ටී', 'බොමි', 'ඒක', 'දින'],
-          answers: ['මම ටී බොමි'],
-          successMessage: 'Great work! You built the sentence correctly.',
-          errorMessage: 'Check the word order and try again.',
-          initialMessage: 'Hint: Sinhala sentences often end with the verb.',
-        }),
-      },
-      {
-        value: 'MatchPairs',
-        label: 'Match Pairs',
-        loader: () => import('./assets/Lessions/exercises/MatchPairs/index.js'),
-        samplePath: './assets/Lessions/exercises/MatchPairs/config.json',
-        inlineExample: toInlineJSON({
-          id: 'match-pairs-1',
-          prompt: 'Match the Sinhala words to their English meanings',
-          instructions: 'Tap two cards to see if they match.',
-          pairs: [
-            { base: 'water', target: 'ජලය' },
-            { base: 'bread', target: 'පන්' },
-            { base: 'girl', target: 'ගැහැණු ළමයා' },
-            { base: 'school', target: 'පාසල' },
-          ],
-          successMessage: 'Nice! Keep matching the pairs.',
-          errorMessage: "Those don't match yet.",
-          initialMessage: 'Remember each pair contains one English and one Sinhala word.',
-        }),
-      },
-      {
-        value: 'FillBlank',
-        label: 'Fill in the Blank',
-        loader: () => import('./assets/Lessions/exercises/FillBlank/index.js'),
         samplePath: './assets/Lessions/exercises/FillBlank/config.json',
         inlineExample: toInlineJSON({
           id: 'fill-blank-1',
