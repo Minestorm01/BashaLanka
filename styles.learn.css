@@ -924,6 +924,8 @@
 .unit .lesson-row.trophy .lesson,
 .unit .lesson-row.chest .lesson {
   position: relative;
+  transform: translateX(30px);
+
 }
 
 .unit .lesson-row.trophy .lesson img,
