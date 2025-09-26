@@ -5,7 +5,56 @@ const DEFAULT_FETCH_OPTIONS = {
   },
 };
 
-export function ensureStylesheet(id, relativeHref) {
+const ABSOLUTE_URL_PATTERN = /^[a-z][a-z0-9+.-]*:/i;
+const PROTOCOL_RELATIVE_PATTERN = /^\/\//;
+
+function resolveStylesheetHref(href, baseUrl) {
+  if (!href) {
+    return null;
+  }
+
+  if (href instanceof URL) {
+    return href.toString();
+  }
+
+  if (typeof href !== 'string') {
+    return null;
+  }
+
+  const trimmed = href.trim();
+
+  if (!trimmed) {
+    return null;
+  }
+
+  if (ABSOLUTE_URL_PATTERN.test(trimmed) || PROTOCOL_RELATIVE_PATTERN.test(trimmed)) {
+    return trimmed;
+  }
+
+  const candidates = [];
+
+  if (baseUrl) {
+    candidates.push(baseUrl);
+  }
+
+  if (typeof document !== 'undefined' && document.baseURI) {
+    candidates.push(document.baseURI);
+  }
+
+  candidates.push(import.meta.url);
+
+  for (const base of candidates) {
+    try {
+      return new URL(trimmed, base).toString();
+    } catch (error) {
+      // Continue to the next candidate.
+    }
+  }
+
+  return null;
+}
+
+export function ensureStylesheet(id, relativeHref, options = {}) {
   if (typeof document === 'undefined') return;
   if (!id || !relativeHref) return;
 
@@ -13,16 +62,24 @@ export function ensureStylesheet(id, relativeHref) {
     return;
   }
 
+  const baseUrl =
+    typeof options === 'string'
+      ? options
+      : options && typeof options === 'object'
+      ? options.baseUrl
+      : null;
+
+  const resolvedHref = resolveStylesheetHref(relativeHref, baseUrl);
+
+  if (!resolvedHref) {
+    console.error('Unable to resolve stylesheet URL', { id, relativeHref, baseUrl });
+    return;
+  }
+
   const link = document.createElement('link');
   link.id = id;
   link.rel = 'stylesheet';
-
-  try {
-    link.href = new URL(relativeHref, import.meta.url);
-  } catch (error) {
-    console.error('Unable to resolve stylesheet URL', { id, relativeHref, error });
-    return;
-  }
+  link.href = resolvedHref;
 
   document.head.appendChild(link);
 }

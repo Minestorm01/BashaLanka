@@ -83,7 +83,7 @@ export async function initPictureChoiceExercise(options = {}) {
     throw new Error('PictureChoice target element not found.');
   }
 
-  ensureStylesheet(STYLESHEET_ID, './styles.css');
+  ensureStylesheet(STYLESHEET_ID, './styles.css', { baseUrl: import.meta.url });
   const config = await loadConfig({ config: configOverride, baseUrl: import.meta.url });
   const { wrapper, choices, feedback } = buildLayout(config);
   target.innerHTML = '';

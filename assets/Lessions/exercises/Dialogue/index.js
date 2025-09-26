@@ -97,7 +97,7 @@ export async function initDialogueExercise(options = {}) {
     throw new Error('Dialogue target element not found.');
   }
 
-  ensureStylesheet(STYLESHEET_ID, './styles.css');
+  ensureStylesheet(STYLESHEET_ID, './styles.css', { baseUrl: import.meta.url });
   const config = await loadConfig({ config: configOverride, baseUrl: import.meta.url });
   const { wrapper, transcript, choices, feedback } = buildLayout(config);
   target.innerHTML = '';

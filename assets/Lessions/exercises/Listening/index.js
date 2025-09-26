@@ -140,7 +140,7 @@ export async function initListeningExercise(options = {}) {
     throw new Error('Listening target element not found.');
   }
 
-  ensureStylesheet(STYLESHEET_ID, './styles.css');
+  ensureStylesheet(STYLESHEET_ID, './styles.css', { baseUrl: import.meta.url });
   const config = await loadConfig({ config: configOverride, baseUrl: import.meta.url });
   const { wrapper, playButton, answerGroup, feedback } = buildLayout(config);
   target.innerHTML = '';

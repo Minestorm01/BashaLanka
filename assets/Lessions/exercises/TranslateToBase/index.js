@@ -76,7 +76,7 @@ export async function initTranslateToBaseExercise(options = {}) {
     throw new Error('TranslateToBase target element not found.');
   }
 
-  ensureStylesheet(STYLESHEET_ID, './styles.css');
+  ensureStylesheet(STYLESHEET_ID, './styles.css', { baseUrl: import.meta.url });
   const config = await loadConfig({ config: configOverride, baseUrl: import.meta.url });
   const { wrapper, choicesContainer, feedback } = buildLayout(config);
   target.innerHTML = '';

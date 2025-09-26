@@ -129,7 +129,7 @@ export async function initWordBankExercise(options = {}) {
     throw new Error('WordBank target element not found.');
   }
 
-  ensureStylesheet(STYLESHEET_ID, './styles.css');
+  ensureStylesheet(STYLESHEET_ID, './styles.css', { baseUrl: import.meta.url });
   const config = await loadConfig({ config: configOverride, baseUrl: import.meta.url });
   const { wrapper, assembled, bank, check, clear, feedback } = buildLayout(config);
   target.innerHTML = '';

@@ -77,7 +77,7 @@ export async function initMatchPairsExercise(options = {}) {
     throw new Error('MatchPairs target element not found.');
   }
 
-  ensureStylesheet(STYLESHEET_ID, './styles.css');
+  ensureStylesheet(STYLESHEET_ID, './styles.css', { baseUrl: import.meta.url });
   const config = await loadConfig({ config: configOverride, baseUrl: import.meta.url });
   const { wrapper, grid, feedback } = buildLayout(config);
   target.innerHTML = '';

@@ -156,7 +156,7 @@ export async function initTranslateToTargetExercise(options = {}) {
     throw new Error('TranslateToTarget target element not found.');
   }
 
-  ensureStylesheet(STYLESHEET_ID, './styles.css');
+  ensureStylesheet(STYLESHEET_ID, './styles.css', { baseUrl: import.meta.url });
   const config = await loadConfig({ config: configOverride, baseUrl: import.meta.url });
   const { wrapper, answerGroup, feedback } = buildLayout(config);
   target.innerHTML = '';
