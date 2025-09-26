@@ -921,11 +921,17 @@
   height: auto;
 }
 
+/* Make trophies bigger than lesson buttons */
+.unit .lesson-row.trophy,
+.unit .lesson-row.chest {
+  width: auto;   /* don't lock to node-size */
+  height: auto;
+}
+
 .unit .lesson-row.trophy img,
 .unit .lesson-row.chest img {
-  width: calc(var(--node-size) * 2); /* 30% bigger than lessons */
+  width: calc(var(--node-size) * 1.5); /* 50% larger than lessons */
   height: auto;
-  z-index: 2; /* optional: make sure it sits on top */
 }
 
 @media (max-width: 700px) {
