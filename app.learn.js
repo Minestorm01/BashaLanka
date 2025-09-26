@@ -3,6 +3,7 @@
   if(!container) return;
 
   const SECTION_ROOT = 'assets/sections';
+  const overviewSeedData = readOverviewSeedData();
   let sections = [];
   let loadingPromise = null;
   let sectionsLoadedEventSent = false;
@@ -166,6 +167,11 @@
     const cta = section.cta || (status === 'locked'
       ? 'Locked'
       : (progress > 0 ? 'Continue' : `Start Section ${number}`));
+    const baseOverview = section.overview && typeof section.overview === 'object'
+      ? { ...section.overview }
+      : {};
+    const mergedOverview = mergeOverviewData(baseOverview, getOverviewSeed(section.number || number));
+
     return {
       ...section,
       id: slug,
@@ -176,7 +182,8 @@
       lessonsDone,
       progress,
       status,
-      cta
+      cta,
+      overview: mergedOverview
     };
   }
 
@@ -222,6 +229,8 @@
     const listMarkup = cards || '<p class="unit-path__empty">No sections available yet.</p>';
     container.innerHTML = `<div class="learn-wrap"><div class="sections-list">${listMarkup}</div><aside class="learn-rail hide-mobile"><h3>Coming soon</h3></aside></div>`;
     resetLessonPopoverState();
+    const cardNodes = container.querySelectorAll('.section-card');
+    cardNodes.forEach(card => initialiseOverview(card));
   }
 
   function sectionCard(sec){
@@ -249,6 +258,7 @@
       ${note}
       <div class="section-card__actions">
         <button class="btn-continue" data-id="${sec.number}" ${locked?'disabled':''}>${btnLabel}</button>
+        <button type="button" class="see-details" aria-expanded="false" aria-controls="section-overview-${sectionId}">See details</button>
       </div>
     </div>
     <div class="section-card__img">
@@ -258,6 +268,244 @@
       </div>
     </div>
     </article>`;
+  }
+
+  function initialiseOverview(card){
+    if(!card) return null;
+    const sectionId = card.getAttribute('data-section-id');
+    if(!sectionId) return null;
+    const trigger = card.querySelector('.see-details');
+    if(!trigger) return null;
+    const { section } = getSectionRecord(sectionId);
+    if(!section) return null;
+
+    const titleEl = card.querySelector('.section-title');
+    const subtitleEl = card.querySelector('.section-subtitle');
+    const subtitleText = subtitleEl ? subtitleEl.textContent.trim() : '';
+    const panelId = `section-overview-${sectionId}`;
+    let panel = card.querySelector('.section-overview');
+    if(!panel){
+      panel = document.createElement('div');
+      panel.className = 'section-overview';
+      const leftCol = card.querySelector('.section-card__left') || card;
+      const actions = card.querySelector('.section-card__actions');
+      if(actions && actions.parentElement === leftCol){
+        actions.insertAdjacentElement('afterend', panel);
+      }else{
+        leftCol.append(panel);
+      }
+    }
+
+    panel.id = panelId;
+    panel.setAttribute('role', 'region');
+    if(titleEl && titleEl.id){
+      panel.setAttribute('aria-labelledby', titleEl.id);
+    }
+    panel.setAttribute('tabindex', '-1');
+    panel.dataset.sectionId = sectionId;
+
+    trigger.setAttribute('aria-controls', panelId);
+    trigger.setAttribute('aria-expanded', panel.dataset.expanded === 'true' ? 'true' : 'false');
+    if(panel.dataset.expanded !== 'true'){
+      panel.hidden = true;
+      panel.setAttribute('aria-hidden', 'true');
+      panel.setAttribute('aria-expanded', 'false');
+      panel.dataset.expanded = 'false';
+    }
+
+    renderOverviewPanel(panel, section, sectionId, titleEl, subtitleText);
+
+    if(!panel.dataset.boundEvents){
+      panel.addEventListener('click', event => {
+        const closeBtn = event.target.closest('.overview-close');
+        if(closeBtn){
+          const owningCard = panel.closest('.section-card');
+          const owningTrigger = owningCard ? owningCard.querySelector('.see-details') : null;
+          collapsePanel(panel, {
+            trigger: owningTrigger,
+            onComplete: () => {
+              if(owningTrigger) owningTrigger.focus();
+            }
+          });
+        }
+      });
+      panel.addEventListener('keydown', event => {
+        if(event.key === 'Escape' || event.key === 'Esc'){
+          event.stopPropagation();
+          const owningCard = panel.closest('.section-card');
+          const owningTrigger = owningCard ? owningCard.querySelector('.see-details') : null;
+          collapsePanel(panel, {
+            trigger: owningTrigger,
+            onComplete: () => {
+              if(owningTrigger) owningTrigger.focus();
+            }
+          });
+        }
+      });
+      panel.dataset.boundEvents = 'true';
+    }
+
+    return panel;
+  }
+
+  function renderOverviewPanel(panel, sectionData, sectionId, titleEl, subtitleText){
+    if(!panel) return;
+    const titleText = titleEl ? titleEl.textContent.trim() : (sectionData && sectionData.title) || `Section ${sectionId}`;
+    const overview = sectionData && typeof sectionData.overview === 'object' ? sectionData.overview : {};
+    const tagline = overview.tagline || subtitleText || '';
+    const summary = overview.summary || sectionData.description || '';
+    const helpfulHints = Array.isArray(overview.helpfulHints)
+      ? overview.helpfulHints.map(item => {
+        if(!item) return '';
+        if(typeof item === 'string') return item;
+        if(typeof item === 'object') return item.text || item.tip || item.title || '';
+        return String(item);
+      }).filter(Boolean)
+      : [];
+    const grammarConcepts = Array.isArray(overview.grammarConcepts)
+      ? overview.grammarConcepts.map(concept => {
+        if(!concept) return null;
+        if(typeof concept === 'string'){
+          return { title: concept };
+        }
+        if(typeof concept === 'object') return concept;
+        return null;
+      }).filter(Boolean)
+      : [];
+    const cta = overview.cta && typeof overview.cta === 'object' ? overview.cta : {};
+    const ctaLabel = cta.label || cta.text || sectionData.cta || (sectionData.progress > 0 ? 'Continue' : 'Start');
+    const ctaHref = typeof cta.href === 'string' ? cta.href : '';
+
+    const headingMarkup = `<div class="overview-header"><h3 class="overview-heading">${escapeHtml(`${titleText} overview`)}</h3><button type="button" class="overview-close" aria-label="Close details">&times;</button></div>`;
+    const taglineMarkup = tagline ? `<p class="overview-tagline">${escapeHtml(tagline)}</p>` : '';
+    const summaryMarkup = summary ? `<p class="overview-summary">${escapeHtml(summary)}</p>` : '';
+
+    const hintsMarkup = helpfulHints.length
+      ? `<h4 class="overview-subheading">Helpful hints</h4><ul class="overview-hints">${helpfulHints.map(item => `<li>${escapeHtml(item)}</li>`).join('')}</ul>`
+      : '';
+
+    const conceptsMarkup = grammarConcepts.length
+      ? `<h4 class="overview-subheading">Grammar concepts</h4><div class="overview-concepts">${grammarConcepts.map(concept => {
+        if(!concept || typeof concept !== 'object') return '';
+        const conceptTitle = concept.title || '';
+        const explanation = concept.explanation || concept.summary || '';
+        const examples = Array.isArray(concept.examples) ? concept.examples.filter(Boolean).slice(0, 2) : [];
+        const exampleMarkup = examples.map(example => {
+          if(!example) return '';
+          if(typeof example === 'string'){
+            return `<div class="overview-example"><p class="example-l1">${escapeHtml(example)}</p></div>`;
+          }
+          const primary = example.l1 || example.text || example.sentence || example.example || example.phrase || '';
+          const gloss = example.gloss || example.translation || example.meaning || '';
+          const primaryMarkup = primary ? `<p class="example-l1">${escapeHtml(primary)}</p>` : '';
+          const glossMarkup = gloss ? `<p class="example-gloss">${escapeHtml(gloss)}</p>` : '';
+          return `<div class="overview-example">${primaryMarkup}${glossMarkup}</div>`;
+        }).join('');
+        const explanationMarkup = explanation ? `<p>${escapeHtml(explanation)}</p>` : '';
+        const titleMarkup = conceptTitle ? `<h5>${escapeHtml(conceptTitle)}</h5>` : '';
+        return `<article class="overview-concept">${titleMarkup}${explanationMarkup}${examples.length ? `<div class="overview-examples">${exampleMarkup}</div>` : ''}</article>`;
+      }).join('')}</div>`
+      : '';
+
+    const hasContent = Boolean(taglineMarkup || summaryMarkup || hintsMarkup || conceptsMarkup);
+    const placeholderMarkup = hasContent ? '' : '<p class="overview-placeholder">Overview details coming soon. Stay tuned!</p>';
+
+    const ctaMarkup = ctaLabel
+      ? `<div class="overview-cta">${ctaHref
+        ? `<a class="overview-cta-button" href="${escapeAttribute(ctaHref)}">${escapeHtml(ctaLabel)}</a>`
+        : `<button type="button" class="overview-cta-button" data-id="${escapeAttribute(sectionId)}">${escapeHtml(ctaLabel)}</button>`}</div>`
+      : '';
+
+    panel.innerHTML = `${headingMarkup}${taglineMarkup}${summaryMarkup}${hintsMarkup}${conceptsMarkup}${placeholderMarkup}${ctaMarkup}`;
+
+    if(panel.dataset.expanded === 'true'){
+      panel.hidden = false;
+      panel.removeAttribute('hidden');
+      panel.setAttribute('aria-hidden', 'false');
+      panel.setAttribute('aria-expanded', 'true');
+      panel.style.maxHeight = `${panel.scrollHeight}px`;
+    }else{
+      panel.style.maxHeight = '0px';
+    }
+  }
+
+  function closeAll(except){
+    const panels = container.querySelectorAll('.section-overview');
+    panels.forEach(panel => {
+      if(panel === except) return;
+      const card = panel.closest('.section-card');
+      const trigger = card ? card.querySelector('.see-details') : null;
+      collapsePanel(panel, { trigger });
+    });
+  }
+
+  function expandPanel(panel, trigger){
+    if(!panel) return;
+    closeAll(panel);
+    panel.hidden = false;
+    panel.removeAttribute('hidden');
+    panel.dataset.expanded = 'true';
+    panel.setAttribute('aria-expanded', 'true');
+    panel.setAttribute('aria-hidden', 'false');
+    panel.classList.add('is-open');
+    if(trigger){
+      trigger.setAttribute('aria-expanded', 'true');
+    }
+    panel.style.maxHeight = '0px';
+    panel.getBoundingClientRect();
+    panel.style.maxHeight = `${panel.scrollHeight}px`;
+    const onEnd = event => {
+      if(event.target !== panel || (event.propertyName && event.propertyName !== 'max-height')) return;
+      panel.style.maxHeight = `${panel.scrollHeight}px`;
+      panel.removeEventListener('transitionend', onEnd);
+    };
+    panel.addEventListener('transitionend', onEnd);
+    requestAnimationFrame(() => {
+      try{
+        panel.focus({ preventScroll: true });
+      }catch(err){
+        panel.focus();
+      }
+    });
+  }
+
+  function collapsePanel(panel, opts = {}){
+    if(!panel) return;
+    const { trigger = null, immediate = false, onComplete } = opts;
+    const isExpanded = panel.dataset.expanded === 'true' || panel.getAttribute('aria-expanded') === 'true';
+    const finish = () => {
+      panel.hidden = true;
+      panel.setAttribute('aria-hidden', 'true');
+      panel.setAttribute('aria-expanded', 'false');
+      panel.dataset.expanded = 'false';
+      panel.classList.remove('is-open');
+      panel.style.maxHeight = '';
+      if(trigger){
+        trigger.setAttribute('aria-expanded', 'false');
+      }
+      if(typeof onComplete === 'function') onComplete();
+    };
+
+    if(!isExpanded && panel.hidden){
+      finish();
+      return;
+    }
+
+    if(immediate){
+      finish();
+      return;
+    }
+
+    const currentHeight = panel.scrollHeight;
+    panel.style.maxHeight = `${currentHeight}px`;
+    panel.getBoundingClientRect();
+    panel.style.maxHeight = '0px';
+    const onEnd = event => {
+      if(event.target !== panel || (event.propertyName && event.propertyName !== 'max-height')) return;
+      panel.removeEventListener('transitionend', onEnd);
+      finish();
+    };
+    panel.addEventListener('transitionend', onEnd);
   }
 
   function renderUnit(sectionNum, unit){
@@ -528,6 +776,20 @@
       return;
     }
 
+    const seeDetailsButton = e.target.closest('.see-details');
+    if(seeDetailsButton){
+      const card = seeDetailsButton.closest('.section-card');
+      const panel = card ? initialiseOverview(card) : null;
+      if(!panel) return;
+      const isExpanded = seeDetailsButton.getAttribute('aria-expanded') === 'true';
+      if(isExpanded){
+        collapsePanel(panel, { trigger: seeDetailsButton });
+      }else{
+        expandPanel(panel, seeDetailsButton);
+      }
+      return;
+    }
+
     if(!e.target.closest('.lesson-bubble__content')){
       closeLessonBubbles();
     }
@@ -535,6 +797,14 @@
     const continueBtn = e.target.closest('.btn-continue');
     if(continueBtn){
       const id = continueBtn.dataset.id;
+      const sec = sections.find(s=>String(s.number) === String(id));
+      if(sec && sec.status !== 'locked') location.hash = `#/section/${id}`;
+      return;
+    }
+
+    const overviewCtaBtn = e.target.closest('button.overview-cta-button');
+    if(overviewCtaBtn){
+      const id = overviewCtaBtn.dataset.id || overviewCtaBtn.closest('.section-card')?.getAttribute('data-section-id');
       const sec = sections.find(s=>String(s.number) === String(id));
       if(sec && sec.status !== 'locked') location.hash = `#/section/${id}`;
       return;
@@ -583,6 +853,58 @@
     return { index, section: index >= 0 ? sections[index] : null };
   }
 
+  function readOverviewSeedData(){
+    const script = document.getElementById('sections-overview-data');
+    if(!script) return new Map();
+    const text = script.textContent || script.innerText || '';
+    if(!text.trim()) return new Map();
+    try{
+      const parsed = JSON.parse(text);
+      const map = new Map();
+      if(parsed && typeof parsed === 'object'){
+        Object.keys(parsed).forEach(key => {
+          const value = parsed[key];
+          if(value && typeof value === 'object'){
+            map.set(String(key), value);
+          }
+        });
+      }
+      return map;
+    }catch(err){
+      console.error('learn: failed to parse overview seed data', err);
+      return new Map();
+    }
+  }
+
+  function getOverviewSeed(sectionId){
+    if(!sectionId) return null;
+    const key = String(sectionId);
+    return overviewSeedData.has(key) ? overviewSeedData.get(key) : null;
+  }
+
+  function mergeOverviewData(base = {}, seed = null){
+    const merged = base && typeof base === 'object' ? { ...base } : {};
+    if(seed && typeof seed === 'object'){
+      if(Object.prototype.hasOwnProperty.call(seed, 'tagline')){
+        merged.tagline = seed.tagline;
+      }
+      if(Object.prototype.hasOwnProperty.call(seed, 'summary')){
+        merged.summary = seed.summary;
+      }
+      if(Object.prototype.hasOwnProperty.call(seed, 'helpfulHints')){
+        merged.helpfulHints = Array.isArray(seed.helpfulHints) ? seed.helpfulHints.slice() : seed.helpfulHints;
+      }
+      if(Object.prototype.hasOwnProperty.call(seed, 'grammarConcepts')){
+        merged.grammarConcepts = Array.isArray(seed.grammarConcepts) ? seed.grammarConcepts.slice() : seed.grammarConcepts;
+      }
+      if(Object.prototype.hasOwnProperty.call(seed, 'cta')){
+        const baseCTA = merged.cta && typeof merged.cta === 'object' ? merged.cta : {};
+        merged.cta = seed.cta && typeof seed.cta === 'object' ? { ...baseCTA, ...seed.cta } : baseCTA;
+      }
+    }
+    return merged;
+  }
+
   function clamp(value, min, max){
     return Math.min(max, Math.max(min, value));
   }
@@ -615,6 +937,7 @@
         const label = locked ? 'Locked' : (section.cta || (section.progress > 0 ? 'Continue' : `Start Section ${section.number}`));
         mainBtn.textContent = label;
       }
+      initialiseOverview(card);
     }
   }
 
