@@ -266,60 +266,98 @@ function profileStatsMarkup(){
     </div>`;
 }
 
+const EXERCISE_MODULE_BASE = (() => {
+  if (typeof document === 'undefined') {
+    return './assets/Lessions/exercises/';
+  }
+
+  const scripts = document.getElementsByTagName('script') || [];
+  let referenceUrl = document.currentScript ? document.currentScript.src : '';
+
+  if (!referenceUrl) {
+    for (const script of scripts) {
+      if (script && script.src && script.src.includes('app.js')) {
+        referenceUrl = script.src;
+        break;
+      }
+    }
+  }
+
+  if (!referenceUrl && typeof window !== 'undefined') {
+    referenceUrl = window.location ? window.location.href : '';
+  }
+
+  try {
+    const base = new URL('./assets/Lessions/exercises/', referenceUrl || window.location.href);
+    return base.href;
+  } catch (error) {
+    return './assets/Lessions/exercises/';
+  }
+})();
+
+function loadExerciseModule(path) {
+  try {
+    const resolved = new URL(path, EXERCISE_MODULE_BASE);
+    return import(/* webpackIgnore: true */ resolved.href);
+  } catch (error) {
+    return Promise.reject(error);
+  }
+}
+
 const LESSON_SIMULATOR_EXERCISES = [
   {
     id: 'match-pairs',
     label: 'Match Pairs',
     description: 'Match Sinhala words and phrases to their translations.',
-    loader: () => import('./assets/Lessions/exercises/MatchPairs/index.js')
+    loader: () => loadExerciseModule('MatchPairs/index.js')
   },
   {
     id: 'word-bank',
     label: 'Word Bank',
     description: 'Assemble answers from a bank of word tiles.',
-    loader: () => import('./assets/Lessions/exercises/WordBank/index.js')
+    loader: () => loadExerciseModule('WordBank/index.js')
   },
   {
     id: 'translate-to-target',
     label: 'Translate to Sinhala',
     description: 'Type the Sinhala translation for the given prompt.',
-    loader: () => import('./assets/Lessions/exercises/TranslateToTarget/index.js')
+    loader: () => loadExerciseModule('TranslateToTarget/index.js')
   },
   {
     id: 'translate-to-base',
     label: 'Translate to English',
     description: 'Translate Sinhala sentences back into English.',
-    loader: () => import('./assets/Lessions/exercises/TranslateToBase/index.js')
+    loader: () => loadExerciseModule('TranslateToBase/index.js')
   },
   {
     id: 'picture-choice',
     label: 'Picture Choice',
     description: 'Choose the image that best matches the cue.',
-    loader: () => import('./assets/Lessions/exercises/PictureChoice/index.js')
+    loader: () => loadExerciseModule('PictureChoice/index.js')
   },
   {
     id: 'fill-blank',
     label: 'Fill in the Blank',
     description: 'Complete sentences by supplying the missing word.',
-    loader: () => import('./assets/Lessions/exercises/FillBlank/index.js')
+    loader: () => loadExerciseModule('FillBlank/index.js')
   },
   {
     id: 'listening',
     label: 'Listening',
     description: 'Listen to audio and identify what you heard.',
-    loader: () => import('./assets/Lessions/exercises/Listening/index.js')
+    loader: () => loadExerciseModule('Listening/index.js')
   },
   {
     id: 'dialogue',
     label: 'Dialogue',
     description: 'Step through a guided conversation.',
-    loader: () => import('./assets/Lessions/exercises/Dialogue/index.js')
+    loader: () => loadExerciseModule('Dialogue/index.js')
   },
   {
     id: 'speak',
     label: 'Speaking',
     description: 'Practice pronouncing Sinhala aloud.',
-    loader: () => import('./assets/Lessions/exercises/Speak/index.js')
+    loader: () => loadExerciseModule('Speak/index.js')
   }
 ];
 
