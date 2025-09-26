@@ -677,104 +677,64 @@ body.lesson-simulator-open {
   font-size: 0.95em;
 }
 
-.lesson-simulator__section {
-  display: grid;
-  gap: var(--space-xs);
-}
-
-.lesson-simulator__section h3 {
+.lesson-simulator__title {
   margin: 0;
-  font-size: var(--fs-400);
+  font-size: var(--fs-500);
 }
 
-.lesson-simulator__objectives,
-.lesson-simulator__exercise-list,
-.lesson-simulator__vocab {
-  list-style: none;
+.lesson-simulator__progress {
   margin: 0;
-  padding: 0;
-  display: grid;
-  gap: var(--space-xs);
-}
-
-.lesson-simulator__exercise {
-  padding: 0.6rem 0.8rem;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--color-border);
-  background: color-mix(in oklab, var(--color-elev) 70%, transparent);
-}
-
-.lesson-simulator__exercise-name {
   font-weight: 600;
 }
 
-.lesson-simulator__exercise-desc {
-  margin: 0.25rem 0 0;
-  font-size: 0.9em;
-  color: var(--color-muted);
-}
-
-.lesson-simulator__empty {
-  margin: 0;
-  font-style: italic;
-  color: var(--color-muted);
-  font-size: 0.95em;
-}
-
-.lesson-simulator__vocab {
+.lesson-simulator__stage {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  padding: var(--space-sm);
-  background: color-mix(in oklab, var(--color-elev) 60%, transparent);
+  background: color-mix(in oklab, var(--color-elev) 75%, transparent);
+  padding: var(--space-md);
+  min-height: 18rem;
+  overflow-y: auto;
 }
 
-.lesson-simulator__vocab li {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: var(--space-sm);
-  padding: 0.35rem 0;
-  font-size: 0.95em;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+.lesson-simulator__exercise-host {
+  min-height: 12rem;
 }
 
-.lesson-simulator__vocab li:last-child {
-  border-bottom: none;
-}
-
-.lesson-simulator__vocab-si {
-  font-weight: 600;
-}
-
-.lesson-simulator__vocab-translit {
+.lesson-simulator__status {
+  margin: 0;
   color: var(--color-muted);
-  font-style: italic;
 }
 
-.lesson-simulator__blocks {
-  display: grid;
+.lesson-simulator__controls {
+  display: flex;
+  justify-content: flex-end;
   gap: var(--space-sm);
 }
 
-.lesson-simulator__block {
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  padding: var(--space-sm);
-  background: color-mix(in oklab, var(--color-elev) 70%, transparent);
+.lesson-simulator__loader {
+  text-align: center;
+  padding: var(--space-lg) var(--space-md);
+  color: var(--color-muted);
 }
 
-.lesson-simulator__block-header {
-  margin: 0 0 0.25rem;
-  font-size: 0.95em;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--color-accent);
-}
-
-.lesson-simulator__block-body {
+.lesson-simulator__error {
   margin: 0;
-  white-space: pre-wrap;
-  font-size: 0.95em;
+  padding: var(--space-lg) var(--space-md);
+  text-align: center;
+  color: var(--color-danger);
+  background: color-mix(in oklab, var(--color-danger) 18%, transparent);
+  border-radius: var(--radius-md);
+}
+
+.lesson-simulator__complete {
+  padding: var(--space-lg) var(--space-md);
+  text-align: center;
+  font-size: var(--fs-500);
+  font-weight: 600;
+}
+
+.lesson-simulator__next {
+  min-width: 11rem;
 }
 
 @media (max-width: 720px) {

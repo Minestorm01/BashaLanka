@@ -267,15 +267,60 @@ function profileStatsMarkup(){
 }
 
 const LESSON_SIMULATOR_EXERCISES = [
-  { id: 'match-pairs', label: 'Match Pairs', description: 'Match Sinhala words and phrases to their translations.' },
-  { id: 'word-bank', label: 'Word Bank', description: 'Assemble answers from a bank of word tiles.' },
-  { id: 'translate-to-target', label: 'Translate to Sinhala', description: 'Type the Sinhala translation for the given prompt.' },
-  { id: 'translate-to-base', label: 'Translate to English', description: 'Translate Sinhala sentences back into English.' },
-  { id: 'picture-choice', label: 'Picture Choice', description: 'Choose the image that best matches the cue.' },
-  { id: 'fill-blank', label: 'Fill in the Blank', description: 'Complete sentences by supplying the missing word.' },
-  { id: 'listening', label: 'Listening', description: 'Listen to audio and identify what you heard.' },
-  { id: 'dialogue', label: 'Dialogue', description: 'Step through a guided conversation.' },
-  { id: 'speak', label: 'Speaking', description: 'Practice pronouncing Sinhala aloud.' }
+  {
+    id: 'match-pairs',
+    label: 'Match Pairs',
+    description: 'Match Sinhala words and phrases to their translations.',
+    loader: () => import('./assets/Lessions/exercises/MatchPairs/index.js')
+  },
+  {
+    id: 'word-bank',
+    label: 'Word Bank',
+    description: 'Assemble answers from a bank of word tiles.',
+    loader: () => import('./assets/Lessions/exercises/WordBank/index.js')
+  },
+  {
+    id: 'translate-to-target',
+    label: 'Translate to Sinhala',
+    description: 'Type the Sinhala translation for the given prompt.',
+    loader: () => import('./assets/Lessions/exercises/TranslateToTarget/index.js')
+  },
+  {
+    id: 'translate-to-base',
+    label: 'Translate to English',
+    description: 'Translate Sinhala sentences back into English.',
+    loader: () => import('./assets/Lessions/exercises/TranslateToBase/index.js')
+  },
+  {
+    id: 'picture-choice',
+    label: 'Picture Choice',
+    description: 'Choose the image that best matches the cue.',
+    loader: () => import('./assets/Lessions/exercises/PictureChoice/index.js')
+  },
+  {
+    id: 'fill-blank',
+    label: 'Fill in the Blank',
+    description: 'Complete sentences by supplying the missing word.',
+    loader: () => import('./assets/Lessions/exercises/FillBlank/index.js')
+  },
+  {
+    id: 'listening',
+    label: 'Listening',
+    description: 'Listen to audio and identify what you heard.',
+    loader: () => import('./assets/Lessions/exercises/Listening/index.js')
+  },
+  {
+    id: 'dialogue',
+    label: 'Dialogue',
+    description: 'Step through a guided conversation.',
+    loader: () => import('./assets/Lessions/exercises/Dialogue/index.js')
+  },
+  {
+    id: 'speak',
+    label: 'Speaking',
+    description: 'Practice pronouncing Sinhala aloud.',
+    loader: () => import('./assets/Lessions/exercises/Speak/index.js')
+  }
 ];
 
 const LESSON_SIMULATOR_EXERCISE_LOOKUP = new Map(LESSON_SIMULATOR_EXERCISES.map(entry => [entry.id, entry]));
@@ -286,6 +331,7 @@ const LessonSimulator = (() => {
   let closeBtn = null;
   let lastTrigger = null;
   let keyHandlerBound = false;
+  let simulationState = null;
 
   function ensureOverlay(){
     if(overlayEl) return;
@@ -317,91 +363,233 @@ const LessonSimulator = (() => {
     }
   }
 
-  function render(config = {}){
-    if(!contentEl) return;
+  function renderShell(config = {}){
+    if(!contentEl) return null;
     const {
       lessonTitle = 'Lesson',
+      lessonNumberText = 'Lesson simulator',
       sectionTitle = '',
-      unitTitle = '',
-      lessonNumberText = '',
-      lessonDetail = null,
-      selectedExercises = []
+      unitTitle = ''
     } = config;
 
-    const safeLessonTitle = escapeHTML(lessonTitle);
-    const safeSection = sectionTitle ? escapeHTML(sectionTitle) : '';
-    const safeUnit = unitTitle ? escapeHTML(unitTitle) : '';
-    const metaParts = [safeSection, safeUnit].filter(Boolean);
-    const metaLine = metaParts.length ? metaParts.join(' • ') : 'Preview lesson content and flow.';
-    const eyebrow = lessonNumberText ? escapeHTML(lessonNumberText) : 'Lesson simulator';
+    contentEl.innerHTML = '';
 
-    const objectives = Array.isArray(lessonDetail?.objectives) ? lessonDetail.objectives : [];
-    const contentBlocks = Array.isArray(lessonDetail?.content_blocks) ? lessonDetail.content_blocks : [];
-    const vocab = Array.isArray(lessonDetail?.vocab) ? lessonDetail.vocab : [];
+    const header = document.createElement('header');
+    header.className = 'lesson-simulator__header';
 
-    const exercises = Array.isArray(selectedExercises) ? selectedExercises : [];
-    const exercisesMarkup = exercises.length
-      ? exercises.map(id => {
-          const meta = LESSON_SIMULATOR_EXERCISE_LOOKUP.get(id) || { label: id, description: '' };
-          const label = escapeHTML(meta.label || id);
-          const description = meta.description ? `<p class="lesson-simulator__exercise-desc">${escapeHTML(meta.description)}</p>` : '';
-          return `<li class="lesson-simulator__exercise"><span class="lesson-simulator__exercise-name">${label}</span>${description}</li>`;
-        }).join('')
-      : '<li class="lesson-simulator__empty">No exercises selected.</li>';
+    const eyebrow = document.createElement('p');
+    eyebrow.className = 'lesson-simulator__eyebrow';
+    eyebrow.textContent = lessonNumberText || 'Lesson simulator';
+    header.appendChild(eyebrow);
 
-    const objectivesMarkup = objectives.length
-      ? objectives.map(item => `<li>${escapeHTML(item)}</li>`).join('')
-      : '<li class="lesson-simulator__empty">No objectives listed for this lesson.</li>';
+    const title = document.createElement('h2');
+    title.id = 'lessonSimulatorTitle';
+    title.className = 'lesson-simulator__title';
+    title.textContent = lessonTitle || 'Lesson';
+    header.appendChild(title);
 
-    const vocabMarkup = vocab.length
-      ? `<section class="lesson-simulator__section">
-          <h3>Key vocabulary</h3>
-          <ul class="lesson-simulator__vocab">${vocab.map(entry => `
-            <li>
-              <span class="lesson-simulator__vocab-si">${escapeHTML(entry.si || '')}</span>
-              <span class="lesson-simulator__vocab-translit">${escapeHTML(entry.translit || '')}</span>
-              <span class="lesson-simulator__vocab-en">${escapeHTML(entry.en || '')}</span>
-            </li>`).join('')}
-          </ul>
-        </section>`
-      : '';
+    const meta = document.createElement('p');
+    meta.className = 'lesson-simulator__meta';
+    const metaParts = [sectionTitle, unitTitle].filter(Boolean);
+    meta.textContent = metaParts.length ? metaParts.join(' • ') : 'Step through the selected exercises.';
+    header.appendChild(meta);
 
-    const contentMarkup = contentBlocks.length
-      ? contentBlocks.map(block => {
-          const title = escapeHTML(block.type || 'Block');
-          const body = escapeHTML(block.body || '');
-          return `<article class="lesson-simulator__block">
-            <header class="lesson-simulator__block-header">${title}</header>
-            <p class="lesson-simulator__block-body">${body}</p>
-          </article>`;
-        }).join('')
-      : '<p class="lesson-simulator__empty">No content blocks were found for this lesson.</p>';
+    const progress = document.createElement('p');
+    progress.className = 'lesson-simulator__progress';
+    progress.textContent = 'Preparing exercises…';
 
-    contentEl.innerHTML = `
-      <header class="lesson-simulator__header">
-        <p class="lesson-simulator__eyebrow">${eyebrow}</p>
-        <h2 id="lessonSimulatorTitle">${safeLessonTitle}</h2>
-        <p class="lesson-simulator__meta">${metaLine}</p>
-      </header>
-      <section class="lesson-simulator__section">
-        <h3>Objectives</h3>
-        <ul class="lesson-simulator__objectives">${objectivesMarkup}</ul>
-      </section>
-      <section class="lesson-simulator__section">
-        <h3>Selected exercises</h3>
-        <ul class="lesson-simulator__exercise-list">${exercisesMarkup}</ul>
-      </section>
-      ${vocabMarkup}
-      <section class="lesson-simulator__section">
-        <h3>Lesson content</h3>
-        <div class="lesson-simulator__blocks">${contentMarkup}</div>
-      </section>`;
+    const stage = document.createElement('div');
+    stage.className = 'lesson-simulator__stage';
+
+    const status = document.createElement('p');
+    status.className = 'lesson-simulator__status';
+    status.textContent = 'Loading…';
+
+    const controls = document.createElement('div');
+    controls.className = 'lesson-simulator__controls';
+
+    const nextBtn = document.createElement('button');
+    nextBtn.type = 'button';
+    nextBtn.className = 'btn btn--primary lesson-simulator__next';
+    nextBtn.textContent = 'Next exercise';
+    nextBtn.hidden = true;
+    nextBtn.disabled = true;
+    controls.appendChild(nextBtn);
+
+    contentEl.append(header, progress, stage, status, controls);
+
+    return { stage, status, progress, nextBtn };
+  }
+
+  function clearNextAction(options = {}){
+    if(!simulationState || !simulationState.nextBtn) return;
+    const { hide = true } = options;
+    if(simulationState.autoAdvanceTimer){
+      clearTimeout(simulationState.autoAdvanceTimer);
+      simulationState.autoAdvanceTimer = null;
+    }
+    if(simulationState.nextHandler){
+      simulationState.nextBtn.removeEventListener('click', simulationState.nextHandler);
+      simulationState.nextHandler = null;
+    }
+    simulationState.nextBtn.disabled = true;
+    if(hide){
+      simulationState.nextBtn.hidden = true;
+    }
+  }
+
+  function setNextAction({ label = 'Continue', callback, autoAdvance } = {}){
+    if(!simulationState || !simulationState.nextBtn) return;
+    clearNextAction({ hide: false });
+    simulationState.nextBtn.hidden = false;
+    simulationState.nextBtn.textContent = label;
+    if(typeof callback === 'function'){
+      simulationState.nextHandler = callback;
+      simulationState.nextBtn.disabled = false;
+      simulationState.nextBtn.addEventListener('click', callback);
+      if(autoAdvance){
+        simulationState.autoAdvanceTimer = window.setTimeout(() => {
+          if(simulationState && simulationState.nextHandler === callback){
+            callback();
+          }
+        }, autoAdvance);
+      }
+    }else{
+      simulationState.nextBtn.disabled = true;
+    }
+  }
+
+  async function runExercise(index){
+    if(!simulationState) return;
+    if(index >= simulationState.total){
+      finishSimulation();
+      return;
+    }
+
+    simulationState.currentIndex = index;
+    const exercises = simulationState.exercises;
+    const exerciseId = exercises[index];
+    const meta = LESSON_SIMULATOR_EXERCISE_LOOKUP.get(exerciseId) || { id: exerciseId };
+    const label = meta.label || exerciseId;
+
+    if(simulationState.progressEl){
+      simulationState.progressEl.textContent = `Exercise ${index + 1} of ${simulationState.total}: ${label}`;
+    }
+    if(simulationState.statusEl){
+      simulationState.statusEl.textContent = 'Complete this exercise to continue.';
+    }
+
+    clearNextAction({ hide: false });
+    if(simulationState.nextBtn){
+      simulationState.nextBtn.hidden = false;
+      simulationState.nextBtn.textContent = index === simulationState.total - 1 ? 'Finish simulation' : 'Next exercise';
+      simulationState.nextBtn.disabled = true;
+    }
+
+    const stage = simulationState.stageEl;
+    if(stage){
+      stage.innerHTML = `<div class="lesson-simulator__loader" role="status">Loading ${label}…</div>`;
+    }
+
+    const token = {};
+    simulationState.activeToken = token;
+
+    if(!meta.loader || typeof meta.loader !== 'function'){
+      if(stage){
+        stage.innerHTML = `<p class="lesson-simulator__error">Exercise "${label}" is not available in this build.</p>`;
+      }
+      if(simulationState.statusEl){
+        simulationState.statusEl.textContent = 'This exercise is unavailable. You can skip it.';
+      }
+      setNextAction({ label: 'Skip exercise', callback: () => runExercise(index + 1) });
+      return;
+    }
+
+    try{
+      const mod = await meta.loader();
+      if(!simulationState || simulationState.activeToken !== token) return;
+      const init = typeof mod?.default === 'function' ? mod.default : null;
+      if(typeof init !== 'function'){
+        throw new Error('Exercise init function missing');
+      }
+
+      const host = document.createElement('div');
+      host.className = 'lesson-simulator__exercise-host';
+      host.setAttribute('data-exercise', meta.slot || meta.id);
+      if(stage){
+        stage.innerHTML = '';
+        stage.appendChild(host);
+      }
+
+      let completed = false;
+      const handleComplete = () => {
+        if(completed || !simulationState || simulationState.currentIndex !== index) return;
+        completed = true;
+        if(simulationState.statusEl){
+          simulationState.statusEl.textContent = index === simulationState.total - 1
+            ? 'All exercises finished!'
+            : 'Nice work! Preparing the next exercise…';
+        }
+        if(index === simulationState.total - 1){
+          finishSimulation();
+        }else{
+          setNextAction({ label: 'Next exercise', callback: () => runExercise(index + 1), autoAdvance: 1200 });
+        }
+      };
+
+      await init({ target: host, onComplete: handleComplete });
+      if(contentEl){
+        contentEl.scrollTop = 0;
+      }
+    }catch(err){
+      console.error('Lesson simulator failed to load exercise', err);
+      if(!simulationState || simulationState.activeToken !== token) return;
+      if(simulationState.stageEl){
+        simulationState.stageEl.innerHTML = `<p class="lesson-simulator__error">We couldn’t load ${label}. You can skip it.</p>`;
+      }
+      if(simulationState.statusEl){
+        simulationState.statusEl.textContent = 'The exercise encountered an error.';
+      }
+      setNextAction({ label: 'Skip exercise', callback: () => runExercise(index + 1) });
+    }
+  }
+
+  function finishSimulation(){
+    if(!simulationState || simulationState.completed) return;
+    simulationState.completed = true;
+    if(simulationState.stageEl){
+      simulationState.stageEl.innerHTML = '<div class="lesson-simulator__complete">Lesson simulation complete! 🎉</div>';
+    }
+    if(simulationState.statusEl){
+      simulationState.statusEl.textContent = 'Lesson simulation complete. Returning to the admin tools.';
+    }
+    setNextAction({ label: 'Return to admin', callback: close, autoAdvance: 1500 });
   }
 
   function open(config = {}){
     ensureOverlay();
-    render(config);
+    const shell = renderShell(config) || {};
+    const exercises = Array.isArray(config.selectedExercises)
+      ? config.selectedExercises.map(String).filter(Boolean)
+      : [];
+
+    simulationState = {
+      config,
+      exercises,
+      total: exercises.length,
+      currentIndex: -1,
+      stageEl: shell.stage || null,
+      statusEl: shell.status || null,
+      progressEl: shell.progress || null,
+      nextBtn: shell.nextBtn || null,
+      nextHandler: null,
+      autoAdvanceTimer: null,
+      completed: false,
+      activeToken: null
+    };
+
     lastTrigger = config && config.trigger ? config.trigger : null;
+
     overlayEl.removeAttribute('hidden');
     document.body.classList.add('lesson-simulator-open');
     if(!keyHandlerBound){
@@ -413,10 +601,30 @@ const LessonSimulator = (() => {
         closeBtn.focus();
       }
     });
+
+    if(!simulationState.total){
+      if(simulationState.progressEl){
+        simulationState.progressEl.textContent = 'No exercises selected.';
+      }
+      if(simulationState.statusEl){
+        simulationState.statusEl.textContent = 'Choose at least one exercise to run the simulator.';
+      }
+      if(simulationState.stageEl){
+        simulationState.stageEl.innerHTML = '<p class="lesson-simulator__error">No exercises were selected.</p>';
+      }
+      setNextAction({ label: 'Return to admin', callback: close });
+      return;
+    }
+
+    runExercise(0);
   }
 
   function close(){
     if(!overlayEl) return;
+    if(simulationState){
+      clearNextAction();
+      simulationState = null;
+    }
     if(!overlayEl.hasAttribute('hidden')){
       overlayEl.setAttribute('hidden', '');
     }
@@ -424,6 +632,9 @@ const LessonSimulator = (() => {
     if(keyHandlerBound){
       document.removeEventListener('keydown', onKeydown);
       keyHandlerBound = false;
+    }
+    if(contentEl){
+      contentEl.innerHTML = '';
     }
     if(lastTrigger && typeof lastTrigger.focus === 'function'){
       lastTrigger.focus();
