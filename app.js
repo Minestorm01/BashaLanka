@@ -319,7 +319,7 @@ const DebugTools = (() => {
           prompt: 'මම',
           transliteration: 'mama',
           choices: [
-            { label: 'I' },
+            { label: 'I', isCorrect: true },
             { label: 'You' },
             { label: 'We' },
             { label: 'They' },
@@ -530,14 +530,15 @@ const DebugTools = (() => {
     return acc;
   }, {});
 
-  function isTranslateToBaseConfig(candidate) {
-    if (!candidate || typeof candidate !== 'object') return false;
-    if (!candidate.prompt || !String(candidate.prompt).trim().length) return false;
-    if (!Array.isArray(candidate.choices) || candidate.choices.length === 0) return false;
-    return true;
+  function normaliseTextValue(value) {
+    return String(value ?? '').trim();
   }
 
-  function normaliseTranslateToBaseChoices(choices) {
+  function normaliseAnswerKey(value) {
+    return normaliseTextValue(value).toLowerCase();
+  }
+
+  function normaliseTranslateToBaseChoices(choices, answersLookup = null) {
     if (!Array.isArray(choices)) return [];
     return choices
       .map((choice) => {
@@ -546,7 +547,15 @@ const DebugTools = (() => {
         }
 
         if (typeof choice === 'string' || typeof choice === 'number') {
-          return { label: String(choice), isCorrect: false };
+          const label = normaliseTextValue(choice);
+          const value = label;
+          const key = normaliseAnswerKey(value);
+          const isCorrectFromAnswers = answersLookup ? answersLookup.has(key) : false;
+          return {
+            label,
+            value,
+            isCorrect: isCorrectFromAnswers,
+          };
         }
 
         if (typeof choice !== 'object') {
@@ -563,33 +572,113 @@ const DebugTools = (() => {
           return null;
         }
 
+        const label = normaliseTextValue(next.label);
+        const value =
+          next.value !== undefined && next.value !== null
+            ? normaliseTextValue(next.value)
+            : label;
+        const answerKey = normaliseAnswerKey(value);
+        const fallbackAnswerKey = normaliseAnswerKey(label);
+        const isCorrectFromAnswers = answersLookup
+          ? answersLookup.has(answerKey) || answersLookup.has(fallbackAnswerKey)
+          : false;
         if (next.isCorrect === undefined && next.correct !== undefined) {
           next.isCorrect = Boolean(next.correct);
         }
 
         return {
           ...next,
-          label: String(next.label),
-          isCorrect: Boolean(next.isCorrect),
+          label,
+          value,
+          isCorrect:
+            next.isCorrect !== undefined
+              ? Boolean(next.isCorrect)
+              : isCorrectFromAnswers,
         };
       })
       .filter((choice) => choice && choice.label);
   }
 
   function normaliseTranslateToBaseConfig(config) {
-    if (!isTranslateToBaseConfig(config)) {
-      return null;
+    if (!config || typeof config !== 'object') {
+      throw new Error('TranslateToBase config must be an object.');
     }
 
-    const { choices = [], ...rest } = config;
-    const normalisedChoices = normaliseTranslateToBaseChoices(choices);
-    if (!normalisedChoices.length) {
-      return null;
+    const prompt = normaliseTextValue(config.prompt);
+    if (!prompt) {
+      throw new Error('TranslateToBase config requires a prompt.');
     }
+
+    const badge = config.badge ? normaliseTextValue(config.badge) : 'NEW WORD';
+    const transliteration = config.transliteration ? normaliseTextValue(config.transliteration) : '';
+    const rawAnswers = Array.isArray(config.answers) ? config.answers : [];
+    const answersLookup = new Map();
+    rawAnswers
+      .map((answer) => normaliseTextValue(answer))
+      .filter(Boolean)
+      .forEach((answer) => {
+        const key = normaliseAnswerKey(answer);
+        if (!answersLookup.has(key)) {
+          answersLookup.set(key, answer);
+        }
+      });
+
+    const normalisedChoices = normaliseTranslateToBaseChoices(
+      config.choices,
+      answersLookup.size ? new Set(answersLookup.keys()) : null
+    );
+
+    if (!normalisedChoices.length) {
+      throw new Error('TranslateToBase config requires at least one choice.');
+    }
+
+    if (!answersLookup.size) {
+      normalisedChoices
+        .filter((choice) => choice.isCorrect)
+        .forEach((choice) => {
+          const key = normaliseAnswerKey(choice.value || choice.label);
+          if (!answersLookup.has(key)) {
+            answersLookup.set(key, choice.value || choice.label);
+          }
+        });
+    }
+
+    if (!answersLookup.size) {
+      throw new Error('TranslateToBase config requires at least one correct answer.');
+    }
+
+    const finalAnswers = Array.from(answersLookup.values());
+    const finalAnswerKeys = new Set(answersLookup.keys());
+
+    const hydratedChoices = normalisedChoices.map((choice) => {
+      const value = choice.value || choice.label;
+      const key = normaliseAnswerKey(value);
+      const fallbackKey = normaliseAnswerKey(choice.label);
+      const shouldBeCorrect =
+        choice.isCorrect || finalAnswerKeys.has(key) || finalAnswerKeys.has(fallbackKey);
+      return {
+        ...choice,
+        label: choice.label,
+        value,
+        isCorrect: Boolean(shouldBeCorrect),
+      };
+    });
 
     return {
-      ...rest,
-      choices: normalisedChoices,
+      ...config,
+      badge,
+      prompt,
+      transliteration,
+      instructions: config.instructions ? normaliseTextValue(config.instructions) : 'Select the matching English meaning.',
+      successMessage: config.successMessage
+        ? normaliseTextValue(config.successMessage)
+        : 'Correct! Nice work.',
+      errorMessage: config.errorMessage
+        ? normaliseTextValue(config.errorMessage)
+        : 'Not quite, try again.',
+      initialMessage: config.initialMessage ? normaliseTextValue(config.initialMessage) : '',
+      choices: hydratedChoices,
+      answers: finalAnswers,
     };
   }
 
@@ -866,6 +955,13 @@ const DebugTools = (() => {
         lessonPathInput.disabled = useInline;
       }
       updateLessonPathFieldVisibility();
+      if (useInline) {
+        setTimeout(() => {
+          runTest();
+        }, 0);
+      } else {
+        attemptAutoRun();
+      }
     }
 
     function normaliseConfigForType(type, config) {
@@ -908,15 +1004,24 @@ const DebugTools = (() => {
         if (!raw) {
           throw new Error('Provide inline JSON to test the exercise.');
         }
+        let parsed;
         try {
-          const parsed = JSON.parse(raw);
+          parsed = JSON.parse(raw);
+        } catch (error) {
+          throw new Error('Inline config must be valid JSON.');
+        }
+
+        try {
           const normalised = normaliseConfigForType(type, parsed);
           if (!normalised) {
             throw new Error('Inline config is missing required fields for the selected exercise.');
           }
           return normalised;
         } catch (error) {
-          throw new Error('Inline config must be valid JSON.');
+          if (error && error.message) {
+            throw error;
+          }
+          throw new Error('Inline config is missing required fields for the selected exercise.');
         }
       }
 
@@ -1056,9 +1161,16 @@ const DebugTools = (() => {
       }
     }
 
+    const handleInlineInput = debounce(() => {
+      if (inlineToggle?.checked) {
+        runTest();
+      }
+    }, 400);
+
     typeSelect?.addEventListener('change', handleTypeChange);
     inlineToggle?.addEventListener('change', syncInlineVisibility);
     lessonSelect?.addEventListener('change', handleLessonSelectChange);
+    inlineConfigInput?.addEventListener('input', handleInlineInput);
     runButton?.addEventListener('click', runTest);
     syncInlineVisibility();
     loadLessonManifest();
@@ -1067,6 +1179,7 @@ const DebugTools = (() => {
       typeSelect?.removeEventListener('change', handleTypeChange);
       inlineToggle?.removeEventListener('change', syncInlineVisibility);
       lessonSelect?.removeEventListener('change', handleLessonSelectChange);
+      inlineConfigInput?.removeEventListener('input', handleInlineInput);
       runButton?.removeEventListener('click', runTest);
       lessonPathInput?.removeEventListener('input', handleLessonPathInput);
     };
