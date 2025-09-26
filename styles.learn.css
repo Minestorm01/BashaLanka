@@ -924,7 +924,7 @@
 .unit .lesson-row.trophy .lesson,
 .unit .lesson-row.chest .lesson {
   position: relative;
-  margin-left: 12px; /* pushes the whole bubble + lesson-bubble right */
+  margin-left: 30px; /* pushes the whole bubble + lesson-bubble right */
 }
 
 .unit .lesson-row.trophy .lesson img,
