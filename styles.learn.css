@@ -921,9 +921,18 @@
   height: auto;
 }
 
-.unit .lesson-row.trophy img,
-.unit .lesson-row.chest img {
-  width: calc(var(--node-size) * 2);
+.unit .lesson-row.trophy .lesson,
+.unit .lesson-row.chest .lesson {
+  position: relative;
+}
+
+.unit .lesson-row.trophy .lesson img,
+.unit .lesson-row.chest .lesson img {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(1.6); /* make 60% bigger */
+  width: 100%;
   height: auto;
 }
 
