@@ -8,6 +8,17 @@ const DEFAULT_FETCH_OPTIONS = {
 const ABSOLUTE_URL_PATTERN = /^[a-z][a-z0-9+.-]*:/i;
 const PROTOCOL_RELATIVE_PATTERN = /^\/\//;
 
+export function normaliseText(value) {
+  if (value === null || value === undefined) {
+    return '';
+  }
+
+  return value
+    .toString()
+    .trim()
+    .replace(/\s+/g, ' ');
+}
+
 function resolveStylesheetHref(href, baseUrl) {
   if (!href) {
     return null;
@@ -85,11 +96,7 @@ export function ensureStylesheet(id, relativeHref, options = {}) {
 }
 
 export function normaliseAnswer(value) {
-  return (value || '')
-    .toString()
-    .trim()
-    .replace(/\s+/g, ' ')
-    .toLowerCase();
+  return normaliseText(value).toLowerCase();
 }
 
 export function shuffle(array) {
@@ -218,6 +225,101 @@ export function toggleBusy(element, busy) {
 export function formatBadge(text) {
   if (!text) return '';
   return String(text).toUpperCase();
+}
+
+export function createAnswerLookup(initialAnswers = []) {
+  const lookup = new Map();
+  if (Array.isArray(initialAnswers)) {
+    initialAnswers.forEach((value) => {
+      addAnswerToLookup(lookup, value);
+    });
+  }
+  return lookup;
+}
+
+export function addAnswerToLookup(lookup, value) {
+  if (!(lookup instanceof Map)) return;
+  const text = normaliseText(value);
+  if (!text) return;
+  const key = normaliseAnswer(text);
+  if (!key || lookup.has(key)) return;
+  lookup.set(key, text);
+}
+
+export function answerLookupHas(lookup, value) {
+  if (!(lookup instanceof Map)) return false;
+  const key = normaliseAnswer(normaliseText(value));
+  return lookup.has(key);
+}
+
+export function normaliseChoiceItem(choice, options = {}) {
+  const {
+    labelKey = 'label',
+    valueKey = 'value',
+    fallbackLabelKeys = [],
+    fallbackValueKeys = [],
+    allowString = true,
+  } = options;
+
+  if (choice === null || choice === undefined) {
+    return null;
+  }
+
+  if (allowString && (typeof choice === 'string' || typeof choice === 'number')) {
+    const label = normaliseText(choice);
+    if (!label) return null;
+    return {
+      label,
+      value: label,
+      isCorrect: false,
+    };
+  }
+
+  if (typeof choice !== 'object') {
+    return null;
+  }
+
+  const next = { ...choice };
+
+  const labelCandidates = [next[labelKey], next[valueKey], ...fallbackLabelKeys.map((key) => next[key])];
+  let label = '';
+  for (const candidate of labelCandidates) {
+    const clean = normaliseText(candidate);
+    if (clean) {
+      label = clean;
+      break;
+    }
+  }
+
+  if (!label) {
+    return null;
+  }
+
+  const valueCandidates = [next[valueKey], next[labelKey], ...fallbackValueKeys.map((key) => next[key])];
+  let value = '';
+  for (const candidate of valueCandidates) {
+    const clean = normaliseText(candidate);
+    if (clean) {
+      value = clean;
+      break;
+    }
+  }
+
+  if (!value) {
+    value = label;
+  }
+
+  let { isCorrect } = next;
+  if (isCorrect === undefined && next.correct !== undefined) {
+    isCorrect = Boolean(next.correct);
+  }
+
+  return {
+    ...next,
+    label,
+    value,
+    isCorrect: Boolean(isCorrect),
+  };
 }
 
 export function createChoiceButton({ label, value, onClick, className }) {

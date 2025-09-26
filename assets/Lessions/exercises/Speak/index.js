@@ -2,6 +2,8 @@ import {
   ensureStylesheet,
   loadConfig,
   normaliseAnswer,
+  normaliseText,
+  createAnswerLookup,
   setStatusMessage,
   supportsSpeechRecognition,
   createSpeechRecognizer,
@@ -64,6 +66,43 @@ function buildLayout(config) {
   };
 }
 
+function prepareConfig(rawConfig) {
+  if (!rawConfig || typeof rawConfig !== 'object') {
+    throw new Error('Speak config must be an object.');
+  }
+
+  const prompt = normaliseText(rawConfig.prompt);
+  if (!prompt) {
+    throw new Error('Speak config requires a prompt.');
+  }
+
+  const instructions = normaliseText(rawConfig.instructions) || 'Tap start and say the phrase aloud.';
+  const transliteration = normaliseText(rawConfig.transliteration);
+  const answersLookup = createAnswerLookup(rawConfig.answers);
+
+  if (!answersLookup.size) {
+    throw new Error('Speak config requires at least one correct answer.');
+  }
+
+  return {
+    ...rawConfig,
+    prompt,
+    instructions,
+    transliteration,
+    answers: Array.from(answersLookup.values()),
+    lang: normaliseText(rawConfig.lang) || 'si-LK',
+    startLabel: normaliseText(rawConfig.startLabel) || 'Start speaking',
+    retryLabel: normaliseText(rawConfig.retryLabel) || 'Try again',
+    listeningMessage: normaliseText(rawConfig.listeningMessage) || 'Listening…',
+    successMessage: normaliseText(rawConfig.successMessage) || 'Great pronunciation!',
+    errorMessage: normaliseText(rawConfig.errorMessage) || 'Try again.',
+    initialMessage: normaliseText(rawConfig.initialMessage),
+    unsupportedLabel: normaliseText(rawConfig.unsupportedLabel) || 'Speech recognition not supported in this browser',
+    unsupportedMessage:
+      normaliseText(rawConfig.unsupportedMessage) || 'Try this exercise on a device with microphone access.',
+  };
+}
+
 export async function initSpeakExercise(options = {}) {
   if (typeof document === 'undefined') {
     throw new Error('Speak exercises require a browser environment.');
@@ -80,7 +119,8 @@ export async function initSpeakExercise(options = {}) {
   }
 
   ensureStylesheet(STYLESHEET_ID, './styles.css', { baseUrl: import.meta.url });
-  const config = await loadConfig({ config: configOverride, baseUrl: import.meta.url });
+  const rawConfig = await loadConfig({ config: configOverride, baseUrl: import.meta.url });
+  const config = prepareConfig(rawConfig);
   const { wrapper, button, feedback, transcript } = buildLayout(config);
   target.innerHTML = '';
   target.appendChild(wrapper);
@@ -88,8 +128,8 @@ export async function initSpeakExercise(options = {}) {
   const supported = supportsSpeechRecognition();
   if (!supported) {
     button.disabled = true;
-    button.textContent = config.unsupportedLabel || 'Speech recognition not supported in this browser';
-    setStatusMessage(feedback, config.unsupportedMessage || 'Try this exercise on a device with microphone access.', 'error');
+    button.textContent = config.unsupportedLabel;
+    setStatusMessage(feedback, config.unsupportedMessage, 'error');
     return { supported: false };
   }
 
@@ -128,7 +168,7 @@ export async function initSpeakExercise(options = {}) {
     listening = false;
     if (!completed) {
       button.disabled = false;
-      button.textContent = config.retryLabel || 'Try again';
+    button.textContent = config.retryLabel;
     }
   });
 

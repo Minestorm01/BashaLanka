@@ -2,6 +2,9 @@ import {
   ensureStylesheet,
   loadConfig,
   normaliseAnswer,
+  normaliseText,
+  createAnswerLookup,
+  addAnswerToLookup,
   setStatusMessage,
 } from '../_shared/utils.js';
 
@@ -82,6 +85,114 @@ function addBubble(container, turn, role = 'tutor') {
   container.scrollTop = container.scrollHeight;
 }
 
+function prepareConfig(rawConfig) {
+  if (!rawConfig || typeof rawConfig !== 'object') {
+    throw new Error('Dialogue config must be an object.');
+  }
+
+  const prompt = normaliseText(rawConfig.prompt);
+  if (!prompt) {
+    throw new Error('Dialogue config requires a prompt.');
+  }
+
+  const instructions = normaliseText(rawConfig.instructions) || 'Follow the conversation and respond.';
+  const turnSuccessMessage = normaliseText(rawConfig.turnSuccessMessage) || 'Great reply!';
+  const turnErrorMessage = normaliseText(rawConfig.turnErrorMessage) || 'Try a different response.';
+  const successMessage = normaliseText(rawConfig.successMessage) || 'Dialogue complete!';
+  const initialMessage = normaliseText(rawConfig.initialMessage);
+
+  const turns = Array.isArray(rawConfig.turns) ? rawConfig.turns : [];
+  const preparedTurns = turns
+    .map((turn) => {
+      if (!turn || typeof turn !== 'object') {
+        return null;
+      }
+
+      const type = normaliseText(turn.type).toLowerCase();
+      if (type === 'statement') {
+        const text = normaliseText(turn.text);
+        if (!text) return null;
+        return {
+          ...turn,
+          type: 'statement',
+          text,
+          speaker: normaliseText(turn.speaker) || undefined,
+          role: normaliseText(turn.role) || 'tutor',
+          delay: Number.isFinite(turn.delay) ? turn.delay : 400,
+        };
+      }
+
+      if (type === 'choice') {
+        const options = Array.isArray(turn.options)
+          ? turn.options
+              .map((option) => {
+                if (!option || typeof option !== 'object') return null;
+                const label = normaliseText(option.label);
+                const value = normaliseText(option.value || option.label);
+                if (!label) return null;
+                const followUp = option.followUp && typeof option.followUp === 'object'
+                  ? {
+                      ...option.followUp,
+                      text: normaliseText(option.followUp.text),
+                      speaker: normaliseText(option.followUp.speaker) || undefined,
+                      role: normaliseText(option.followUp.role) || 'tutor',
+                    }
+                  : undefined;
+                return {
+                  ...option,
+                  label,
+                  value,
+                  followUp,
+                };
+              })
+              .filter(Boolean)
+          : [];
+
+        if (!options.length) return null;
+
+        const answersLookup = createAnswerLookup(turn.answers);
+        options.forEach((option) => {
+          if (option.isCorrect || option.correct) {
+            addAnswerToLookup(answersLookup, option.value || option.label);
+          }
+        });
+
+        const answers = Array.from(answersLookup.values());
+        if (!answers.length) {
+          throw new Error('Dialogue choice turns require at least one correct answer.');
+        }
+
+        return {
+          ...turn,
+          type: 'choice',
+          options,
+          answers,
+          successMessage: normaliseText(turn.successMessage) || undefined,
+          errorMessage: normaliseText(turn.errorMessage) || undefined,
+          delay: Number.isFinite(turn.delay) ? turn.delay : 500,
+        };
+      }
+
+      return null;
+    })
+    .filter(Boolean);
+
+  if (!preparedTurns.length) {
+    throw new Error('Dialogue config requires at least one turn.');
+  }
+
+  return {
+    ...rawConfig,
+    prompt,
+    instructions,
+    turns: preparedTurns,
+    turnSuccessMessage,
+    turnErrorMessage,
+    successMessage,
+    initialMessage,
+  };
+}
+
 export async function initDialogueExercise(options = {}) {
   if (typeof document === 'undefined') {
     throw new Error('Dialogue requires a browser environment.');
@@ -98,7 +209,8 @@ export async function initDialogueExercise(options = {}) {
   }
 
   ensureStylesheet(STYLESHEET_ID, './styles.css', { baseUrl: import.meta.url });
-  const config = await loadConfig({ config: configOverride, baseUrl: import.meta.url });
+  const rawConfig = await loadConfig({ config: configOverride, baseUrl: import.meta.url });
+  const config = prepareConfig(rawConfig);
   const { wrapper, transcript, choices, feedback } = buildLayout(config);
   target.innerHTML = '';
   target.appendChild(wrapper);

@@ -2,8 +2,12 @@ import {
   ensureStylesheet,
   loadConfig,
   normaliseAnswer,
+  normaliseText,
+  createAnswerLookup,
+  addAnswerToLookup,
+  answerLookupHas,
+  normaliseChoiceItem,
   setStatusMessage,
-  createChoiceButton,
 } from '../_shared/utils.js';
 
 const DEFAULT_CONTAINER_SELECTOR = '[data-exercise="picture-choice"]';
@@ -29,7 +33,6 @@ function buildLayout(config) {
   const choices = document.createElement('div');
   choices.className = 'picture-choice__choices';
   surface.appendChild(choices);
-
   const feedback = document.createElement('p');
   feedback.className = 'picture-choice__feedback';
   feedback.setAttribute('role', 'status');
@@ -43,6 +46,7 @@ function buildLayout(config) {
 
   return {
     wrapper,
+    choices,
     choices,
     feedback,
   };
@@ -68,6 +72,70 @@ function createPictureButton(option, onClick) {
   return button;
 }
 
+function prepareConfig(rawConfig) {
+  if (!rawConfig || typeof rawConfig !== 'object') {
+    throw new Error('PictureChoice config must be an object.');
+  }
+
+  const prompt = normaliseText(rawConfig.prompt);
+  if (!prompt) {
+    throw new Error('PictureChoice config requires a prompt.');
+  }
+
+  const instructions = normaliseText(rawConfig.instructions) || 'Select the picture that matches the prompt.';
+
+  const answersLookup = createAnswerLookup(rawConfig.answers);
+  const rawChoices = Array.isArray(rawConfig.choices) ? rawConfig.choices : [];
+  const choices = rawChoices
+    .map((choice) =>
+      normaliseChoiceItem(choice, {
+        fallbackLabelKeys: ['value', 'text'],
+        fallbackValueKeys: ['value', 'label'],
+        allowString: false,
+      })
+    )
+    .filter((choice) => choice && choice.label && normaliseText(choice.image));
+
+  choices.forEach((choice) => {
+    if (choice.isCorrect) {
+      addAnswerToLookup(answersLookup, choice.value || choice.label);
+    }
+  });
+
+  if (!choices.length) {
+    throw new Error('PictureChoice config requires at least one option with an image.');
+  }
+
+  if (!answersLookup.size) {
+    throw new Error('PictureChoice config requires at least one correct answer.');
+  }
+
+  const preparedChoices = choices.map((choice) => {
+    const value = choice.value || choice.label;
+    const isCorrect =
+      choice.isCorrect ||
+      answerLookupHas(answersLookup, value) ||
+      answerLookupHas(answersLookup, choice.label);
+    return {
+      ...choice,
+      label: choice.label,
+      value,
+      isCorrect,
+    };
+  });
+
+  return {
+    ...rawConfig,
+    prompt,
+    instructions,
+    choices: preparedChoices,
+    answers: Array.from(answersLookup.values()),
+    successMessage: normaliseText(rawConfig.successMessage) || 'Correct! Nice work.',
+    errorMessage: normaliseText(rawConfig.errorMessage) || 'Not quite, try again.',
+    initialMessage: normaliseText(rawConfig.initialMessage),
+  };
+}
+
 export async function initPictureChoiceExercise(options = {}) {
   if (typeof document === 'undefined') {
     throw new Error('PictureChoice requires a browser environment.');
@@ -84,7 +152,8 @@ export async function initPictureChoiceExercise(options = {}) {
   }
 
   ensureStylesheet(STYLESHEET_ID, './styles.css', { baseUrl: import.meta.url });
-  const config = await loadConfig({ config: configOverride, baseUrl: import.meta.url });
+  const rawConfig = await loadConfig({ config: configOverride, baseUrl: import.meta.url });
+  const config = prepareConfig(rawConfig);
   const { wrapper, choices, feedback } = buildLayout(config);
   target.innerHTML = '';
   target.appendChild(wrapper);

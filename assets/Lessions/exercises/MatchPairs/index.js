@@ -1,6 +1,7 @@
 import {
   ensureStylesheet,
   loadConfig,
+  normaliseText,
   shuffle,
   setStatusMessage,
 } from '../_shared/utils.js';
@@ -62,6 +63,43 @@ function createCard(content, matchId, type) {
   return button;
 }
 
+function prepareConfig(rawConfig) {
+  if (!rawConfig || typeof rawConfig !== 'object') {
+    throw new Error('MatchPairs config must be an object.');
+  }
+
+  const prompt = normaliseText(rawConfig.prompt);
+  if (!prompt) {
+    throw new Error('MatchPairs config requires a prompt.');
+  }
+
+  const instructions = normaliseText(rawConfig.instructions) || 'Match the pairs to continue.';
+  const pairs = Array.isArray(rawConfig.pairs) ? rawConfig.pairs : [];
+  const normalisedPairs = pairs
+    .map((pair) => {
+      if (!pair || typeof pair !== 'object') return null;
+      const base = normaliseText(pair.base);
+      const target = normaliseText(pair.target);
+      if (!base || !target) return null;
+      return { ...pair, base, target };
+    })
+    .filter(Boolean);
+
+  if (!normalisedPairs.length) {
+    throw new Error('MatchPairs config requires at least one valid pair.');
+  }
+
+  return {
+    ...rawConfig,
+    prompt,
+    instructions,
+    pairs: normalisedPairs,
+    successMessage: normaliseText(rawConfig.successMessage) || 'Great match!',
+    errorMessage: normaliseText(rawConfig.errorMessage) || 'Try again.',
+    initialMessage: normaliseText(rawConfig.initialMessage),
+  };
+}
+
 export async function initMatchPairsExercise(options = {}) {
   if (typeof document === 'undefined') {
     throw new Error('MatchPairs requires a browser environment.');
@@ -78,7 +116,8 @@ export async function initMatchPairsExercise(options = {}) {
   }
 
   ensureStylesheet(STYLESHEET_ID, './styles.css', { baseUrl: import.meta.url });
-  const config = await loadConfig({ config: configOverride, baseUrl: import.meta.url });
+  const rawConfig = await loadConfig({ config: configOverride, baseUrl: import.meta.url });
+  const config = prepareConfig(rawConfig);
   const { wrapper, grid, feedback } = buildLayout(config);
   target.innerHTML = '';
   target.appendChild(wrapper);

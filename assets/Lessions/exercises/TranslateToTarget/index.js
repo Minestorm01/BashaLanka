@@ -2,6 +2,11 @@ import {
   ensureStylesheet,
   loadConfig,
   normaliseAnswer,
+  normaliseText,
+  createAnswerLookup,
+  addAnswerToLookup,
+  answerLookupHas,
+  normaliseChoiceItem,
   setStatusMessage,
   createChoiceButton,
 } from '../_shared/utils.js';
@@ -71,8 +76,8 @@ function renderMultipleChoice(state, config) {
 
   const buttons = config.choices.map((choice) =>
     createChoiceButton({
-      label: choice,
-      value: choice,
+      label: choice.label,
+      value: choice.value || choice.label,
       className: 'translate-to-target__choice',
       onClick: (value, button) => {
         if (state.completed) return;
@@ -157,7 +162,8 @@ export async function initTranslateToTargetExercise(options = {}) {
   }
 
   ensureStylesheet(STYLESHEET_ID, './styles.css', { baseUrl: import.meta.url });
-  const config = await loadConfig({ config: configOverride, baseUrl: import.meta.url });
+  const rawConfig = await loadConfig({ config: configOverride, baseUrl: import.meta.url });
+  const config = prepareConfig(rawConfig);
   const { wrapper, answerGroup, feedback } = buildLayout(config);
   target.innerHTML = '';
   target.appendChild(wrapper);
@@ -179,6 +185,87 @@ export async function initTranslateToTargetExercise(options = {}) {
   setStatusMessage(feedback, config.initialMessage || '', 'neutral');
 
   return state;
+}
+
+function prepareConfig(rawConfig) {
+  if (!rawConfig || typeof rawConfig !== 'object') {
+    throw new Error('TranslateToTarget config must be an object.');
+  }
+
+  const prompt = normaliseText(rawConfig.prompt);
+  const source = normaliseText(rawConfig.source);
+  if (!prompt || !source) {
+    throw new Error('TranslateToTarget config requires a prompt and source sentence.');
+  }
+
+  const badge = normaliseText(rawConfig.badge) || 'TRANSLATE';
+  const mode = normaliseText(rawConfig.mode).toLowerCase() === 'typing' ? 'typing' : 'multiple-choice';
+  const instructions = normaliseText(rawConfig.instructions) ||
+    (mode === 'typing' ? 'Type the translation.' : 'Select the matching translation.');
+  const successMessage = normaliseText(rawConfig.successMessage) || 'Correct! Nice work.';
+  const errorMessage = normaliseText(rawConfig.errorMessage) || 'Not quite, try again.';
+  const initialMessage = normaliseText(rawConfig.initialMessage);
+  const placeholder = normaliseText(rawConfig.placeholder) || 'Type your translation';
+  const submitLabel = normaliseText(rawConfig.submitLabel) || 'Check';
+
+  const answersLookup = createAnswerLookup(rawConfig.answers);
+
+  let choices = [];
+  if (mode === 'multiple-choice') {
+    const rawChoices = Array.isArray(rawConfig.choices) ? rawConfig.choices : [];
+    choices = rawChoices
+      .map((choice) =>
+        normaliseChoiceItem(choice, {
+          fallbackLabelKeys: ['si', 'en', 'text'],
+          fallbackValueKeys: ['si', 'value', 'label'],
+        })
+      )
+      .filter((choice) => choice && choice.label);
+
+    if (!choices.length) {
+      throw new Error('TranslateToTarget multiple-choice config requires at least one choice.');
+    }
+
+    choices.forEach((choice) => {
+      if (choice.isCorrect) {
+        addAnswerToLookup(answersLookup, choice.value || choice.label);
+      }
+    });
+  }
+
+  if (!answersLookup.size) {
+    throw new Error('TranslateToTarget config requires at least one correct answer.');
+  }
+
+  const preparedChoices = choices.map((choice) => {
+    const value = choice.value || choice.label;
+    const isCorrect =
+      choice.isCorrect ||
+      answerLookupHas(answersLookup, value) ||
+      answerLookupHas(answersLookup, choice.label);
+    return {
+      ...choice,
+      label: choice.label,
+      value,
+      isCorrect,
+    };
+  });
+
+  return {
+    ...rawConfig,
+    prompt,
+    source,
+    badge,
+    mode,
+    instructions,
+    successMessage,
+    errorMessage,
+    initialMessage,
+    placeholder,
+    submitLabel,
+    choices: preparedChoices,
+    answers: Array.from(answersLookup.values()),
+  };
 }
 
 if (typeof window !== 'undefined') {

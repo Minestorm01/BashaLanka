@@ -2,6 +2,8 @@ import {
   ensureStylesheet,
   loadConfig,
   normaliseAnswer,
+  normaliseText,
+  createAnswerLookup,
   setStatusMessage,
   createChoiceButton,
 } from '../_shared/utils.js';
@@ -44,7 +46,7 @@ function buildLayout(config) {
   after.textContent = config.sentence.after;
   sentence.appendChild(after);
 
-  surface.appendChild(sentence);
+   surface.appendChild(sentence);
 
   const choices = document.createElement('div');
   choices.className = 'fill-blank__choices';
@@ -69,6 +71,53 @@ function buildLayout(config) {
   };
 }
 
+function prepareConfig(rawConfig) {
+  if (!rawConfig || typeof rawConfig !== 'object') {
+    throw new Error('FillBlank config must be an object.');
+  }
+
+  const prompt = normaliseText(rawConfig.prompt);
+  if (!prompt) {
+    throw new Error('FillBlank config requires a prompt.');
+  }
+
+  const sentenceBefore = normaliseText(rawConfig?.sentence?.before);
+  const sentenceAfter = normaliseText(rawConfig?.sentence?.after);
+  if (!sentenceBefore && !sentenceAfter) {
+    throw new Error('FillBlank config requires sentence text.');
+  }
+
+  const rawChoices = Array.isArray(rawConfig.choices) ? rawConfig.choices : [];
+  const choices = rawChoices
+    .map((choice) => normaliseText(choice))
+    .filter(Boolean);
+
+  if (!choices.length) {
+    throw new Error('FillBlank config requires at least one choice.');
+  }
+
+  const answersLookup = createAnswerLookup(rawConfig.answers);
+  if (!answersLookup.size) {
+    throw new Error('FillBlank config requires at least one correct answer.');
+  }
+
+  return {
+    ...rawConfig,
+    prompt,
+    sentence: {
+      before: sentenceBefore,
+      after: sentenceAfter,
+    },
+    choices,
+    answers: Array.from(answersLookup.values()),
+    instructions: normaliseText(rawConfig.instructions) || 'Choose the word that best completes the sentence.',
+    blankPlaceholder: normaliseText(rawConfig.blankPlaceholder) || '_____',
+    successMessage: normaliseText(rawConfig.successMessage) || 'Correct! Nice work.',
+    errorMessage: normaliseText(rawConfig.errorMessage) || 'Not quite, try again.',
+    initialMessage: normaliseText(rawConfig.initialMessage),
+  };
+}
+
 export async function initFillBlankExercise(options = {}) {
   if (typeof document === 'undefined') {
     throw new Error('FillBlank requires a browser environment.');
@@ -85,7 +134,8 @@ export async function initFillBlankExercise(options = {}) {
   }
 
   ensureStylesheet(STYLESHEET_ID, './styles.css', { baseUrl: import.meta.url });
-  const config = await loadConfig({ config: configOverride, baseUrl: import.meta.url });
+  const rawConfig = await loadConfig({ config: configOverride, baseUrl: import.meta.url });
+  const config = prepareConfig(rawConfig);
   const { wrapper, blank, choices, feedback } = buildLayout(config);
   target.innerHTML = '';
   target.appendChild(wrapper);

@@ -2,6 +2,8 @@ import {
   ensureStylesheet,
   loadConfig,
   normaliseAnswer,
+  normaliseText,
+  createAnswerLookup,
   shuffle,
   setStatusMessage,
   createTile,
@@ -114,6 +116,51 @@ function updateAssembled(state) {
   });
 }
 
+function prepareConfig(rawConfig) {
+  if (!rawConfig || typeof rawConfig !== 'object') {
+    throw new Error('WordBank config must be an object.');
+  }
+
+  const prompt = normaliseText(rawConfig.prompt);
+  if (!prompt) {
+    throw new Error('WordBank config requires a prompt.');
+  }
+
+  const instructions = normaliseText(rawConfig.instructions) || 'Arrange the tiles to complete the sentence.';
+
+  const rawTiles = Array.isArray(rawConfig.wordBank)
+    ? rawConfig.wordBank
+    : Array.isArray(rawConfig.choices)
+    ? rawConfig.choices
+    : [];
+
+  const tiles = rawTiles
+    .map((tile) => normaliseText(tile))
+    .filter(Boolean);
+
+  if (!tiles.length) {
+    throw new Error('WordBank config requires at least one tile.');
+  }
+
+  const answersLookup = createAnswerLookup(rawConfig.answers);
+  if (!answersLookup.size) {
+    throw new Error('WordBank config requires at least one correct answer.');
+  }
+
+  return {
+    ...rawConfig,
+    prompt,
+    instructions,
+    wordBank: tiles,
+    answers: Array.from(answersLookup.values()),
+    successMessage: normaliseText(rawConfig.successMessage) || 'Correct! Nice work.',
+    errorMessage: normaliseText(rawConfig.errorMessage) || 'Not quite, try again.',
+    initialMessage: normaliseText(rawConfig.initialMessage),
+    submitLabel: normaliseText(rawConfig.submitLabel) || 'Check',
+    resetLabel: normaliseText(rawConfig.resetLabel) || 'Reset',
+  };
+}
+
 export async function initWordBankExercise(options = {}) {
   if (typeof document === 'undefined') {
     throw new Error('WordBank requires a browser environment.');
@@ -130,7 +177,8 @@ export async function initWordBankExercise(options = {}) {
   }
 
   ensureStylesheet(STYLESHEET_ID, './styles.css', { baseUrl: import.meta.url });
-  const config = await loadConfig({ config: configOverride, baseUrl: import.meta.url });
+  const rawConfig = await loadConfig({ config: configOverride, baseUrl: import.meta.url });
+  const config = prepareConfig(rawConfig);
   const { wrapper, assembled, bank, check, clear, feedback } = buildLayout(config);
   target.innerHTML = '';
   target.appendChild(wrapper);

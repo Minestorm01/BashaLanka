@@ -2,6 +2,11 @@ import {
   ensureStylesheet,
   loadConfig,
   normaliseAnswer,
+  normaliseText,
+  createAnswerLookup,
+  addAnswerToLookup,
+  answerLookupHas,
+  normaliseChoiceItem,
   setStatusMessage,
   createChoiceButton,
   formatBadge,
@@ -27,6 +32,7 @@ function buildLayout(config) {
   badge.textContent = formatBadge(config.badge || 'NEW WORD');
   header.appendChild(badge);
 
+
   const prompt = document.createElement('h2');
   prompt.className = 'translate-to-base__prompt';
   prompt.textContent = config.prompt;
@@ -35,7 +41,6 @@ function buildLayout(config) {
   if (config.transliteration) {
     const transliteration = document.createElement('p');
     transliteration.className = 'translate-to-base__transliteration';
-    transliteration.textContent = config.transliteration;
     header.appendChild(transliteration);
   }
 
@@ -61,6 +66,72 @@ function buildLayout(config) {
   };
 }
 
+function prepareConfig(rawConfig) {
+  if (!rawConfig || typeof rawConfig !== 'object') {
+    throw new Error('TranslateToBase config must be an object.');
+  }
+
+  const prompt = normaliseText(rawConfig.prompt);
+  if (!prompt) {
+    throw new Error('TranslateToBase config requires a prompt.');
+  }
+
+  const badge = normaliseText(rawConfig.badge) || 'NEW WORD';
+  const transliteration = normaliseText(rawConfig.transliteration);
+  const instructions = normaliseText(rawConfig.instructions) || 'Select the matching English meaning.';
+  const successMessage = normaliseText(rawConfig.successMessage) || 'Correct! Nice work.';
+  const errorMessage = normaliseText(rawConfig.errorMessage) || 'Not quite, try again.';
+  const initialMessage = normaliseText(rawConfig.initialMessage);
+
+  const answersLookup = createAnswerLookup(rawConfig.answers);
+
+  const rawChoices = Array.isArray(rawConfig.choices) ? rawConfig.choices : [];
+  const choices = rawChoices
+    .map((choice) => normaliseChoiceItem(choice, { fallbackLabelKeys: ['value'] }))
+    .filter((choice) => choice && choice.label);
+
+  if (!choices.length) {
+    throw new Error('TranslateToBase config requires at least one choice.');
+  }
+
+  choices.forEach((choice) => {
+    if (choice.isCorrect) {
+      addAnswerToLookup(answersLookup, choice.value || choice.label);
+    }
+  });
+
+  if (!answersLookup.size) {
+    throw new Error('TranslateToBase config requires at least one correct answer.');
+  }
+
+  const hydratedChoices = choices.map((choice) => {
+    const value = choice.value || choice.label;
+    const isCorrect =
+      choice.isCorrect ||
+      answerLookupHas(answersLookup, value) ||
+      answerLookupHas(answersLookup, choice.label);
+    return {
+      ...choice,
+      label: choice.label,
+      value,
+      isCorrect,
+    };
+  });
+
+  return {
+    ...rawConfig,
+    badge,
+    prompt,
+    transliteration,
+    instructions,
+    successMessage,
+    errorMessage,
+    initialMessage,
+    choices: hydratedChoices,
+    answers: Array.from(answersLookup.values()),
+  };
+}
+
 export async function initTranslateToBaseExercise(options = {}) {
   if (typeof document === 'undefined') {
     throw new Error('TranslateToBase requires a browser environment.');
@@ -77,7 +148,8 @@ export async function initTranslateToBaseExercise(options = {}) {
   }
 
   ensureStylesheet(STYLESHEET_ID, './styles.css', { baseUrl: import.meta.url });
-  const config = await loadConfig({ config: configOverride, baseUrl: import.meta.url });
+  const rawConfig = await loadConfig({ config: configOverride, baseUrl: import.meta.url });
+  const config = prepareConfig(rawConfig);
   const { wrapper, choicesContainer, feedback } = buildLayout(config);
   target.innerHTML = '';
   target.appendChild(wrapper);

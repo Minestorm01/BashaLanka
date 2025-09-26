@@ -2,6 +2,11 @@ import {
   ensureStylesheet,
   loadConfig,
   normaliseAnswer,
+  normaliseText,
+  createAnswerLookup,
+  addAnswerToLookup,
+  answerLookupHas,
+  normaliseChoiceItem,
   setStatusMessage,
   createChoiceButton,
   createAudio,
@@ -35,7 +40,7 @@ function buildLayout(config) {
 
   const answerGroup = document.createElement('div');
   answerGroup.className = 'listening__answer';
-  surface.appendChild(answerGroup);
+ surface.appendChild(answerGroup);
 
   const feedback = document.createElement('p');
   feedback.className = 'listening__feedback';
@@ -60,8 +65,8 @@ function renderMultipleChoice(state, config) {
   const answers = new Set(config.answers.map(normaliseAnswer));
   const buttons = config.choices.map((choice) =>
     createChoiceButton({
-      label: choice,
-      value: choice,
+      label: choice.label,
+      value: choice.value || choice.label,
       className: 'listening__choice',
       onClick: (value, button) => {
         if (state.completed) return;
@@ -125,6 +130,68 @@ function renderTyping(state, config) {
   state.submit = submit;
 }
 
+function prepareConfig(rawConfig) {
+  if (!rawConfig || typeof rawConfig !== 'object') {
+    throw new Error('Listening config must be an object.');
+  }
+
+  const prompt = normaliseText(rawConfig.prompt);
+  if (!prompt) {
+    throw new Error('Listening config requires a prompt.');
+  }
+
+  const instructions = normaliseText(rawConfig.instructions) || 'Listen and choose the correct answer.';
+  const playLabel = normaliseText(rawConfig.playLabel) || 'Play audio';
+  const playFallback = normaliseText(rawConfig.playFallback) || 'Audio unavailable';
+  const placeholder = normaliseText(rawConfig.placeholder) || 'Type what you hear';
+  const submitLabel = normaliseText(rawConfig.submitLabel) || 'Check';
+
+  const answersLookup = createAnswerLookup(rawConfig.answers);
+  const rawChoices = Array.isArray(rawConfig.choices) ? rawConfig.choices : [];
+  const choices = rawChoices
+    .map((choice) => normaliseChoiceItem(choice, { fallbackLabelKeys: ['value'] }))
+    .filter((choice) => choice && choice.label);
+
+  choices.forEach((choice) => {
+    if (choice.isCorrect) {
+      addAnswerToLookup(answersLookup, choice.value || choice.label);
+    }
+  });
+
+  if (!answersLookup.size) {
+    throw new Error('Listening config requires at least one correct answer.');
+  }
+
+  const preparedChoices = choices.map((choice) => {
+    const value = choice.value || choice.label;
+    const isCorrect =
+      choice.isCorrect ||
+      answerLookupHas(answersLookup, value) ||
+      answerLookupHas(answersLookup, choice.label);
+    return {
+      ...choice,
+      label: choice.label,
+      value,
+      isCorrect,
+    };
+  });
+
+  return {
+    ...rawConfig,
+    prompt,
+    instructions,
+    playLabel,
+    playFallback,
+    placeholder,
+    submitLabel,
+    choices: preparedChoices,
+    answers: Array.from(answersLookup.values()),
+    successMessage: normaliseText(rawConfig.successMessage) || 'Correct! Nice work.',
+    errorMessage: normaliseText(rawConfig.errorMessage) || 'Not quite, try again.',
+    initialMessage: normaliseText(rawConfig.initialMessage),
+  };
+}
+
 export async function initListeningExercise(options = {}) {
   if (typeof document === 'undefined') {
     throw new Error('Listening requires a browser environment.');
@@ -141,7 +208,8 @@ export async function initListeningExercise(options = {}) {
   }
 
   ensureStylesheet(STYLESHEET_ID, './styles.css', { baseUrl: import.meta.url });
-  const config = await loadConfig({ config: configOverride, baseUrl: import.meta.url });
+  const rawConfig = await loadConfig({ config: configOverride, baseUrl: import.meta.url });
+  const config = prepareConfig(rawConfig);
   const { wrapper, playButton, answerGroup, feedback } = buildLayout(config);
   target.innerHTML = '';
   target.appendChild(wrapper);
