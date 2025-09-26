@@ -273,263 +273,35 @@ const DebugTools = (() => {
   let hostEl = null;
   let exerciseTesterCleanup = null;
 
-  const EXERCISE_TYPES = (() => {
-    const toInlineJSON = (value) => JSON.stringify(value, null, 2);
-    return [
+  const DEFAULT_INLINE_CONFIGS = {
+    TranslateToBase: JSON.stringify(
       {
-        value: 'TranslateToBase',
-        label: 'Translate → English',
-        loader: () => import('./assets/Lessions/exercises/TranslateToBase/index.js'),
-        samplePath: './assets/Lessions/exercises/TranslateToBase/config.json',
-        inlineExample: toInlineJSON({
-          id: 'translate-to-base-1',
-          badge: 'NEW WORD',
-          prompt: 'මම',
-          transliteration: 'mama',
-          choices: [
-            { label: 'I' },
-            { label: 'You' },
-            { label: 'We' },
-            { label: 'They' },
-          ],
-          answers: ['I'],
-          instructions: 'Select the English meaning that matches the Sinhala word.',
-          successMessage: "Correct! 'මම' means 'I'.",
-          errorMessage: 'Not quite, try again.',
-          initialMessage: 'Tap the correct English meaning from the list.',
-        }),
-        normalise: normaliseTranslateToBaseConfig,
+        prompt: 'මම',
+        transliteration: 'mama',
+        instructions: 'Tap the correct English meaning.',
+        choices: [
+          { label: 'I', isCorrect: true },
+          { label: 'You', isCorrect: false },
+          { label: 'Fine', isCorrect: false },
+        ],
       },
+      null,
+      2,
+    ),
+    TranslateToTarget: JSON.stringify(
       {
-        value: 'TranslateToTarget',
-        label: 'Translate → Sinhala',
-        loader: () => import('./assets/Lessions/exercises/TranslateToTarget/index.js'),
-        samplePath: './assets/Lessions/exercises/TranslateToTarget/config.json',
-        inlineExample: toInlineJSON({
-          id: 'translate-to-target-1',
-          mode: 'multiple-choice',
-          badge: 'TRANSLATE',
-          prompt: 'Translate to Sinhala',
-          source: 'The girl drinks tea.',
-          choices: [
-            'ගැහැණු ළමයා තේ බොයි.',
-            'ගැහැනු ළමයා කන්න යයි.',
-            'බාලයා නින්ද යයි.',
-            'අයියා පාඩම් කරයි.',
-          ],
-          answers: ['ගැහැණු ළමයා තේ බොයි.'],
-          instructions: 'Tap the Sinhala translation that matches the English sentence.',
-          successMessage: 'Great! You chose the correct Sinhala translation.',
-          errorMessage: 'Not quite. Try another option.',
-          initialMessage: 'Focus on the verb and subject order when you translate.',
-        }),
-        normalise: normaliseTranslateToTargetConfig,
+        prompt: 'I',
+        instructions: 'Tap the matching Sinhala word.',
+        choices: [
+          { label: 'මම', transliteration: 'mama', isCorrect: true },
+          { label: 'ඔයා', transliteration: 'oyā', isCorrect: false },
+          { label: 'ඔහු', transliteration: 'ohu', isCorrect: false },
+        ],
       },
-      {
-        value: 'WordBank',
-        label: 'Word Bank',
-        loader: () => import('./assets/Lessions/exercises/WordBank/index.js'),
-        samplePath: './assets/Lessions/exercises/WordBank/config.json',
-        inlineExample: toInlineJSON({
-          id: 'word-bank-1',
-          prompt: 'Build the sentence in Sinhala',
-          instructions: 'Tap the tiles to build the sentence in the correct order.',
-          wordBank: ['මම', 'ටී', 'බොමි', 'ඒක', 'දින'],
-          answers: ['මම ටී බොමි'],
-          successMessage: 'Great work! You built the sentence correctly.',
-          errorMessage: 'Check the word order and try again.',
-          initialMessage: 'Hint: Sinhala sentences often end with the verb.',
-        }),
-      },
-      {
-        value: 'MatchPairs',
-        label: 'Match Pairs',
-        loader: () => import('./assets/Lessions/exercises/MatchPairs/index.js'),
-        samplePath: './assets/Lessions/exercises/MatchPairs/config.json',
-        inlineExample: toInlineJSON({
-          id: 'match-pairs-1',
-          prompt: 'Match the Sinhala words to their English meanings',
-          instructions: 'Tap two cards to see if they match.',
-          pairs: [
-            { base: 'water', target: 'ජලය' },
-            { base: 'bread', target: 'පන්' },
-            { base: 'girl', target: 'ගැහැණු ළමයා' },
-            { base: 'school', target: 'පාසල' },
-          ],
-          successMessage: 'Nice! Keep matching the pairs.',
-          errorMessage: "Those don't match yet.",
-          initialMessage: 'Remember each pair contains one English and one Sinhala word.',
-        }),
-      },
-      {
-        value: 'FillBlank',
-        label: 'Fill in the Blank',
-        loader: () => import('./assets/Lessions/exercises/FillBlank/index.js'),
-        samplePath: './assets/Lessions/exercises/FillBlank/config.json',
-        inlineExample: toInlineJSON({
-          id: 'fill-blank-1',
-          prompt: 'Fill in the missing word',
-          instructions: 'Choose the word that best completes the sentence.',
-          sentence: {
-            before: 'මම',
-            after: 'යමි',
-          },
-          choices: ['පාසලට', 'වතුර', 'කිරි'],
-          answers: ['පාසලට'],
-          blankPlaceholder: '_____',
-          successMessage: "Nice! The sentence means ‘I go to school’.",
-          errorMessage: 'Try another option.',
-          initialMessage: 'Remember Sinhala uses postpositions after nouns.',
-        }),
-      },
-      {
-        value: 'Dialogue',
-        label: 'Dialogue',
-        loader: () => import('./assets/Lessions/exercises/Dialogue/index.js'),
-        samplePath: './assets/Lessions/exercises/Dialogue/config.json',
-        inlineExample: toInlineJSON({
-          id: 'dialogue-1',
-          prompt: 'Practice a morning greeting',
-          instructions: 'Follow the conversation and choose the best reply.',
-          initialMessage: 'Respond in Sinhala to keep the dialogue flowing.',
-          turnSuccessMessage: 'Nice answer!',
-          turnErrorMessage: 'Try a different reply.',
-          successMessage: 'You completed the dialogue!',
-          turns: [
-            {
-              type: 'statement',
-              role: 'tutor',
-              speaker: 'Friend',
-              text: 'සුභ උදෑසනක්!',
-              delay: 300,
-            },
-            {
-              type: 'choice',
-              answers: ['සුභ උදෑසනක්'],
-              options: [
-                { label: 'සුභ උදෑසනක්' },
-                {
-                  label: 'සුභ රාත්‍රියක්',
-                  followUp: {
-                    text: 'අද උදේයි, නැවත උත්සාහ කරන්න!',
-                    role: 'tutor',
-                    speaker: 'Friend',
-                  },
-                },
-                {
-                  label: 'ඔබට කොහොම ද?',
-                  followUp: {
-                    text: 'උදේදී සාදරයෙන් සුභ පැතීම හොඳයි!',
-                    role: 'tutor',
-                    speaker: 'Friend',
-                  },
-                },
-              ],
-              delay: 400,
-            },
-            {
-              type: 'statement',
-              role: 'tutor',
-              speaker: 'Friend',
-              text: 'ඔබට කොහොම ද?',
-              delay: 300,
-            },
-            {
-              type: 'choice',
-              answers: ['මම හොඳින්'],
-              options: [
-                { label: 'මම හොඳින්' },
-                { label: 'මට යන්න ඕන' },
-              ],
-              delay: 400,
-            },
-            {
-              type: 'statement',
-              role: 'tutor',
-              speaker: 'Friend',
-              text: 'ඒක සතුටක්!',
-            },
-          ],
-        }),
-      },
-      {
-        value: 'Listening',
-        label: 'Listening',
-        loader: () => import('./assets/Lessions/exercises/Listening/index.js'),
-        samplePath: './assets/Lessions/exercises/Listening/config.json',
-        inlineExample: toInlineJSON({
-          id: 'listening-1',
-          prompt: 'Listen and choose the correct translation',
-          instructions: 'Tap play and choose what you hear in Sinhala.',
-          audioSrc: '/es_man.mp3',
-          choices: ['හෙලෝ', 'ආයුබෝවන්', 'සුභ සන්ධ්‍යා වෙලාවක්'],
-          answers: ['ආයුබෝවන්'],
-          successMessage: 'Great ear! You picked the correct phrase.',
-          errorMessage: 'Listen again and try another option.',
-          initialMessage: 'You can replay the audio as many times as you like.',
-        }),
-      },
-      {
-        value: 'PictureChoice',
-        label: 'Picture Choice',
-        loader: () => import('./assets/Lessions/exercises/PictureChoice/index.js'),
-        samplePath: './assets/Lessions/exercises/PictureChoice/config.json',
-        inlineExample: toInlineJSON({
-          id: 'picture-choice-1',
-          prompt: 'Which one is ‘බල්ලා’?'
-          instructions: 'Tap the picture that matches the Sinhala word.',
-          choices: [
-            {
-              label: 'Dog',
-              value: 'dog',
-              image: '/dog.svg',
-              alt: 'Illustration of a happy dog',
-            },
-            {
-              label: 'Cat',
-              value: 'cat',
-              image: '/girl.svg',
-              alt: 'Illustration of a smiling girl',
-            },
-            {
-              label: 'Bird',
-              value: 'bird',
-              image: '/robot.svg',
-              alt: 'Illustration of a friendly robot',
-            },
-          ],
-          answers: ['dog'],
-          successMessage: "Correct! ‘බල්ලා’ means dog.",
-          errorMessage: 'Try another picture.',
-          initialMessage: 'Look for the animal that matches the Sinhala word.',
-        }),
-      },
-      {
-        value: 'Speak',
-        label: 'Speak',
-        loader: () => import('./assets/Lessions/exercises/Speak/index.js'),
-        samplePath: './assets/Lessions/exercises/Speak/config.json',
-        inlineExample: toInlineJSON({
-          id: 'speak-1',
-          prompt: 'Say “සුභ උදෑසනක්”',
-          transliteration: 'subha udǣsanak',
-          instructions: 'Tap start and say the phrase clearly into your microphone.',
-          answers: ['සුභ උදෑසනක්'],
-          lang: 'si-LK',
-          successMessage: 'Beautiful pronunciation!',
-          errorMessage: "We didn't catch the phrase. Try again.",
-          initialMessage: 'Allow microphone access if prompted.',
-          listeningMessage: 'Listening…',
-          retryLabel: 'Try again',
-        }),
-      },
-    ];
-  })();
-
-  const EXERCISE_DEFINITIONS = EXERCISE_TYPES.reduce((acc, entry) => {
-    acc[entry.value] = entry;
-    return acc;
-  }, {});
+      null,
+      2,
+    ),
+  };
 
   function isTranslateToBaseConfig(candidate) {
     if (!candidate || typeof candidate !== 'object') return false;
@@ -732,12 +504,15 @@ const DebugTools = (() => {
         <div class="debug-tester__controls">
           <div class="field">
             <label class="label" for="debugExerciseType">Exercise type</label>
-            <select id="debugExerciseType" class="select"></select>
+            <select id="debugExerciseType" class="select">
+              <option value="TranslateToBase">TranslateToBase</option>
+              <option value="TranslateToTarget">TranslateToTarget</option>
+            </select>
           </div>
           <div class="field">
             <label class="label" for="debugLessonPath">Lesson data path</label>
             <input id="debugLessonPath" class="input" type="text" placeholder="./assets/Lessions/.../lesson-01.md" autocomplete="off" />
-            <p class="help" data-lesson-help>Enter a site-relative path to a JSON config such as <code>./assets/Lessions/exercises/TranslateToBase/config.json</code> or a Markdown lesson like <code>./assets/Lessions/section-1/lesson-01.md</code>.</p>
+            <p class="help">Enter a site-relative path such as <code>./assets/Lessions/.../lesson-01.md</code>. Markdown lessons can be passed directly without copying configs.</p>
           </div>
           <label class="debug-tester__inline-toggle" for="debugInlineToggle">
             <input id="debugInlineToggle" type="checkbox" />
@@ -762,71 +537,27 @@ const DebugTools = (() => {
     const inlineConfigInput = container.querySelector('#debugInlineConfig');
     const runButton = container.querySelector('#debugRunExerciseTest');
     const preview = container.querySelector('#debugExercisePreview');
-    const lessonHelp = container.querySelector('[data-lesson-help]');
 
-    if (typeSelect) {
-      typeSelect.innerHTML = EXERCISE_TYPES.map(({ value, label }) =>
-        `<option value="${value}">${escapeHTML(label)}</option>`
-      ).join('');
-      if (!typeSelect.value && EXERCISE_TYPES.length) {
-        typeSelect.value = EXERCISE_TYPES[0].value;
-      }
-    }
-
-    const EXERCISE_MODULE_LOADERS = EXERCISE_TYPES.reduce((acc, entry) => {
-      if (entry && entry.value && typeof entry.loader === 'function') {
-        acc[entry.value] = entry.loader;
-      }
-      return acc;
-    }, {});
+    const EXERCISE_MODULE_LOADERS = {
+      TranslateToBase: () => import('./exercises/TranslateToBase/index.js'),
+      TranslateToTarget: () => import('./exercises/TranslateToTarget/index.js'),
+    };
 
     const exerciseModulePromises = {};
 
-    const getCurrentDefinition = () => {
-      const type = typeSelect?.value;
-      return type ? EXERCISE_DEFINITIONS[type] : null;
-    };
-
     function syncInlineConfigValue() {
       if (!inlineConfigInput || !typeSelect) return;
-      const def = getCurrentDefinition();
-      inlineConfigInput.value = def?.inlineExample || '';
-    }
-
-    function syncLessonPathInfo() {
-      if (!lessonPathInput) return;
-      const def = getCurrentDefinition();
-      const samplePath = def?.samplePath || './assets/Lessions/exercises/TranslateToBase/config.json';
-      lessonPathInput.placeholder = samplePath;
-      const shouldAutofill = !lessonPathInput.value || lessonPathInput.dataset.autofilled !== 'false';
-      if (shouldAutofill) {
-        lessonPathInput.value = samplePath;
-        lessonPathInput.dataset.autofilled = 'true';
-      }
-      if (lessonHelp) {
-        const markdownExample = './assets/Lessions/section-1/lesson-01.md';
-        lessonHelp.innerHTML = `Enter a site-relative path to a JSON config such as <code>${escapeHTML(samplePath)}</code> or a Markdown lesson like <code>${escapeHTML(markdownExample)}</code>.`;
-      }
+      const type = typeSelect.value;
+      inlineConfigInput.value = DEFAULT_INLINE_CONFIGS[type] || '';
     }
 
     const handleTypeChange = () => {
       syncInlineConfigValue();
-      syncLessonPathInfo();
       syncInlineVisibility();
     };
 
     if (inlineConfigInput) {
       syncInlineConfigValue();
-    }
-
-    const handleLessonPathInput = () => {
-      if (!lessonPathInput) return;
-      lessonPathInput.dataset.autofilled = lessonPathInput.value ? 'false' : 'true';
-    };
-
-    if (lessonPathInput) {
-      syncLessonPathInfo();
-      lessonPathInput.addEventListener('input', handleLessonPathInput);
     }
 
     function syncInlineVisibility() {
@@ -838,11 +569,14 @@ const DebugTools = (() => {
 
     function normaliseConfigForType(type, config) {
       if (!config) return null;
-      const def = type ? EXERCISE_DEFINITIONS[type] : null;
-      if (def && typeof def.normalise === 'function') {
-        return def.normalise(config);
+      switch (type) {
+        case 'TranslateToBase':
+          return normaliseTranslateToBaseConfig(config);
+        case 'TranslateToTarget':
+          return normaliseTranslateToTargetConfig(config);
+        default:
+          return config;
       }
-      return config;
     }
 
     async function resolveConfig(type) {
@@ -874,38 +608,30 @@ const DebugTools = (() => {
     async function runTest() {
       if (!preview) return;
       const type = typeSelect?.value || '';
-      const definition = getCurrentDefinition();
-      if (!type || !definition) {
-        preview.innerHTML = '<p class="debug-tester__error">Select an exercise type to run the tester.</p>';
-        return;
-      }
       preview.innerHTML = '<p>Loading exercise…</p>';
 
       let loader = window?.BashaLanka?.exercises?.[type];
 
       if (!loader) {
         const moduleLoader = EXERCISE_MODULE_LOADERS[type];
-        if (!moduleLoader) {
-          preview.innerHTML = `<p class="debug-tester__error">No loader registered for ${escapeHTML(type)} exercises.</p>`;
-          return;
-        }
+        if (moduleLoader) {
+          if (!exerciseModulePromises[type]) {
+            exerciseModulePromises[type] = moduleLoader().catch((error) => {
+              console.error(`Failed to load ${type} exercise module.`, error);
+              throw error;
+            });
+          }
 
-        if (!exerciseModulePromises[type]) {
-          exerciseModulePromises[type] = moduleLoader().catch((error) => {
-            console.error(`Failed to load ${type} exercise module.`, error);
-            throw error;
-          });
-        }
+          try {
+            await exerciseModulePromises[type];
+          } catch (error) {
+            preview.innerHTML = `<p class="debug-tester__error">Could not load the ${escapeHTML(type)} exercise module.</p>`;
+            exerciseModulePromises[type] = null;
+            return;
+          }
 
-        try {
-          await exerciseModulePromises[type];
-        } catch (error) {
-          preview.innerHTML = `<p class="debug-tester__error">Could not load the ${escapeHTML(type)} exercise module.</p>`;
-          exerciseModulePromises[type] = null;
-          return;
+          loader = window?.BashaLanka?.exercises?.[type];
         }
-
-        loader = window?.BashaLanka?.exercises?.[type];
       }
 
       if (typeof loader !== 'function') {
@@ -938,7 +664,6 @@ const DebugTools = (() => {
       typeSelect?.removeEventListener('change', handleTypeChange);
       inlineToggle?.removeEventListener('change', syncInlineVisibility);
       runButton?.removeEventListener('click', runTest);
-      lessonPathInput?.removeEventListener('input', handleLessonPathInput);
     };
   }
 
