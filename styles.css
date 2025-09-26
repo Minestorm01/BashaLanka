@@ -463,54 +463,6 @@ background: var(--color-surface);
   width: 100%;
 }
 
-.debug-panel__tester {
-  border-top: 1px solid var(--color-border);
-  padding-top: var(--space-md);
-}
-
-.debug-tester {
-  display: grid;
-  gap: var(--space-md);
-}
-
-.debug-tester__controls {
-  display: grid;
-  gap: var(--space-sm);
-}
-
-.debug-tester__inline-toggle {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-xs);
-  font-weight: 600;
-}
-
-.debug-tester__inline-config {
-  display: grid;
-  gap: var(--space-xs);
-}
-
-.debug-tester__preview {
-  min-height: 160px;
-  border: 1px dashed var(--color-border);
-  border-radius: var(--radius-sm);
-  padding: var(--space-md);
-  background: color-mix(in oklab, var(--color-elev) 92%, transparent);
-}
-
-.debug-tester__preview > :first-child {
-  margin-top: 0;
-}
-
-.debug-tester__preview > :last-child {
-  margin-bottom: 0;
-}
-
-.debug-tester__error {
-  color: var(--color-danger);
-  font-weight: 600;
-}
-
 /* Inline form layout that auto-stacks on small screens */
 .form-inline {
   display: grid; gap: var(--space-md);
