@@ -16,7 +16,7 @@ const DEFAULT_CONTAINER_SELECTOR = '[data-exercise="translate-to-base"]';
 const STYLESHEET_ID = 'translate-to-base-styles';
 
 function buildLayout(config) {
-  const wrapper = document.createElement('section');
+ const wrapper = document.createElement('section');
   wrapper.className = 'translate-to-base';
 
   const surface = document.createElement('div');
@@ -41,6 +41,7 @@ function buildLayout(config) {
   if (config.transliteration) {
     const transliteration = document.createElement('p');
     transliteration.className = 'translate-to-base__transliteration';
+    transliteration.textContent = config.transliteration;
     header.appendChild(transliteration);
   }
 
