@@ -274,17 +274,34 @@ const EXERCISE_MODULE_BASES = (() => {
     if (!candidate) return;
 
     try {
-      const resolved = new URL(
-        './assets/Lessions/exercises/',
-        candidate
-      ).href;
-
+      const resolved = new URL('assets/Lessions/exercises/', candidate).href;
       if (!seen.has(resolved)) {
         seen.add(resolved);
         bases.push(resolved);
       }
     } catch (err) {
       // Ignore invalid URLs — we'll fall back to other candidates.
+    }
+  };
+
+  const addLocationDirectory = () => {
+    if (typeof window === 'undefined' || !window.location) return;
+    const { origin, pathname, href } = window.location;
+
+    if (href) {
+      addCandidate(href);
+    }
+
+    if (origin) {
+      // Include the current directory so GitHub Pages deployments under a repo path work.
+      if (pathname && pathname !== '/') {
+        const directory = pathname.endsWith('/')
+          ? pathname
+          : pathname.replace(/[^/]*$/, '/');
+        addCandidate(`${origin}${directory}`);
+      }
+
+      addCandidate(`${origin}/`);
     }
   };
 
@@ -296,7 +313,7 @@ const EXERCISE_MODULE_BASES = (() => {
     const scripts = document.getElementsByTagName('script');
     if (scripts && scripts.length) {
       for (const script of scripts) {
-        if (script && script.src) {
+        if (script?.src) {
           addCandidate(script.src);
         }
       }
@@ -312,30 +329,30 @@ const EXERCISE_MODULE_BASES = (() => {
     }
   }
 
-  if (typeof window !== 'undefined' && window.location) {
-    const { origin, href, pathname } = window.location;
-
-    addCandidate(href);
-
-    if (origin) {
-      addCandidate(`${origin}/`);
-
-      if (pathname && pathname !== '/') {
-        const pathWithoutFile = pathname.replace(/[^/]*$/, '');
-        if (pathWithoutFile) {
-          addCandidate(`${origin}${pathWithoutFile}`);
-        }
-
-        const segments = pathname.split('/').filter(Boolean);
-        if (segments.length) {
-          addCandidate(`${origin}/${segments[0]}/`);
-        }
-      }
-    }
-  }
+  addLocationDirectory();
 
   if (!bases.length) {
-    bases.push('./assets/Lessions/exercises/');
+    const fallback = (() => {
+      if (typeof document !== 'undefined' && document.baseURI) {
+        try {
+          return new URL('assets/Lessions/exercises/', document.baseURI).href;
+        } catch (err) {
+          // ignore and fall through
+        }
+      }
+
+      if (typeof window !== 'undefined' && window.location?.href) {
+        try {
+          return new URL('assets/Lessions/exercises/', window.location.href).href;
+        } catch (err) {
+          // ignore and fall through
+        }
+      }
+
+      return 'assets/Lessions/exercises/';
+    })();
+
+    bases.push(fallback);
   }
 
   return bases;
