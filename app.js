@@ -160,7 +160,7 @@ const AppState = {
   prefs: {
     sfx: true, anim: true, motivate: true, listen: true,
     appearance: localStorage.getItem('theme') || 'system',
-    romanized: false
+    romanized: true
   }
 };
 

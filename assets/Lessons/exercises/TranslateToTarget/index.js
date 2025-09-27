@@ -178,6 +178,35 @@ function pickRandomEntry(entries) {
   return entries[index] || null;
 }
 
+function shouldShowRomanizedPronunciation() {
+  const fallback = true;
+
+  if (typeof window === 'undefined') {
+    return fallback;
+  }
+
+  const prefs = window.__APP__?.AppState?.prefs;
+  if (prefs && typeof prefs.romanized === 'boolean') {
+    return prefs.romanized;
+  }
+
+  try {
+    const stored = window.localStorage.getItem('prefs');
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      if (parsed && typeof parsed.romanized === 'boolean') {
+        return parsed.romanized;
+      }
+    }
+  } catch (error) {
+    if (typeof console !== 'undefined' && console.warn) {
+      console.warn('Unable to read stored pronunciation preference', error);
+    }
+  }
+
+  return fallback;
+}
+
 export function buildTranslateToTargetConfig(vocabEntries) {
   const items = Array.isArray(vocabEntries) ? vocabEntries.map(normaliseVocabEntry).filter(Boolean) : [];
 
@@ -212,13 +241,16 @@ export function buildTranslateToTargetConfig(vocabEntries) {
   const prompt = normaliseText(selected.en) || selected.en;
   const correctSinhala = normaliseText(selected.si) || selected.si;
   const transliteration = normaliseText(selected.translit || selected.transliteration);
+  const baseSuccessMessage = `Correct! '${prompt}' = '${correctSinhala}'.`;
 
   const choices = shuffle([selected, ...distractors]).map((entry) => {
     const label = normaliseText(entry.si) || entry.si;
+    const choiceTransliteration = normaliseText(entry.translit || entry.transliteration);
     return {
       label,
       value: label,
       isCorrect: entry === selected,
+      transliteration: choiceTransliteration,
     };
   });
 
@@ -228,17 +260,20 @@ export function buildTranslateToTargetConfig(vocabEntries) {
     transliteration,
     instructions: 'Select the Sinhala translation that matches the English word.',
     successMessage: transliteration
-      ? `Correct! '${prompt}' = '${correctSinhala}' (${transliteration}).`
-      : `Correct! '${prompt}' = '${correctSinhala}'.`,
+      ? `${baseSuccessMessage} (${transliteration}).`
+      : baseSuccessMessage,
+    successMessagePlain: baseSuccessMessage,
     errorMessage: `Not quite. '${prompt}' = '${correctSinhala}'. Try again.`,
     choices,
     answers: [correctSinhala],
   };
 }
 
-function buildLayout(config) {
+function buildLayout(config, options = {}) {
+  const showTransliteration = Boolean(options.showTransliteration);
   const wrapper = document.createElement('section');
   wrapper.className = 'translate-to-target';
+  wrapper.dataset.showRomanized = showTransliteration ? 'true' : 'false';
 
   const surface = document.createElement('div');
   surface.className = 'translate-to-target__surface';
@@ -258,7 +293,7 @@ function buildLayout(config) {
   prompt.textContent = config.prompt;
   header.appendChild(prompt);
 
-  if (config.transliteration) {
+  if (showTransliteration && config.transliteration) {
     const transliteration = document.createElement('p');
     transliteration.className = 'translate-to-target__transliteration';
     transliteration.textContent = config.transliteration;
@@ -285,6 +320,26 @@ function buildLayout(config) {
     choicesContainer,
     feedback,
   };
+}
+
+function applyChoiceContent(button, choice, showTransliteration) {
+  if (!button || !choice) {
+    return;
+  }
+
+  const label = document.createElement('span');
+  label.className = 'translate-to-target__choice-script';
+  label.textContent = choice.label;
+
+  button.innerHTML = '';
+  button.appendChild(label);
+
+  if (showTransliteration && choice.transliteration) {
+    const transliteration = document.createElement('span');
+    transliteration.className = 'translate-to-target__choice-romanized';
+    transliteration.textContent = choice.transliteration;
+    button.appendChild(transliteration);
+  }
 }
 
 async function fetchLessonVocab() {
@@ -329,7 +384,10 @@ export async function initTranslateToTargetExercise(options = {}) {
 
   const vocab = await fetchLessonVocab();
   const config = buildTranslateToTargetConfig(vocab);
-  const { wrapper, choicesContainer, feedback } = buildLayout(config);
+  const showRomanized = shouldShowRomanizedPronunciation();
+  const { wrapper, choicesContainer, feedback } = buildLayout(config, {
+    showTransliteration: showRomanized,
+  });
 
   target.innerHTML = '';
   target.appendChild(wrapper);
@@ -347,7 +405,10 @@ export async function initTranslateToTargetExercise(options = {}) {
         const normalised = normaliseAnswer(value);
         if (answers.has(normalised)) {
           state.completed = true;
-          setStatusMessage(feedback, config.successMessage, 'success');
+          const successMessage = showRomanized
+            ? config.successMessage
+            : config.successMessagePlain || config.successMessage;
+          setStatusMessage(feedback, successMessage, 'success');
           button.classList.add('translate-to-target__choice--correct');
           buttons.forEach((btn) => {
             btn.disabled = true;
@@ -366,7 +427,11 @@ export async function initTranslateToTargetExercise(options = {}) {
     })
   );
 
-  buttons.forEach((button) => choicesContainer.appendChild(button));
+  buttons.forEach((button, index) => {
+    const choice = config.choices[index];
+    applyChoiceContent(button, choice, showRomanized);
+    choicesContainer.appendChild(button);
+  });
   setStatusMessage(feedback, '', 'neutral');
 
   return {
