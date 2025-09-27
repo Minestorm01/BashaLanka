@@ -347,28 +347,38 @@ export function buildTranslateToBaseConfig(vocabEntries) {
     throw new Error('Failed to select a vocab entry for TranslateToBase.');
   }
 
+  const englishMap = new Map();
+  items.forEach((entry) => {
+    const label = normaliseText(entry.en);
+    if (!label) return;
+
+    const existing = englishMap.get(label);
+    if (!existing || entry === selected) {
+      englishMap.set(label, entry);
+    }
+  });
+
+  const uniqueEntries = Array.from(englishMap.values());
+  const distractorPool = uniqueEntries.filter((entry) => entry !== selected);
+
+  if (distractorPool.length < 3) {
+    throw new Error('TranslateToBase requires at least four distinct vocab entries.');
+  }
+
+  const distractors = shuffle(distractorPool).slice(0, 3);
+
   const prompt = normaliseText(selected.si) || selected.si;
   const transliteration = normaliseText(selected.translit || selected.transliteration);
   const correctEnglish = normaliseText(selected.en);
 
-  const choiceMap = new Map();
-  items.forEach((entry) => {
-    const label = normaliseText(entry.en);
-    if (!label) return;
-    const key = label.toLowerCase();
-    if (!choiceMap.has(key)) {
-      choiceMap.set(key, {
-        label,
-        value: label,
-        isCorrect: entry === selected,
-      });
-    } else if (entry === selected) {
-      const existing = choiceMap.get(key);
-      existing.isCorrect = true;
-    }
+  const choices = shuffle([selected, ...distractors]).map((entry) => {
+    const label = normaliseText(entry.en) || entry.en;
+    return {
+      label,
+      value: label,
+      isCorrect: entry === selected,
+    };
   });
-
-  const choices = shuffle(Array.from(choiceMap.values()));
 
   return {
     prompt,
@@ -582,6 +592,7 @@ export async function initTranslateToBaseExercise(options = {}) {
             onComplete({ value });
           }
         } else {
+          button.classList.add('translate-to-base__choice--wrong');
           button.classList.add('translate-to-base__choice--incorrect');
           setStatusMessage(feedback, config.errorMessage, 'error');
         }
