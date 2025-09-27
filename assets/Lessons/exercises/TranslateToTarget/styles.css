@@ -84,25 +84,28 @@
   color: inherit;
   font-weight: 600;
   font-size: 1.05rem;
-  padding: 0.85rem 1rem;
+  padding: 0.9rem 1rem;
   cursor: pointer;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.4rem;
+  gap: 0.35rem;
   text-align: center;
   transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
 }
 
 .translate-to-target__choice-script {
-  font-size: 1.35rem;
+  font-size: 1.45rem;
   line-height: 1.2;
+  font-weight: 700;
 }
 
 .translate-to-target__choice-romanized {
-  font-size: 0.95rem;
-  color: var(--exercise-muted);
-  letter-spacing: 0.015em;
+  font-size: 0.82rem;
+  line-height: 1.1;
+  color: rgba(156, 199, 189, 0.9);
+  letter-spacing: 0.03em;
+  font-weight: 600;
 }
 
 .translate-to-target__choice:hover,

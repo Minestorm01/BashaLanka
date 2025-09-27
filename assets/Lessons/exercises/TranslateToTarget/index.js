@@ -297,6 +297,7 @@ function buildLayout(config, options = {}) {
     const transliteration = document.createElement('p');
     transliteration.className = 'translate-to-target__transliteration';
     transliteration.textContent = config.transliteration;
+    transliteration.lang = 'si-Latn';
     header.appendChild(transliteration);
   }
 
@@ -332,14 +333,16 @@ function applyChoiceContent(button, choice, showTransliteration) {
   label.textContent = choice.label;
 
   button.innerHTML = '';
-  button.appendChild(label);
 
   if (showTransliteration && choice.transliteration) {
     const transliteration = document.createElement('span');
     transliteration.className = 'translate-to-target__choice-romanized';
     transliteration.textContent = choice.transliteration;
+    transliteration.lang = 'si-Latn';
     button.appendChild(transliteration);
   }
+
+  button.appendChild(label);
 }
 
 async function fetchLessonVocab() {
