@@ -165,19 +165,20 @@ async function loadLessonSource(lessonPath) {
     throw new Error(`Invalid lesson path provided: ${lessonPath}`);
   }
 
-  if (typeof console !== 'undefined' && console.log) {
-    console.log('🔎 loadLessonSource trying:', lessonPath);
-    console.log('Normalised lesson path:', normalisedPath);
-  }
-
   const baseUrl =
     typeof window !== 'undefined' && window.location?.origin
       ? window.location.origin
       : LESSON_MANIFEST_URL;
   const url = new URL(normalisedPath, baseUrl);
-
-  if (typeof console !== 'undefined' && console.log) {
-    console.log('Resolved lesson markdown URL:', url.toString());
+  if (typeof console !== 'undefined' && console.group) {
+    const printableBaseUrl =
+      typeof baseUrl === 'string' ? baseUrl : baseUrl?.toString?.() ?? String(baseUrl);
+    console.group('📘 loadLessonSource Debug');
+    console.log('Original lessonPath:', lessonPath);
+    console.log('Normalised:', normalisedPath);
+    console.log('Base URL:', printableBaseUrl);
+    console.log('Resolved URL:', url.toString());
+    console.groupEnd();
   }
   const response = await fetch(url, { cache: 'no-cache' });
 
