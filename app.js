@@ -598,16 +598,36 @@ const LessonSimulator = (() => {
     try{
       // Set global lesson context so exercises know which lesson data to use
       window.BashaLanka = window.BashaLanka || {};
-      window.BashaLanka.currentLesson = {
-        meta,
-        detail: {
-          id: meta.lessonId,
-          title: meta.lessonTitle || meta.title,
-          sectionId: meta.sectionId,
-          unitId: meta.unitId,
-          lessonId: meta.lessonId
+      const existingLesson = window.BashaLanka.currentLesson || {};
+      const lessonMeta = existingLesson.meta || simulationState?.config?.lessonMeta || null;
+      const detail = existingLesson.detail || {};
+
+      if(!existingLesson.meta && lessonMeta){
+        existingLesson.meta = lessonMeta;
+      }
+      if(!existingLesson.detail){
+        existingLesson.detail = detail;
+      }
+
+      const fillDetailField = (field, keys = [field]) => {
+        if(detail[field] != null) return;
+        if(!lessonMeta) return;
+        for(const key of keys){
+          if(lessonMeta[key] != null){
+            detail[field] = lessonMeta[key];
+            return;
+          }
         }
       };
+
+      fillDetailField('id', ['id', 'lessonId']);
+      fillDetailField('title', ['title', 'lessonTitle']);
+      fillDetailField('sectionId');
+      fillDetailField('unitId');
+      fillDetailField('lessonId', ['lessonId', 'id']);
+
+      existingLesson.exercise = meta;
+      window.BashaLanka.currentLesson = existingLesson;
 
       const mod = await meta.loader();
       if(!simulationState || simulationState.activeToken !== token) return;
