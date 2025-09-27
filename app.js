@@ -335,7 +335,7 @@ const EXERCISE_MODULE_BASES = (() => {
     const fallback = (() => {
       if (typeof document !== 'undefined' && document.baseURI) {
         try {
-          return new URL('assets/Lessions/exercises/', document.baseURI).href;
+          return new URL('./assets/Lessons/exercises/', document.baseURI).href;
         } catch (err) {
           // ignore and fall through
         }
@@ -343,13 +343,13 @@ const EXERCISE_MODULE_BASES = (() => {
 
       if (typeof window !== 'undefined' && window.location?.href) {
         try {
-          return new URL('assets/Lessions/exercises/', window.location.href).href;
+          return new URL('./assets/Lessons/exercises/', window.location.href).href;
         } catch (err) {
           // ignore and fall through
         }
       }
 
-      return 'assets/Lessions/exercises/';
+      return './assets/Lessons/exercises/';
     })();
 
     bases.push(fallback);
