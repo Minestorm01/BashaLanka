@@ -1,6 +1,6 @@
 import {
   ensureStylesheet,
-  loadConfig,
+  loadConfig as loadLegacyConfig,
   normaliseAnswer,
   normaliseText,
   createAnswerLookup,
@@ -10,13 +10,313 @@ import {
   setStatusMessage,
   createChoiceButton,
   formatBadge,
+  shuffle,
 } from '../_shared/utils.js';
+
+const LESSON_MANIFEST_URL = new URL('../../lesson.manifest.json', import.meta.url);
+
+const manifestCache = {
+  data: null,
+  promise: null,
+};
+
+function padNumber(value) {
+  const number = Number(value);
+  if (!Number.isFinite(number) || number <= 0) {
+    return '';
+  }
+  return String(number).padStart(2, '0');
+}
+
+function normaliseKey(value) {
+  return normaliseText(value).toLowerCase();
+}
+
+function parseInlineObject(text) {
+  if (!text) {
+    return null;
+  }
+
+  let content = text.trim();
+
+  if (content.startsWith('{') && content.endsWith('}')) {
+    content = content.slice(1, -1);
+  }
+
+  const normalised = content.replace(/\s*\n\s*/g, ' ');
+  const entry = {};
+  const pattern = /([A-Za-z0-9_-]+)\s*:\s*(?:"([^"]*)"|'([^']*)'|([^,}]+))/g;
+  let match = pattern.exec(normalised);
+  while (match) {
+    const key = match[1];
+    const value = match[2] ?? match[3] ?? match[4] ?? '';
+    entry[key] = normaliseText(value);
+    match = pattern.exec(normalised);
+  }
+
+  return Object.keys(entry).length ? entry : null;
+}
+
+function extractVocabEntries(markdown) {
+  if (typeof markdown !== 'string') {
+    return [];
+  }
+
+  const match = markdown.match(/^\s*vocab:\s*([\s\S]*?)(?:\n[A-Za-z0-9_-]+\s*:|\n{2,}(?=\S)|$)/m);
+  if (!match) {
+    return [];
+  }
+
+  const block = match[1] || '';
+  const lines = block.split(/\r?\n/);
+  const segments = [];
+  let buffer = '';
+
+  lines.forEach((line) => {
+    const trimmed = line.trim();
+    if (!trimmed) {
+      if (buffer) {
+        segments.push(buffer);
+        buffer = '';
+      }
+      return;
+    }
+
+    if (/^-\s+/.test(trimmed)) {
+      if (buffer) {
+        segments.push(buffer);
+      }
+      buffer = trimmed.replace(/^-\s+/, '');
+    } else if (buffer) {
+      buffer += ` ${trimmed}`;
+    }
+  });
+
+  if (buffer) {
+    segments.push(buffer);
+  }
+
+  return segments
+    .map(parseInlineObject)
+    .filter((entry) => entry && (entry.si || entry.en));
+}
+
+function parseUnitNumber(value) {
+  const match = typeof value === 'string' ? value.match(/u(\d+)/i) : null;
+  if (!match) return null;
+  return Number.parseInt(match[1], 10);
+}
+
+function parseSectionNumber(value) {
+  const match = typeof value === 'string' ? value.match(/section-(\d+)/i) : null;
+  if (!match) return null;
+  return Number.parseInt(match[1], 10);
+}
+
+async function loadLessonManifest() {
+  if (manifestCache.data) {
+    return manifestCache.data;
+  }
+
+  if (!manifestCache.promise) {
+    manifestCache.promise = fetch(LESSON_MANIFEST_URL, { cache: 'no-cache' })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error('Failed to load lesson manifest.');
+        }
+        return response.json();
+      })
+      .then((data) => {
+        manifestCache.data = data;
+        return data;
+      })
+      .finally(() => {
+        manifestCache.promise = null;
+      });
+  }
+
+  return manifestCache.promise;
+}
+
+function narrowCandidates(candidates, predicate) {
+  if (!Array.isArray(candidates) || !candidates.length) {
+    return [];
+  }
+  const filtered = candidates.filter(predicate);
+  return filtered.length ? filtered : candidates;
+}
+
+function resolveManifestEntry(manifest, context = {}) {
+  const lessons = Array.isArray(manifest?.lessons) ? manifest.lessons : [];
+  if (!lessons.length) {
+    return null;
+  }
+
+  const meta = context.meta || {};
+  const detail = context.detail || {};
+
+  const lessonIdCandidates = [detail.id, detail.lessonId, meta.lessonId]
+    .map((value) => (value ? value.toString().toLowerCase() : ''))
+    .filter(Boolean);
+
+  let candidates = lessons.slice();
+
+  if (lessonIdCandidates.length) {
+    candidates = narrowCandidates(candidates, (entry) =>
+      lessonIdCandidates.includes((entry.lessonId || '').toString().toLowerCase()),
+    );
+  }
+
+  const sectionNumber = meta.sectionNumber || parseSectionNumber(detail.sectionId);
+  if (sectionNumber) {
+    const sectionPrefix = `section-${padNumber(sectionNumber)}`;
+    candidates = narrowCandidates(candidates, (entry) =>
+      normaliseText(entry.sectionId).startsWith(sectionPrefix),
+    );
+  }
+
+  const unitNumber = meta.unitNumber || parseUnitNumber(meta.unitId) || parseUnitNumber(detail.unitId);
+  if (unitNumber) {
+    const unitPrefix = `unit-${padNumber(unitNumber)}`;
+    candidates = narrowCandidates(candidates, (entry) =>
+      normaliseText(entry.unitId).startsWith(unitPrefix),
+    );
+  }
+
+  const lessonTitleCandidates = [detail.title, meta.lessonTitle]
+    .map((value) => normaliseKey(value))
+    .filter(Boolean);
+
+  if (lessonTitleCandidates.length) {
+    candidates = narrowCandidates(candidates, (entry) =>
+      lessonTitleCandidates.includes(normaliseKey(entry.lessonTitle)),
+    );
+  }
+
+  return candidates[0] || null;
+}
+
+async function fetchLessonVocab() {
+  if (typeof window === 'undefined') {
+    throw new Error('TranslateToBase requires a browser environment.');
+  }
+
+  const global = window.BashaLanka || {};
+  const context = global.currentLesson || null;
+
+  if (!context) {
+    throw new Error('Lesson context unavailable for TranslateToBase exercise.');
+  }
+
+  const manifest = await loadLessonManifest();
+  const manifestEntry = resolveManifestEntry(manifest, context);
+
+  if (!manifestEntry || !manifestEntry.path) {
+    throw new Error('Unable to resolve lesson markdown path for TranslateToBase exercise.');
+  }
+
+  const url = new URL(manifestEntry.path, LESSON_MANIFEST_URL);
+  const response = await fetch(url, { cache: 'no-cache' });
+  if (!response.ok) {
+    throw new Error(`Failed to load lesson markdown: ${manifestEntry.path}`);
+  }
+
+  const markdown = await response.text();
+  const vocab = extractVocabEntries(markdown);
+
+  if (!vocab.length) {
+    throw new Error('Lesson markdown is missing vocab entries for TranslateToBase exercise.');
+  }
+
+  return vocab;
+}
+
+export function pickRandomVocab(vocabEntries) {
+  const items = Array.isArray(vocabEntries)
+    ? vocabEntries.filter((entry) => entry && entry.si && entry.en)
+    : [];
+
+  if (!items.length) {
+    return null;
+  }
+
+  const index = Math.floor(Math.random() * items.length);
+  return items[index];
+}
+
+export function buildTranslateToBaseConfig(vocabEntries) {
+  const items = Array.isArray(vocabEntries)
+    ? vocabEntries.filter((entry) => entry && entry.si && entry.en)
+    : [];
+
+  if (!items.length) {
+    throw new Error('TranslateToBase requires at least one vocab entry.');
+  }
+
+  const selected = pickRandomVocab(items);
+  if (!selected) {
+    throw new Error('Failed to select a vocab entry for TranslateToBase.');
+  }
+
+  const prompt = normaliseText(selected.si) || selected.si;
+  const transliteration = normaliseText(selected.translit || selected.transliteration);
+  const correctEnglish = normaliseText(selected.en);
+
+  const choiceMap = new Map();
+  items.forEach((entry) => {
+    const label = normaliseText(entry.en);
+    if (!label) return;
+    const key = label.toLowerCase();
+    if (!choiceMap.has(key)) {
+      choiceMap.set(key, {
+        label,
+        value: label,
+        isCorrect: entry === selected,
+      });
+    } else if (entry === selected) {
+      const existing = choiceMap.get(key);
+      existing.isCorrect = true;
+    }
+  });
+
+  const choices = shuffle(Array.from(choiceMap.values()));
+
+  return {
+    prompt,
+    transliteration,
+    instructions: 'Select the English meaning that matches the Sinhala word.',
+    successMessage: transliteration
+      ? `Correct! '${prompt}' (${transliteration}) means '${correctEnglish}'.`
+      : `Correct! '${prompt}' means '${correctEnglish}'.`,
+    errorMessage: `Not quite. '${prompt}' = '${correctEnglish}'. Try again.`,
+    choices,
+    answers: [correctEnglish],
+  };
+}
+
+async function loadConfig(options = {}) {
+  const configOverride = options?.config;
+
+  if (configOverride && typeof configOverride === 'object') {
+    return configOverride;
+  }
+
+  if (typeof configOverride === 'string' && configOverride.trim()) {
+    return loadLegacyConfig({
+      config: configOverride,
+      baseUrl: import.meta.url,
+    });
+  }
+
+  const vocab = await fetchLessonVocab();
+  return buildTranslateToBaseConfig(vocab);
+}
 
 const DEFAULT_CONTAINER_SELECTOR = '[data-exercise="translate-to-base"]';
 const STYLESHEET_ID = 'translate-to-base-styles';
 
 function buildLayout(config) {
- const wrapper = document.createElement('section');
+  const wrapper = document.createElement('section');
   wrapper.className = 'translate-to-base';
 
   const surface = document.createElement('div');

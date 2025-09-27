@@ -638,7 +638,7 @@ const LessonSimulator = (() => {
         simulationState.stageEl.innerHTML = `<p class="lesson-simulator__error">We couldn’t load ${label}. You can skip it.</p>`;
       }
       if(simulationState.statusEl){
-        simulationState.statusEl.textContent = 'The exercise encountered an error.';
+      simulationState.statusEl.textContent = 'The exercise encountered an error.';
       }
       setNextAction({ label: 'Skip exercise', callback: () => runExercise(index + 1) });
     }
@@ -662,6 +662,14 @@ const LessonSimulator = (() => {
     const exercises = Array.isArray(config.selectedExercises)
       ? config.selectedExercises.map(String).filter(Boolean)
       : [];
+
+    if(typeof window !== 'undefined'){
+      window.BashaLanka = window.BashaLanka || {};
+      window.BashaLanka.currentLesson = {
+        meta: config.lessonMeta || null,
+        detail: config.lessonDetail || null
+      };
+    }
 
     simulationState = {
       config,
@@ -1025,6 +1033,7 @@ const DebugTools = (() => {
           unitTitle,
           lessonNumberText: counter,
           lessonDetail,
+          lessonMeta: meta,
           selectedExercises: exercises,
           trigger: simulatorState.startButton
         });
@@ -1036,6 +1045,7 @@ const DebugTools = (() => {
             unitTitle: meta.unitTitle,
             lessonNumberText: fallbackCounter,
             lessonDetail,
+            lessonMeta: meta,
             selectedExercises: exercises,
             trigger: simulatorState.startButton
           });
@@ -1055,6 +1065,7 @@ const DebugTools = (() => {
         unitTitle: meta.unitTitle,
         lessonNumberText: fallbackCounter,
         lessonDetail,
+        lessonMeta: meta,
         selectedExercises: exercises,
         trigger: simulatorState.startButton
       });
