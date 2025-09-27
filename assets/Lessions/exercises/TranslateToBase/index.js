@@ -165,7 +165,20 @@ async function loadLessonSource(lessonPath) {
     throw new Error(`Invalid lesson path provided: ${lessonPath}`);
   }
 
-  const url = new URL(normalisedPath, LESSON_MANIFEST_URL);
+  if (typeof console !== 'undefined' && console.log) {
+    console.log('🔎 loadLessonSource trying:', lessonPath);
+    console.log('Normalised lesson path:', normalisedPath);
+  }
+
+  const baseUrl =
+    typeof window !== 'undefined' && window.location?.origin
+      ? window.location.origin
+      : LESSON_MANIFEST_URL;
+  const url = new URL(normalisedPath, baseUrl);
+
+  if (typeof console !== 'undefined' && console.log) {
+    console.log('Resolved lesson markdown URL:', url.toString());
+  }
   const response = await fetch(url, { cache: 'no-cache' });
 
   if (!response.ok) {
@@ -248,6 +261,10 @@ async function fetchLessonVocab() {
   const global = window.BashaLanka || {};
   const context = global.currentLesson || null;
   const detail = context?.detail || null;
+
+  if (typeof console !== 'undefined' && console.log) {
+    console.log('TranslateToBase detail at fetch time:', detail);
+  }
 
   if (!context) {
     throw new Error('Lesson context unavailable for TranslateToBase exercise.');
