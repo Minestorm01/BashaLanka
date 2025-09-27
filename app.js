@@ -379,7 +379,7 @@ const LESSON_SIMULATOR_EXERCISES = [
     id: 'translate-to-base',
     label: 'Translate to English',
     description: 'Translate Sinhala sentences back into English.',
-    loader: () => loadExerciseModule('assets/Lessions/exercises/TranslateToBase/index.js')
+    loader: () => loadExerciseModule('TranslateToBase/index.js')
   },
   {
     id: 'picture-choice',
