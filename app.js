@@ -270,11 +270,43 @@ const EXERCISE_MODULE_BASES = (() => {
   const bases = [];
   const seen = new Set();
 
+  const ensureTrailingSlash = (value) => {
+    if (!value) return '';
+    return value.endsWith('/') ? value : `${value}/`;
+  };
+
+  const determineRepoBasePath = () => {
+    if (typeof window === 'undefined' || !window.location) {
+      return './';
+    }
+
+    const { hostname = '', protocol = '' } = window.location;
+    const lowerHost = hostname.toLowerCase();
+
+    if (lowerHost.includes('github.io')) {
+      return '/BashaLanka/';
+    }
+
+    if (protocol === 'file:') {
+      return './';
+    }
+
+    return '/';
+  };
+
+  const repoBasePath = determineRepoBasePath();
+  const repoBaseWithSlash =
+    repoBasePath === './' ? './' : ensureTrailingSlash(repoBasePath || '/');
+  const exerciseAssetsBasePath =
+    repoBaseWithSlash === './'
+      ? './assets/Lessons/exercises/'
+      : `${repoBaseWithSlash}assets/Lessons/exercises/`;
+
   const addCandidate = (candidate) => {
     if (!candidate) return;
 
     try {
-      const resolved = new URL('./assets/Lessons/exercises/', candidate).href;
+      const resolved = new URL(exerciseAssetsBasePath, candidate).href;
       if (!seen.has(resolved)) {
         seen.add(resolved);
         bases.push(resolved);
@@ -335,7 +367,7 @@ const EXERCISE_MODULE_BASES = (() => {
     const fallback = (() => {
       if (typeof document !== 'undefined' && document.baseURI) {
         try {
-          return new URL('./assets/Lessons/exercises/', document.baseURI).href;
+          return new URL(exerciseAssetsBasePath, document.baseURI).href;
         } catch (err) {
           // ignore and fall through
         }
@@ -343,16 +375,20 @@ const EXERCISE_MODULE_BASES = (() => {
 
       if (typeof window !== 'undefined' && window.location?.href) {
         try {
-          return new URL('./assets/Lessons/exercises/', window.location.href).href;
+          return new URL(exerciseAssetsBasePath, window.location.href).href;
         } catch (err) {
           // ignore and fall through
         }
       }
 
-      return './assets/Lessons/exercises/';
+      return exerciseAssetsBasePath;
     })();
 
     bases.push(fallback);
+  }
+
+  if (typeof console !== 'undefined' && typeof console.log === 'function') {
+    console.log('📦 Exercise module base URLs:', bases);
   }
 
   return bases;

@@ -8,6 +8,73 @@ const DEFAULT_FETCH_OPTIONS = {
 const ABSOLUTE_URL_PATTERN = /^[a-z][a-z0-9+.-]*:/i;
 const PROTOCOL_RELATIVE_PATTERN = /^\/\//;
 
+function normaliseRepoNameSegment(repoName) {
+  if (!repoName) {
+    return '';
+  }
+
+  return String(repoName)
+    .trim()
+    .replace(/^\/+/, '')
+    .replace(/\/+$/, '');
+}
+
+export function resolveRepoBasePath(options = {}) {
+  const { repoName = 'BashaLanka' } = options;
+
+  if (typeof window === 'undefined' || !window.location) {
+    return './';
+  }
+
+  const { hostname = '', protocol = '' } = window.location;
+  const lowerHost = hostname.toLowerCase();
+
+  if (lowerHost.includes('github.io')) {
+    const segment = normaliseRepoNameSegment(repoName);
+    return segment ? `/${segment}/` : '/';
+  }
+
+  if (
+    protocol === 'file:' ||
+    lowerHost === 'localhost' ||
+    lowerHost === '127.0.0.1' ||
+    lowerHost === '::1' ||
+    lowerHost === '[::1]'
+  ) {
+    return './';
+  }
+
+  return '/';
+}
+
+export function resolveLessonAssetPath(path, options = {}) {
+  const { repoName = 'BashaLanka' } = options;
+
+  if (typeof path !== 'string') {
+    return path;
+  }
+
+  const trimmed = path.trim();
+
+  if (!trimmed) {
+    return trimmed;
+  }
+
+  if (ABSOLUTE_URL_PATTERN.test(trimmed) || PROTOCOL_RELATIVE_PATTERN.test(trimmed)) {
+    return trimmed;
+  }
+
+  const cleaned = trimmed.replace(/^\.?\/+/, '');
+  const repoBasePath = resolveRepoBasePath({ repoName });
+
+  if (repoBasePath === './') {
+    return `./${cleaned}`;
+  }
+
+  const baseWithSlash = repoBasePath.endsWith('/') ? repoBasePath : `${repoBasePath}/`;
+  return `${baseWithSlash}${cleaned}`;
+}
+
 export function normaliseText(value) {
   if (value === null || value === undefined) {
     return '';

@@ -11,6 +11,7 @@ import {
   createChoiceButton,
   formatBadge,
   shuffle,
+  resolveLessonAssetPath,
 } from '../_shared/utils.js';
 
 const LESSON_MANIFEST_URL = new URL('../../lesson.manifest.json', import.meta.url);
@@ -191,10 +192,12 @@ async function loadLessonSource(lessonPath) {
   }
 
   const baseUrl = resolveLessonBaseUrl();
-  const url = new URL(normalisedPath, baseUrl);
+  const lessonAssetPath = resolveLessonAssetPath(normalisedPath);
+  const url = new URL(lessonAssetPath, baseUrl);
 
   if (typeof console !== 'undefined' && console.log) {
-    console.log('Resolved lesson markdown URL:', url.toString());
+    console.log('Lesson asset path for fetch:', lessonAssetPath);
+    console.log('📘 Lesson markdown URL:', url.toString());
   }
   const response = await fetch(url, { cache: 'no-cache' });
 
