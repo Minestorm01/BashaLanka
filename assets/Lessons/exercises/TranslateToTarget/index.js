@@ -293,6 +293,14 @@ function buildLayout(config, options = {}) {
   prompt.textContent = config.prompt;
   header.appendChild(prompt);
 
+  if (showTransliteration && config.transliteration) {
+    const transliteration = document.createElement('p');
+    transliteration.className = 'translate-to-target__transliteration';
+    transliteration.textContent = config.transliteration;
+    transliteration.lang = 'si-Latn';
+    header.appendChild(transliteration);
+  }
+
   const choicesContainer = document.createElement('div');
   choicesContainer.className = 'translate-to-target__choices';
   surface.appendChild(choicesContainer);
