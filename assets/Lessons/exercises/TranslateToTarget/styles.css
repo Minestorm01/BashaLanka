@@ -53,6 +53,12 @@
   letter-spacing: 0.015em;
 }
 
+.translate-to-target__transliteration {
+  margin: 0;
+  font-size: clamp(1rem, 3.2vw, 1.15rem);
+  color: var(--exercise-muted);
+}
+
 .translate-to-target__source {
   margin: 0;
   font-size: clamp(1.15rem, 3vw, 1.35rem);

@@ -1,18 +1,240 @@
 import {
   ensureStylesheet,
-  loadConfig,
   normaliseAnswer,
   normaliseText,
-  createAnswerLookup,
-  addAnswerToLookup,
-  answerLookupHas,
-  normaliseChoiceItem,
   setStatusMessage,
   createChoiceButton,
+  shuffle,
+  formatBadge,
+  resolveLessonAssetPath,
 } from '../_shared/utils.js';
 
 const DEFAULT_CONTAINER_SELECTOR = '[data-exercise="translate-to-target"]';
 const STYLESHEET_ID = 'translate-to-target-styles';
+const LESSON_MANIFEST_URL = new URL('../../lesson.manifest.json', import.meta.url);
+
+function resolveLessonBaseUrl() {
+  if (typeof window !== 'undefined' && window.location?.href) {
+    try {
+      return new URL('.', window.location.href);
+    } catch (error) {
+      if (typeof console !== 'undefined' && console.warn) {
+        console.warn('Unable to resolve base URL from window.location.href', error);
+      }
+    }
+  }
+
+  return new URL('.', LESSON_MANIFEST_URL);
+}
+
+function normaliseLessonPath(lessonPath) {
+  if (typeof lessonPath !== 'string') {
+    return '';
+  }
+
+  const trimmed = lessonPath.trim();
+  if (!trimmed) {
+    return '';
+  }
+
+  if (/^https?:/i.test(trimmed) || trimmed.startsWith('//')) {
+    return trimmed;
+  }
+
+  const withoutLeadingDot = trimmed.replace(/^\.\/+/, '');
+  if (!withoutLeadingDot) {
+    return '';
+  }
+
+  return withoutLeadingDot.replace(/^\/+/, '');
+}
+
+function parseInlineObject(text) {
+  if (!text) {
+    return null;
+  }
+
+  let content = text.trim();
+
+  if (content.startsWith('{') && content.endsWith('}')) {
+    content = content.slice(1, -1);
+  }
+
+  const normalised = content.replace(/\s*\n\s*/g, ' ');
+  const entry = {};
+  const pattern = /([A-Za-z0-9_-]+)\s*:\s*(?:"([^"]*)"|'([^']*)'|([^,}]+))/g;
+  let match = pattern.exec(normalised);
+  while (match) {
+    const key = match[1];
+    const value = match[2] ?? match[3] ?? match[4] ?? '';
+    entry[key] = normaliseText(value);
+    match = pattern.exec(normalised);
+  }
+
+  return Object.keys(entry).length ? entry : null;
+}
+
+function extractVocabEntries(markdown) {
+  if (typeof markdown !== 'string') {
+    return [];
+  }
+
+  const match = markdown.match(/^\s*vocab:\s*([\s\S]*?)(?:\n[A-Za-z0-9_-]+\s*:|\n{2,}(?=\S)|$)/m);
+  if (!match) {
+    return [];
+  }
+
+  const block = match[1] || '';
+  const lines = block.split(/\r?\n/);
+  const segments = [];
+  let buffer = '';
+
+  lines.forEach((line) => {
+    const trimmed = line.trim();
+    if (!trimmed) {
+      if (buffer) {
+        segments.push(buffer);
+        buffer = '';
+      }
+      return;
+    }
+
+    if (/^-\s+/.test(trimmed)) {
+      if (buffer) {
+        segments.push(buffer);
+      }
+      buffer = trimmed.replace(/^-\s+/, '');
+    } else if (buffer) {
+      buffer += ` ${trimmed}`;
+    }
+  });
+
+  if (buffer) {
+    segments.push(buffer);
+  }
+
+  return segments
+    .map(parseInlineObject)
+    .filter((entry) => entry && (entry.si || entry.en));
+}
+
+async function loadLessonSource(lessonPath) {
+  if (!lessonPath || typeof lessonPath !== 'string') {
+    throw new Error('Lesson path is required to load lesson source.');
+  }
+
+  const normalisedPath = normaliseLessonPath(lessonPath);
+  if (!normalisedPath) {
+    throw new Error(`Invalid lesson path provided: ${lessonPath}`);
+  }
+
+  const baseUrl = resolveLessonBaseUrl();
+  const lessonAssetPath = resolveLessonAssetPath(normalisedPath);
+  const url = new URL(lessonAssetPath, baseUrl);
+
+  const response = await fetch(url, { cache: 'no-cache' });
+  if (!response.ok) {
+    throw new Error(`Failed to load lesson markdown: ${lessonPath}`);
+  }
+
+  const markdown = await response.text();
+  const vocab = extractVocabEntries(markdown);
+
+  return {
+    path: normalisedPath,
+    markdown,
+    vocab,
+  };
+}
+
+function normaliseVocabEntry(entry) {
+  if (!entry || typeof entry !== 'object') {
+    return null;
+  }
+
+  const si = normaliseText(entry.si) || entry.si;
+  const en = normaliseText(entry.en) || entry.en;
+
+  if (!si || !en) {
+    return null;
+  }
+
+  const transliteration = normaliseText(entry.translit || entry.transliteration);
+
+  return {
+    ...entry,
+    si,
+    en,
+    translit: transliteration,
+    transliteration: transliteration || entry.transliteration,
+  };
+}
+
+function pickRandomEntry(entries) {
+  if (!Array.isArray(entries) || !entries.length) {
+    return null;
+  }
+  const index = Math.floor(Math.random() * entries.length);
+  return entries[index] || null;
+}
+
+export function buildTranslateToTargetConfig(vocabEntries) {
+  const items = Array.isArray(vocabEntries) ? vocabEntries.map(normaliseVocabEntry).filter(Boolean) : [];
+
+  if (!items.length) {
+    throw new Error('TranslateToTarget requires at least one vocab entry.');
+  }
+
+  const sinhalaMap = new Map();
+  items.forEach((entry) => {
+    const label = normaliseText(entry.si);
+    if (!label) return;
+
+    const key = label.toLowerCase();
+    if (!sinhalaMap.has(key) || entry.priority) {
+      sinhalaMap.set(key, entry);
+    }
+  });
+
+  const uniqueEntries = Array.from(sinhalaMap.values());
+  if (uniqueEntries.length < 4) {
+    throw new Error('TranslateToTarget requires at least four distinct vocab entries.');
+  }
+
+  const selected = pickRandomEntry(uniqueEntries);
+  if (!selected) {
+    throw new Error('Failed to select a vocab entry for TranslateToTarget.');
+  }
+
+  const distractorPool = uniqueEntries.filter((entry) => entry !== selected);
+  const distractors = shuffle(distractorPool).slice(0, 3);
+
+  const prompt = normaliseText(selected.en) || selected.en;
+  const correctSinhala = normaliseText(selected.si) || selected.si;
+  const transliteration = normaliseText(selected.translit || selected.transliteration);
+
+  const choices = shuffle([selected, ...distractors]).map((entry) => {
+    const label = normaliseText(entry.si) || entry.si;
+    return {
+      label,
+      value: label,
+      isCorrect: entry === selected,
+    };
+  });
+
+  return {
+    badge: 'TRANSLATE',
+    prompt,
+    transliteration,
+    instructions: 'Select the Sinhala translation that matches the English word.',
+    successMessage: transliteration
+      ? `Correct! '${prompt}' = '${correctSinhala}' (${transliteration}).`
+      : `Correct! '${prompt}' = '${correctSinhala}'.`,
+    errorMessage: `Not quite. '${prompt}' = '${correctSinhala}'. Try again.`,
+    choices,
+    answers: [correctSinhala],
+  };
+}
 
 function buildLayout(config) {
   const wrapper = document.createElement('section');
@@ -28,7 +250,7 @@ function buildLayout(config) {
 
   const badge = document.createElement('span');
   badge.className = 'translate-to-target__badge';
-  badge.textContent = config.badge || 'TRANSLATE';
+  badge.textContent = formatBadge(config.badge || 'TRANSLATE');
   header.appendChild(badge);
 
   const prompt = document.createElement('h2');
@@ -36,14 +258,16 @@ function buildLayout(config) {
   prompt.textContent = config.prompt;
   header.appendChild(prompt);
 
-  const source = document.createElement('p');
-  source.className = 'translate-to-target__source';
-  source.textContent = config.source;
-  surface.appendChild(source);
+  if (config.transliteration) {
+    const transliteration = document.createElement('p');
+    transliteration.className = 'translate-to-target__transliteration';
+    transliteration.textContent = config.transliteration;
+    header.appendChild(transliteration);
+  }
 
-  const answerGroup = document.createElement('div');
-  answerGroup.className = 'translate-to-target__answer';
-  surface.appendChild(answerGroup);
+  const choicesContainer = document.createElement('div');
+  choicesContainer.className = 'translate-to-target__choices';
+  surface.appendChild(choicesContainer);
 
   const feedback = document.createElement('p');
   feedback.className = 'translate-to-target__feedback';
@@ -51,99 +275,43 @@ function buildLayout(config) {
   feedback.setAttribute('aria-live', 'polite');
   surface.appendChild(feedback);
 
-  const footer = document.createElement('footer');
-  footer.className = 'translate-to-target__footer';
-  surface.appendChild(footer);
-
   const instructions = document.createElement('p');
   instructions.className = 'translate-to-target__instructions';
   instructions.textContent = config.instructions;
-  footer.appendChild(instructions);
+  surface.appendChild(instructions);
 
   return {
     wrapper,
-    answerGroup,
+    choicesContainer,
     feedback,
   };
 }
 
-function renderMultipleChoice(state, config) {
-  const { answerGroup } = state;
-  answerGroup.innerHTML = '';
-  answerGroup.classList.add('translate-to-target__choices');
+async function fetchLessonVocab() {
+  if (typeof window === 'undefined') {
+    throw new Error('TranslateToTarget requires a browser environment.');
+  }
 
-  const answers = new Set(config.answers.map(normaliseAnswer));
+  const context = window.BashaLanka?.currentLesson || {};
+  const detail = context.detail || {};
 
-  const buttons = config.choices.map((choice) =>
-    createChoiceButton({
-      label: choice.label,
-      value: choice.value || choice.label,
-      className: 'translate-to-target__choice',
-      onClick: (value, button) => {
-        if (state.completed) return;
-        const normalised = normaliseAnswer(value);
-        if (answers.has(normalised)) {
-          state.completed = true;
-          setStatusMessage(state.feedback, config.successMessage, 'success');
-          button.classList.add('translate-to-target__choice--correct');
-          state.buttons.forEach((btn) => {
-            if (btn !== button) {
-              btn.disabled = true;
-              btn.classList.add('translate-to-target__choice--disabled');
-            }
-          });
-          if (typeof state.onComplete === 'function') {
-            state.onComplete({ value, mode: 'choice' });
-          }
-        } else {
-          button.classList.add('translate-to-target__choice--incorrect');
-          setStatusMessage(state.feedback, config.errorMessage, 'error');
-        }
-      },
-    })
-  );
-
-  buttons.forEach((button) => answerGroup.appendChild(button));
-  state.buttons = buttons;
-}
-
-function renderTyping(state, config) {
-  const { answerGroup } = state;
-  answerGroup.innerHTML = '';
-  answerGroup.classList.remove('translate-to-target__choices');
-
-  const input = document.createElement('textarea');
-  input.className = 'translate-to-target__input';
-  input.rows = 3;
-  input.placeholder = config.placeholder || 'Type your translation';
-  answerGroup.appendChild(input);
-
-  const submit = document.createElement('button');
-  submit.type = 'button';
-  submit.className = 'translate-to-target__submit';
-  submit.textContent = config.submitLabel || 'Check';
-  answerGroup.appendChild(submit);
-
-  submit.addEventListener('click', () => {
-    if (state.completed) return;
-    const value = input.value;
-    const normalised = normaliseAnswer(value);
-    const answers = config.answers.map(normaliseAnswer);
-    if (answers.includes(normalised)) {
-      state.completed = true;
-      input.disabled = true;
-      submit.disabled = true;
-      setStatusMessage(state.feedback, config.successMessage, 'success');
-      if (typeof state.onComplete === 'function') {
-        state.onComplete({ value, mode: 'typing' });
-      }
-    } else {
-      setStatusMessage(state.feedback, config.errorMessage, 'error');
+  const detailVocab = Array.isArray(detail.vocab) ? detail.vocab.map(normaliseVocabEntry).filter(Boolean) : [];
+  if (detailVocab.length >= 4) {
+    const uniqueSinhala = new Set(detailVocab.map((entry) => normaliseText(entry.si).toLowerCase()).filter(Boolean));
+    if (uniqueSinhala.size >= 4) {
+      return detailVocab;
     }
-  });
+  }
 
-  state.input = input;
-  state.submit = submit;
+  if (detail.lessonPath) {
+    const lesson = await loadLessonSource(detail.lessonPath);
+    if (!Array.isArray(lesson.vocab) || !lesson.vocab.length) {
+      throw new Error('Lesson markdown is missing vocab entries for TranslateToTarget exercise.');
+    }
+    return lesson.vocab.map(normaliseVocabEntry).filter(Boolean);
+  }
+
+  throw new Error('Lesson vocab unavailable for TranslateToTarget exercise.');
 }
 
 export async function initTranslateToTargetExercise(options = {}) {
@@ -151,120 +319,59 @@ export async function initTranslateToTargetExercise(options = {}) {
     throw new Error('TranslateToTarget requires a browser environment.');
   }
 
-  const {
-    target = document.querySelector(DEFAULT_CONTAINER_SELECTOR),
-    config: configOverride,
-    onComplete,
-  } = options;
+  const { target = document.querySelector(DEFAULT_CONTAINER_SELECTOR), onComplete } = options;
 
   if (!target) {
     throw new Error('TranslateToTarget target element not found.');
   }
 
   ensureStylesheet(STYLESHEET_ID, './styles.css', { baseUrl: import.meta.url });
-  const rawConfig = await loadConfig({ config: configOverride, baseUrl: import.meta.url });
-  const config = prepareConfig(rawConfig);
-  const { wrapper, answerGroup, feedback } = buildLayout(config);
+
+  const vocab = await fetchLessonVocab();
+  const config = buildTranslateToTargetConfig(vocab);
+  const { wrapper, choicesContainer, feedback } = buildLayout(config);
+
   target.innerHTML = '';
   target.appendChild(wrapper);
 
-  const state = {
-    answerGroup,
-    feedback,
-    onComplete,
-    completed: false,
-    buttons: [],
-  };
+  const answers = new Set(config.answers.map(normaliseAnswer));
+  const state = { completed: false };
 
-  if (config.mode === 'multiple-choice') {
-    renderMultipleChoice(state, config);
-  } else {
-    renderTyping(state, config);
-  }
-
-  setStatusMessage(feedback, config.initialMessage || '', 'neutral');
-
-  return state;
-}
-
-function prepareConfig(rawConfig) {
-  if (!rawConfig || typeof rawConfig !== 'object') {
-    throw new Error('TranslateToTarget config must be an object.');
-  }
-
-  const prompt = normaliseText(rawConfig.prompt);
-  const source = normaliseText(rawConfig.source);
-  if (!prompt || !source) {
-    throw new Error('TranslateToTarget config requires a prompt and source sentence.');
-  }
-
-  const badge = normaliseText(rawConfig.badge) || 'TRANSLATE';
-  const mode = normaliseText(rawConfig.mode).toLowerCase() === 'typing' ? 'typing' : 'multiple-choice';
-  const instructions = normaliseText(rawConfig.instructions) ||
-    (mode === 'typing' ? 'Type the translation.' : 'Select the matching translation.');
-  const successMessage = normaliseText(rawConfig.successMessage) || 'Correct! Nice work.';
-  const errorMessage = normaliseText(rawConfig.errorMessage) || 'Not quite, try again.';
-  const initialMessage = normaliseText(rawConfig.initialMessage);
-  const placeholder = normaliseText(rawConfig.placeholder) || 'Type your translation';
-  const submitLabel = normaliseText(rawConfig.submitLabel) || 'Check';
-
-  const answersLookup = createAnswerLookup(rawConfig.answers);
-
-  let choices = [];
-  if (mode === 'multiple-choice') {
-    const rawChoices = Array.isArray(rawConfig.choices) ? rawConfig.choices : [];
-    choices = rawChoices
-      .map((choice) =>
-        normaliseChoiceItem(choice, {
-          fallbackLabelKeys: ['si', 'en', 'text'],
-          fallbackValueKeys: ['si', 'value', 'label'],
-        })
-      )
-      .filter((choice) => choice && choice.label);
-
-    if (!choices.length) {
-      throw new Error('TranslateToTarget multiple-choice config requires at least one choice.');
-    }
-
-    choices.forEach((choice) => {
-      if (choice.isCorrect) {
-        addAnswerToLookup(answersLookup, choice.value || choice.label);
-      }
-    });
-  }
-
-  if (!answersLookup.size) {
-    throw new Error('TranslateToTarget config requires at least one correct answer.');
-  }
-
-  const preparedChoices = choices.map((choice) => {
-    const value = choice.value || choice.label;
-    const isCorrect =
-      choice.isCorrect ||
-      answerLookupHas(answersLookup, value) ||
-      answerLookupHas(answersLookup, choice.label);
-    return {
-      ...choice,
+  const buttons = config.choices.map((choice) =>
+    createChoiceButton({
       label: choice.label,
-      value,
-      isCorrect,
-    };
-  });
+      value: choice.value ?? choice.label,
+      className: 'translate-to-target__choice',
+      onClick: (value, button) => {
+        if (state.completed) return;
+        const normalised = normaliseAnswer(value);
+        if (answers.has(normalised)) {
+          state.completed = true;
+          setStatusMessage(feedback, config.successMessage, 'success');
+          button.classList.add('translate-to-target__choice--correct');
+          buttons.forEach((btn) => {
+            btn.disabled = true;
+            if (btn !== button) {
+              btn.classList.add('translate-to-target__choice--disabled');
+            }
+          });
+          if (typeof onComplete === 'function') {
+            onComplete({ value });
+          }
+        } else {
+          button.classList.add('translate-to-target__choice--incorrect');
+          setStatusMessage(feedback, config.errorMessage, 'error');
+        }
+      },
+    })
+  );
+
+  buttons.forEach((button) => choicesContainer.appendChild(button));
+  setStatusMessage(feedback, '', 'neutral');
 
   return {
-    ...rawConfig,
-    prompt,
-    source,
-    badge,
-    mode,
-    instructions,
-    successMessage,
-    errorMessage,
-    initialMessage,
-    placeholder,
-    submitLabel,
-    choices: preparedChoices,
-    answers: Array.from(answersLookup.values()),
+    buttons,
+    config,
   };
 }
 
