@@ -6,7 +6,9 @@
     ? window.__BASHA_RESOLVE_ASSET_PATH__
     : (value => value);
 
-  const SECTION_ROOT = 'assets/sections';
+  const SECTION_ROOT = resolveAsset('assets/Lessons/sections');
+  const SECTION_ROOT_RELATIVE = 'assets/Lessons/sections';
+  const COURSE_MAP_PATH = resolveAsset('assets/Lessons/course.map.json');
   const overviewSeedData = readOverviewSeedData();
   let sections = [];
   let loadingPromise = null;
@@ -139,7 +141,7 @@
     const { total, completed, unlocked } = lessonStats(lessons);
     const progress = total ? completed / total : 0;
     let status = unit.status || 'locked';
-        if(status !== 'locked' && completed >= total && total > 0){
+    if(status !== 'locked' && completed >= total && total > 0){
       status = 'completed';
     }else if(status === 'locked' && unlocked > 0){
       status = 'unlocked';
@@ -162,7 +164,7 @@
   function normalizeSection(section){
     const slug = section.id || `section-${section.number || ''}`;
     const number = section.number || parseInt((slug.match(/(\d+)/) || [])[1] || sections.length + 1, 10);
-    const baseMascot = section.mascot || `${SECTION_ROOT}/${slug}/mascot.svg`;
+    const baseMascot = section.mascot || `${SECTION_ROOT_RELATIVE}/${slug}/mascot.svg`;
     const mascot = resolveAsset(baseMascot);
     const units = (section.units || []).map((unit, index) => normalizeUnit(unit, index));
     const lessonsTotal = units.reduce((sum, unit) => sum + unit.lessonsTotal, 0);
@@ -192,23 +194,87 @@
     };
   }
 
+  async function loadCourseHierarchy(){
+    if(courseHierarchyState.ready) return courseHierarchyState;
+    if(courseHierarchyState.promise) return courseHierarchyState.promise;
+
+    const fetchUrl = COURSE_MAP_PATH;
+    console.log(`📘 Loading course hierarchy from ${fetchUrl}`);
+
+    const pending = (async () => {
+      const res = await fetch(fetchUrl);
+      if(!res.ok){
+        throw new Error(`Failed to fetch course map: ${res.status}`);
+      }
+
+      const data = await res.json();
+      const sectionList = Array.isArray(data.sections) ? data.sections : [];
+      courseHierarchyState.sections = sectionList;
+      courseHierarchyState.unitMap = courseHierarchyState.unitMap instanceof Map ? courseHierarchyState.unitMap : new Map();
+      courseHierarchyState.unitMap.clear();
+
+      sectionList.forEach(section => {
+        const slug = section && (section.id || section.slug || section.sectionId);
+        if(!slug) return;
+        const units = Array.isArray(section.units) ? section.units : [];
+        courseHierarchyState.unitMap.set(slug, units);
+      });
+
+      courseHierarchyState.ready = true;
+      return courseHierarchyState;
+    })()
+      .catch(err => {
+        courseHierarchyState.ready = false;
+        throw err;
+      })
+      .finally(() => {
+        courseHierarchyState.promise = null;
+      });
+
+    courseHierarchyState.promise = pending;
+    return pending;
+  }
+
+  function shouldLoadSection(section){
+    if(!section) return false;
+    const slug = section.id || section.slug || section.sectionId;
+    if(!slug) return false;
+    const status = typeof section.status === 'string' ? section.status.toLowerCase() : '';
+    const units = courseHierarchyState.unitMap.get(slug) || section.units || [];
+    const hasUnits = Array.isArray(units) && units.length > 0;
+    if(hasUnits) return true;
+    if(!status) return false;
+    return ['ready', 'published', 'live', 'available'].includes(status);
+  }
+
   async function loadSections(){
-        const found = [];
-    for(let index = 1; index <= 50; index += 1){
-      const slug = `section-${index}`;
-      const path = resolveAsset(`${SECTION_ROOT}/${slug}/units.json`);
-      try{
-        const res = await fetch(path);
-        if(!res.ok){
-          if(index === 1) console.warn(`No section data found at ${path}`);
-          break;
-}
-        const data = await res.json();
-        found.push(normalizeSection(data));
-      }catch(err){
-        console.error('Failed to load section data', slug, err);
-        break;
-       }
+    const found = [];
+    try{
+      const hierarchy = await loadCourseHierarchy();
+      const sectionList = Array.isArray(hierarchy.sections) ? hierarchy.sections : [];
+      for(const section of sectionList){
+        if(!shouldLoadSection(section)) continue;
+        const slug = section.id || section.slug || section.sectionId;
+        if(!slug) continue;
+        const path = resolveAsset(`${SECTION_ROOT_RELATIVE}/${slug}/units.json`);
+        console.log(`📘 Loading lesson from ${path}`);
+        try{
+          const res = await fetch(path);
+          if(!res.ok){
+            if(res.status === 404){
+              console.warn(`Skipping missing section data at ${path}`);
+              continue;
+            }
+            throw new Error(`Request failed with status ${res.status}`);
+          }
+          const data = await res.json();
+          found.push(normalizeSection(data));
+        }catch(err){
+          console.error('Failed to load section data', slug, err);
+        }
+      }
+    }catch(err){
+      console.error('Failed to load sections list', err);
     }
     return found.sort((a, b) => a.number - b.number);
   }

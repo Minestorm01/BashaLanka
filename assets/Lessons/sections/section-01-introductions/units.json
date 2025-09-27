@@ -1,0 +1,69 @@
+{
+  "id": "section-01-introductions",
+  "number": 1,
+  "title": "Introductions & Essentials",
+  "status": "unlocked",
+  "cta": "Start Section 1",
+  "description": "Kick off your Sinhala journey with essential introductions and everyday basics.",
+  "units": [
+    {
+      "id": "unit-01-pronouns-greetings",
+      "number": 1,
+      "title": "Pronouns & Basic Greetings",
+      "status": "unlocked",
+      "lessons": [
+        { "id": "lesson-01", "title": "Lesson 1", "status": "unlocked" },
+        { "id": "lesson-02", "title": "Lesson 2", "status": "locked" },
+        { "id": "lesson-03", "title": "Lesson 3", "status": "locked" }
+      ]
+    },
+    {
+      "id": "unit-02-introducing-yourself",
+      "number": 2,
+      "title": "Introducing Yourself",
+      "status": "locked",
+      "lessons": [
+        { "id": "lesson-01", "title": "Lesson 1", "status": "locked" },
+        { "id": "lesson-02", "title": "Lesson 2", "status": "locked" },
+        { "id": "lesson-03", "title": "Lesson 3", "status": "locked" },
+        { "id": "lesson-04", "title": "Lesson 4", "status": "locked" }
+      ]
+    },
+    {
+      "id": "unit-03-nationalities",
+      "number": 3,
+      "title": "Nationalities",
+      "status": "locked",
+      "lessons": [
+        { "id": "lesson-01", "title": "Lesson 1", "status": "locked" },
+        { "id": "lesson-02", "title": "Lesson 2", "status": "locked" },
+        { "id": "lesson-03", "title": "Lesson 3", "status": "locked" },
+        { "id": "lesson-04", "title": "Lesson 4", "status": "locked" }
+      ]
+    },
+    {
+      "id": "unit-04-age",
+      "number": 4,
+      "title": "Age & Numbers",
+      "status": "locked",
+      "lessons": [
+        { "id": "lesson-01", "title": "Lesson 1", "status": "locked" },
+        { "id": "lesson-02", "title": "Lesson 2", "status": "locked" },
+        { "id": "lesson-03", "title": "Lesson 3", "status": "locked" },
+        { "id": "lesson-04", "title": "Lesson 4", "status": "locked" }
+      ]
+    },
+    {
+      "id": "unit-05-languages",
+      "number": 5,
+      "title": "Languages You Speak",
+      "status": "locked",
+      "lessons": [
+        { "id": "lesson-01", "title": "Lesson 1", "status": "locked" },
+        { "id": "lesson-02", "title": "Lesson 2", "status": "locked" },
+        { "id": "lesson-03", "title": "Lesson 3", "status": "locked" },
+        { "id": "lesson-04", "title": "Lesson 4", "status": "locked" }
+      ]
+    }
+  ]
+}
