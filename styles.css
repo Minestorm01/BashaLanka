@@ -7,6 +7,30 @@
   font-display: swap;
 }
 
+@font-face {
+  font-family: "Feather";
+  src: url("./assets/font/Feather-Bold.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+   font-display: swap;
+}
+
+@font-face {
+  font-family: "DIN Next Rounded";
+  src: url("./assets/font/DINNextRounded-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "DIN Next Rounded";
+  src: url("./assets/font/DINNextRounded-Medium.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
 /* Font stacks (with reliable fallbacks) */
 :root {
   --font-heading: "Dolpino", "Feather", "DIN Next Rounded", ui-rounded, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
