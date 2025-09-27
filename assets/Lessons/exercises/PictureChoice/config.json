@@ -1,0 +1,29 @@
+{
+  "id": "picture-choice-1",
+  "prompt": "Which one is ‘බල්ලා’?",
+  "instructions": "Tap the picture that matches the Sinhala word.",
+  "choices": [
+    {
+      "label": "Dog",
+      "value": "dog",
+      "image": "/dog.svg",
+      "alt": "Illustration of a happy dog"
+    },
+    {
+      "label": "Cat",
+      "value": "cat",
+      "image": "/girl.svg",
+      "alt": "Illustration of a smiling girl"
+    },
+    {
+      "label": "Bird",
+      "value": "bird",
+      "image": "/robot.svg",
+      "alt": "Illustration of a friendly robot"
+    }
+  ],
+  "answers": ["dog"],
+  "successMessage": "Correct! ‘බල්ලා’ means dog.",
+  "errorMessage": "Try another picture.",
+  "initialMessage": "Look for the animal that matches the Sinhala word."
+}

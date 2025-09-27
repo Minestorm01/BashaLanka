@@ -1,0 +1,13 @@
+{
+  "id": "translate-to-target-1",
+  "mode": "multiple-choice",
+  "badge": "TRANSLATE",
+  "prompt": "Translate to Sinhala",
+  "source": "The girl drinks tea.",
+  "choices": ["ගැහැණු ළමයා තේ බොයි.", "ගැහැනු ළමයා කන්න යයි.", "බාලයා නින්ද යයි.", "අයියා පාඩම් කරයි."],
+  "answers": ["ගැහැණු ළමයා තේ බොයි."],
+  "instructions": "Tap the Sinhala translation that matches the English sentence.",
+  "successMessage": "Great! You chose the correct Sinhala translation.",
+  "errorMessage": "Not quite. Try another option.",
+  "initialMessage": "Focus on the verb and subject order when you translate."
+}
