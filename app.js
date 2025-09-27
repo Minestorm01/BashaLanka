@@ -596,6 +596,19 @@ const LessonSimulator = (() => {
     }
 
     try{
+      // Set global lesson context so exercises know which lesson data to use
+      window.BashaLanka = window.BashaLanka || {};
+      window.BashaLanka.currentLesson = {
+        meta,
+        detail: {
+          id: meta.lessonId,
+          title: meta.lessonTitle || meta.title,
+          sectionId: meta.sectionId,
+          unitId: meta.unitId,
+          lessonId: meta.lessonId
+        }
+      };
+
       const mod = await meta.loader();
       if(!simulationState || simulationState.activeToken !== token) return;
       const init = typeof mod?.default === 'function' ? mod.default : null;
