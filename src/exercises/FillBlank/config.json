@@ -1,0 +1,15 @@
+{
+  "id": "fill-blank-1",
+  "prompt": "Fill in the missing word",
+  "instructions": "Choose the word that best completes the sentence.",
+  "sentence": {
+    "before": "මම",
+    "after": "යමි"
+  },
+  "choices": ["පාසලට", "වතුර", "කිරි"],
+  "answers": ["පාසලට"],
+  "blankPlaceholder": "_____",
+  "successMessage": "Nice! The sentence means ‘I go to school’.",
+  "errorMessage": "Try another option.",
+  "initialMessage": "Remember Sinhala uses postpositions after nouns."
+}

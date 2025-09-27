@@ -1,0 +1,50 @@
+{
+  "id": "dialogue-1",
+  "prompt": "Practice a morning greeting",
+  "instructions": "Follow the conversation and choose the best reply.",
+  "initialMessage": "Respond in Sinhala to keep the dialogue flowing.",
+  "turnSuccessMessage": "Nice answer!",
+  "turnErrorMessage": "Try a different reply.",
+  "successMessage": "You completed the dialogue!",
+  "turns": [
+    {
+      "type": "statement",
+      "role": "tutor",
+      "speaker": "Friend",
+      "text": "සුභ උදෑසනක්!",
+      "delay": 300
+    },
+    {
+      "type": "choice",
+      "answers": ["සුභ උදෑසනක්"],
+      "options": [
+        { "label": "සුභ උදෑසනක්" },
+        { "label": "සුභ රාත්‍රියක්", "followUp": { "text": "අද උදේයි, නැවත උත්සාහ කරන්න!", "role": "tutor", "speaker": "Friend" } },
+        { "label": "ඔබට කොහොම ද?", "followUp": { "text": "උදේදී සාදරයෙන් සුභ පැතීම හොඳයි!", "role": "tutor", "speaker": "Friend" } }
+      ],
+      "delay": 400
+    },
+    {
+      "type": "statement",
+      "role": "tutor",
+      "speaker": "Friend",
+      "text": "ඔබට කොහොම ද?",
+      "delay": 300
+    },
+    {
+      "type": "choice",
+      "answers": ["මම හොඳින්"],
+      "options": [
+        { "label": "මම හොඳින්" },
+        { "label": "මට යන්න ඕන" }
+      ],
+      "delay": 400
+    },
+    {
+      "type": "statement",
+      "role": "tutor",
+      "speaker": "Friend",
+      "text": "ඒක සතුටක්!"
+    }
+  ]
+}
