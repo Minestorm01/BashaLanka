@@ -15,6 +15,20 @@ import {
 
 const LESSON_MANIFEST_URL = new URL('../../lesson.manifest.json', import.meta.url);
 
+function resolveLessonBaseUrl() {
+  if (typeof window !== 'undefined' && window.location?.href) {
+    try {
+      return new URL('.', window.location.href);
+    } catch (error) {
+      if (typeof console !== 'undefined' && console.warn) {
+        console.warn('Unable to resolve base URL from window.location.href', error);
+      }
+    }
+  }
+
+  return new URL('.', LESSON_MANIFEST_URL);
+}
+
 const manifestCache = {
   data: null,
   promise: null,
@@ -152,7 +166,13 @@ function normaliseLessonPath(lessonPath) {
     return trimmed;
   }
 
-  return trimmed.replace(/^\.\//, '/');
+  const withoutLeadingDot = trimmed.replace(/^\.\/+/, '');
+
+  if (!withoutLeadingDot) {
+    return '';
+  }
+
+  return withoutLeadingDot.replace(/^\/+/, '');
 }
 
 async function loadLessonSource(lessonPath) {
@@ -170,10 +190,7 @@ async function loadLessonSource(lessonPath) {
     console.log('Normalised lesson path:', normalisedPath);
   }
 
-  const baseUrl =
-    typeof window !== 'undefined' && window.location?.origin
-      ? window.location.origin
-      : LESSON_MANIFEST_URL;
+  const baseUrl = resolveLessonBaseUrl();
   const url = new URL(normalisedPath, baseUrl);
 
   if (typeof console !== 'undefined' && console.log) {
