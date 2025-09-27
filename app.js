@@ -11,6 +11,83 @@ const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
 const on = (el, ev, fn, opts) => el && el.addEventListener(ev, fn, opts);
 const debounce = (fn, ms = 150) => { let t; return (...args) => { clearTimeout(t); t = setTimeout(() => fn.apply(null, args), ms); }; };
 
+const ABSOLUTE_URL_PATTERN = /^[a-z][a-z0-9+.-]*:/i;
+const PROTOCOL_RELATIVE_PATTERN = /^\/\//;
+
+function ensureTrailingSlash(value = '') {
+  if (!value) return '';
+  if (value === './') return './';
+  return value.endsWith('/') ? value : `${value}/`;
+}
+
+function normaliseRelativeAssetPath(value = '') {
+  return value.replace(/^\.?\/+/, '');
+}
+
+function determineRepoBasePath() {
+  if (typeof window === 'undefined' || !window.location) {
+    return './';
+  }
+
+  const { hostname = '', protocol = '', pathname = '' } = window.location;
+  const lowerHost = hostname.toLowerCase();
+
+  if (lowerHost.includes('github.io')) {
+    const segments = pathname.split('/').filter(Boolean);
+    if (segments.length) {
+      return `/${segments[0]}/`;
+    }
+    return '/BashaLanka/';
+  }
+
+  if (
+    protocol === 'file:' ||
+    lowerHost === 'localhost' ||
+    lowerHost === '127.0.0.1' ||
+    lowerHost === '::1' ||
+    lowerHost === '[::1]'
+  ) {
+    return './';
+  }
+
+  return '/';
+}
+
+const REPO_BASE_PATH = (() => determineRepoBasePath())();
+
+function resolveAssetPath(path) {
+  if (typeof path !== 'string') {
+    return path;
+  }
+
+  const trimmed = path.trim();
+
+  if (!trimmed) {
+    return trimmed;
+  }
+
+  if (ABSOLUTE_URL_PATTERN.test(trimmed) || PROTOCOL_RELATIVE_PATTERN.test(trimmed)) {
+    return trimmed;
+  }
+
+  const cleaned = normaliseRelativeAssetPath(trimmed);
+
+  if (!cleaned) {
+    return REPO_BASE_PATH === './' ? './' : ensureTrailingSlash(REPO_BASE_PATH || '/');
+  }
+
+  if (REPO_BASE_PATH === './') {
+    return `./${cleaned}`;
+  }
+
+  return `${ensureTrailingSlash(REPO_BASE_PATH || '/')}${cleaned}`;
+}
+
+if (typeof window !== 'undefined') {
+  window.__BASHA_REPO_BASE_PATH__ = REPO_BASE_PATH;
+  window.__BASHA_RESOLVE_ASSET_PATH__ = resolveAssetPath;
+}
+
 const escapeHTML = (value = '') => String(value)
   .replace(/&/g, '&amp;')
   .replace(/</g, '&lt;')
@@ -270,31 +347,7 @@ const EXERCISE_MODULE_BASES = (() => {
   const bases = [];
   const seen = new Set();
 
-  const ensureTrailingSlash = (value) => {
-    if (!value) return '';
-    return value.endsWith('/') ? value : `${value}/`;
-  };
-
-  const determineRepoBasePath = () => {
-    if (typeof window === 'undefined' || !window.location) {
-      return './';
-    }
-
-    const { hostname = '', protocol = '' } = window.location;
-    const lowerHost = hostname.toLowerCase();
-
-    if (lowerHost.includes('github.io')) {
-      return '/BashaLanka/';
-    }
-
-    if (protocol === 'file:') {
-      return './';
-    }
-
-    return '/';
-  };
-
-  const repoBasePath = determineRepoBasePath();
+  const repoBasePath = REPO_BASE_PATH;
   const repoBaseWithSlash =
     repoBasePath === './' ? './' : ensureTrailingSlash(repoBasePath || '/');
   const exerciseAssetsBasePath =
@@ -967,7 +1020,7 @@ const DebugTools = (() => {
       const collected = [];
       for(let index = 1; index <= 50; index += 1){
         const slug = `section-${index}`;
-        const path = `assets/sections/${slug}/units.json`;
+        const path = resolveAssetPath(`assets/sections/${slug}/units.json`);
         try{
           const res = await fetch(path, { cache: 'no-cache' });
           if(!res.ok){

@@ -9,7 +9,7 @@
 
 @font-face {
   font-family: "Feather";
-  src: url("assets/fonts/Feather-Bold.woff2") format("woff2");
+  src: url("./assets/font/Feather-Bold.woff2") format("woff2");
   font-weight: 700;
   font-style: normal;
    font-display: swap;
@@ -17,7 +17,7 @@
 
 @font-face {
   font-family: "DIN Next Rounded";
-  src: url("assets/fonts/DINNextRounded-Regular.woff2") format("woff2");
+  src: url("./assets/font/DINNextRounded-Regular.woff2") format("woff2");
   font-weight: 400;
   font-style: normal;
   font-display: swap;
@@ -25,7 +25,7 @@
 
 @font-face {
   font-family: "DIN Next Rounded";
-  src: url("assets/fonts/DINNextRounded-Medium.woff2") format("woff2");
+  src: url("./assets/font/DINNextRounded-Medium.woff2") format("woff2");
   font-weight: 500;
   font-style: normal;
   font-display: swap;

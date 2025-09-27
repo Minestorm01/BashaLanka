@@ -2,6 +2,10 @@
   const container = document.getElementById('view-learn');
   if(!container) return;
 
+  const resolveAsset = typeof window !== 'undefined' && window.__BASHA_RESOLVE_ASSET_PATH__
+    ? window.__BASHA_RESOLVE_ASSET_PATH__
+    : (value => value);
+
   const SECTION_ROOT = 'assets/sections';
   const overviewSeedData = readOverviewSeedData();
   let sections = [];
@@ -16,7 +20,7 @@
   const lessonDataCache = new Map();
   function trophySrc(progress){
     const file = progress >= 1 ? 'trophy-gold_1.svg' : 'trophy-silver_1.svg';
-    return `assets/general/${file}`;
+    return resolveAsset(`assets/general/${file}`);
   }
 
   function speechBubble(phrase = {}){
@@ -158,7 +162,8 @@
   function normalizeSection(section){
     const slug = section.id || `section-${section.number || ''}`;
     const number = section.number || parseInt((slug.match(/(\d+)/) || [])[1] || sections.length + 1, 10);
-    const mascot = section.mascot || `${SECTION_ROOT}/${slug}/mascot.svg`;
+    const baseMascot = section.mascot || `${SECTION_ROOT}/${slug}/mascot.svg`;
+    const mascot = resolveAsset(baseMascot);
     const units = (section.units || []).map((unit, index) => normalizeUnit(unit, index));
     const lessonsTotal = units.reduce((sum, unit) => sum + unit.lessonsTotal, 0);
     const lessonsDone = units.reduce((sum, unit) => sum + unit.lessonsCompleted, 0);
@@ -191,13 +196,13 @@
         const found = [];
     for(let index = 1; index <= 50; index += 1){
       const slug = `section-${index}`;
-      const path = `${SECTION_ROOT}/${slug}/units.json`;
+      const path = resolveAsset(`${SECTION_ROOT}/${slug}/units.json`);
       try{
         const res = await fetch(path);
         if(!res.ok){
           if(index === 1) console.warn(`No section data found at ${path}`);
           break;
- }
+}
         const data = await res.json();
         found.push(normalizeSection(data));
       }catch(err){
@@ -565,8 +570,8 @@
 
   function renderUnit(sectionNum, unit){
     const assetRoot = 'assets/general';
-    const mascotPath = `${assetRoot}/section${sectionNum}_unit_${unit.number}.svg`;
-    const mascotFallback = `${assetRoot}/section1_unit_1.svg`;
+    const mascotPath = resolveAsset(`${assetRoot}/section${sectionNum}_unit_${unit.number}.svg`);
+    const mascotFallback = resolveAsset(`${assetRoot}/section1_unit_1.svg`);
     const lessons = unit.lessons || [];
     const hasReviewLesson = lessons.some(lesson => lesson && lesson.isReview);
     const allComplete = lessons.length > 0 && lessons.every(lesson => lesson.status === 'completed');
@@ -615,12 +620,12 @@
       switch(status){
         case 'completed':
         case 'complete':
-          return `${assetRoot}/lesson_complete.svg`;
+          return resolveAsset(`${assetRoot}/lesson_complete.svg`);
         case 'unlocked':
         case 'start':
-          return `${assetRoot}/start_lesson.svg`;
+          return resolveAsset(`${assetRoot}/start_lesson.svg`);
         default:
-          return `${assetRoot}/lesson_locked.svg`;
+          return resolveAsset(`${assetRoot}/lesson_locked.svg`);
       }
     };
     const altForStatus = status => {
@@ -639,9 +644,9 @@
       switch(status){
         case 'completed':
         case 'complete':
-          return `${assetRoot}/trophy-gold_1.svg`;
+          return resolveAsset(`${assetRoot}/trophy-gold_1.svg`);
         default:
-          return `${assetRoot}/trophy-silver_1.svg`;
+          return resolveAsset(`${assetRoot}/trophy-silver_1.svg`);
       }
     };
     const altForReview = status => {
@@ -1068,7 +1073,7 @@
   async function ensureCourseHierarchy(){
     if(courseHierarchyState.ready && !courseHierarchyState.promise) return courseHierarchyState;
     if(courseHierarchyState.promise) return courseHierarchyState.promise;
-    const load = fetch('data/course.index.json', { cache: 'no-cache' })
+    const load = fetch(resolveAsset('data/course.index.json'), { cache: 'no-cache' })
       .then(res => res.ok ? res.json() : null)
       .then(data => {
         const sections = Array.isArray(data)
@@ -1104,7 +1109,7 @@
       if(typeof cached.then === 'function') return cached;
       return Promise.resolve(cached);
     }
-    const promise = fetch(`data/${unitId}.lessons.json`, { cache: 'no-cache' })
+    const promise = fetch(resolveAsset(`data/${unitId}.lessons.json`), { cache: 'no-cache' })
       .then(res => res.ok ? res.json() : null)
       .catch(err => {
         console.warn('learn: failed to load lesson data for', unitId, err);

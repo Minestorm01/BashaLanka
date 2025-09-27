@@ -19,7 +19,7 @@
     '[class*="unit-node"]'
   ];
 
-  const DATA_KEY_PRIORITY = [
+const DATA_KEY_PRIORITY = [
     'layoutKey',
     'unit',
     'lesson',
@@ -43,6 +43,10 @@
     interaction: null,
     listenersBound: false
   };
+
+  const resolveAsset = typeof window !== 'undefined' && window.__BASHA_RESOLVE_ASSET_PATH__
+    ? window.__BASHA_RESOLVE_ASSET_PATH__
+    : (value => value);
 
   init();
 
@@ -82,7 +86,7 @@
 
   async function fetchRemoteMap(){
     try {
-      const res = await fetch('./positions.json', { cache: 'no-store' });
+      const res = await fetch(resolveAsset('positions.json'), { cache: 'no-store' });
       if (!res.ok) return;
       const json = await res.json();
       state.remoteMap = json || {};
