@@ -1,1333 +1,1511 @@
-(function(){
-  const container = document.getElementById('view-learn');
-  if(!container) return;
+/*
+  app.js — responsive UI + data loading + PWA hooks
+  Framework-free, accessible, and mobile-first.
+*/
 
-  const resolveAsset = typeof window !== 'undefined' && window.__BASHA_RESOLVE_ASSET_PATH__
-    ? window.__BASHA_RESOLVE_ASSET_PATH__
-    : (value => value);
+/* -------------------------
+   Helpers
+------------------------- */
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+const on = (el, ev, fn, opts) => el && el.addEventListener(ev, fn, opts);
+const debounce = (fn, ms = 150) => { let t; return (...args) => { clearTimeout(t); t = setTimeout(() => fn.apply(null, args), ms); }; };
 
-  const SECTION_ROOT = resolveAsset('assets/Lessons/sections');
-  const SECTION_ROOT_RELATIVE = 'assets/Lessons/sections';
-  const COURSE_MAP_PATH = resolveAsset('assets/Lessons/course.map.json');
-  const overviewSeedData = readOverviewSeedData();
-  let sections = [];
-  let loadingPromise = null;
-  let sectionsLoadedEventSent = false;
-  const courseHierarchyState = {
-    promise: null,
-    ready: false,
-    sections: [],
-    unitMap: new Map()
+const ABSOLUTE_URL_PATTERN = /^[a-z][a-z0-9+.-]*:/i;
+const PROTOCOL_RELATIVE_PATTERN = /^\/\//;
+
+function ensureTrailingSlash(value = '') {
+  if (!value) return '';
+  if (value === './') return './';
+  return value.endsWith('/') ? value : `${value}/`;
+}
+
+function normaliseRelativeAssetPath(value = '') {
+  return value.replace(/^\.?\/+/, '');
+}
+
+function determineRepoBasePath() {
+  if (typeof window === 'undefined' || !window.location) {
+    return './';
+  }
+
+  const { hostname = '', protocol = '', pathname = '' } = window.location;
+  const lowerHost = hostname.toLowerCase();
+
+  if (lowerHost.includes('github.io')) {
+    const segments = pathname.split('/').filter(Boolean);
+    if (segments.length) {
+      return `/${segments[0]}/`;
+    }
+    return '/BashaLanka/';
+  }
+
+  if (
+    protocol === 'file:' ||
+    lowerHost === 'localhost' ||
+    lowerHost === '127.0.0.1' ||
+    lowerHost === '::1' ||
+    lowerHost === '[::1]'
+  ) {
+    return './';
+  }
+
+  return '/';
+}
+
+const REPO_BASE_PATH = (() => determineRepoBasePath())();
+
+function resolveAssetPath(path) {
+  if (typeof path !== 'string') {
+    return path;
+  }
+
+  const trimmed = path.trim();
+
+  if (!trimmed) {
+    return trimmed;
+  }
+
+  if (ABSOLUTE_URL_PATTERN.test(trimmed) || PROTOCOL_RELATIVE_PATTERN.test(trimmed)) {
+    return trimmed;
+  }
+
+  const cleaned = normaliseRelativeAssetPath(trimmed);
+
+  if (!cleaned) {
+    return REPO_BASE_PATH === './' ? './' : ensureTrailingSlash(REPO_BASE_PATH || '/');
+  }
+
+  if (REPO_BASE_PATH === './') {
+    return `./${cleaned}`;
+  }
+
+  return `${ensureTrailingSlash(REPO_BASE_PATH || '/')}${cleaned}`;
+}
+
+if (typeof window !== 'undefined') {
+  window.__BASHA_REPO_BASE_PATH__ = REPO_BASE_PATH;
+  window.__BASHA_RESOLVE_ASSET_PATH__ = resolveAssetPath;
+}
+
+const escapeHTML = (value = '') => String(value)
+  .replace(/&/g, '&amp;')
+  .replace(/</g, '&lt;')
+  .replace(/>/g, '&gt;')
+  .replace(/"/g, '&quot;')
+  .replace(/'/g, '&#39;');
+
+const USER_STORAGE_KEY = 'bashalanka-user';
+
+function createUser(username = '') {
+  const trimmed = String(username || '').trim();
+  return {
+    username: trimmed,
+    isAdmin: trimmed.toLowerCase() === 'admin'
   };
-  const lessonDataCache = new Map();
-  function trophySrc(progress){
-    const file = progress >= 1 ? 'trophy-gold_1.svg' : 'trophy-silver_1.svg';
-    return resolveAsset(`assets/general/${file}`);
+}
+
+function loadStoredUser() {
+  try {
+    const raw = localStorage.getItem(USER_STORAGE_KEY);
+    if (!raw) return createUser('');
+    const parsed = JSON.parse(raw);
+    if (parsed && typeof parsed.username === 'string') {
+      return createUser(parsed.username);
+    }
+  } catch (err) {
+    console.warn('Failed to load stored user', err);
+  }
+  return createUser('');
+}
+
+function persistUser(user) {
+  if (user && user.username) {
+    localStorage.setItem(USER_STORAGE_KEY, JSON.stringify({ username: user.username }));
+  } else {
+    localStorage.removeItem(USER_STORAGE_KEY);
+  }
+}
+
+// Trap focus inside a container (for modals/drawers)
+function trapFocus(container) {
+  if (!container) return () => {};
+  const sel = 'a, button, input, textarea, select, [tabindex]:not([tabindex="-1"])';
+  const focusables = () => $$(sel, container).filter(el => !el.disabled && el.offsetParent !== null);
+  function handle(e) {
+    if (e.key !== 'Tab') return;
+    const f = focusables();
+    if (!f.length) return;
+    const first = f[0];
+    const last = f[f.length - 1];
+    if (e.shiftKey && document.activeElement === first) {
+      last.focus(); e.preventDefault();
+    } else if (!e.shiftKey && document.activeElement === last) {
+      first.focus(); e.preventDefault();
+    }
+  }
+  document.addEventListener('keydown', handle);
+  return () => document.removeEventListener('keydown', handle);
+}
+
+// -------- Router targets --------
+const ROUTES = ['home','learn','characters','practice','quests','profile','settings'];
+
+/* -------------------------
+   State
+------------------------- */
+const AppState = {
+  installPromptEvt: null,
+  user: loadStoredUser(),
+  prefs: {
+    sfx: true, anim: true, motivate: true, listen: true,
+    appearance: localStorage.getItem('theme') || 'system',
+    romanized: false
+  }
+};
+
+// Load prefs
+function loadPrefs(){
+  try{
+    const saved = JSON.parse(localStorage.getItem('prefs')||'{}');
+    AppState.prefs = {...AppState.prefs, ...saved};
+  }catch{}
+}
+function savePrefs(){
+  localStorage.setItem('prefs', JSON.stringify(AppState.prefs));
+ localStorage.setItem('theme', AppState.prefs.appearance);
+  applyTheme(AppState.prefs.appearance);
+}
+
+// Apply theme now + when toggled
+function applyTheme(val){
+  const root = document.documentElement;
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  const theme = val === 'system' ? (prefersDark ? 'dark' : 'light') : val;
+  root.setAttribute('data-theme', theme);
+}
+
+// Init Theme toggle (cycles)
+function initTheme(){
+  const btn = $('#themeToggle');
+  loadPrefs();
+  applyTheme(AppState.prefs.appearance);
+  on(btn,'click',()=>{
+    const order = ['light','dark','system'];
+    const i = order.indexOf(AppState.prefs.appearance);
+    AppState.prefs.appearance = order[(i+1)%order.length];
+    savePrefs();
+  });
+}
+
+// Sidebar / Drawer
+function initSidebar(){
+  const sidebar = $('#sidebar');
+  const nav = $('.side-nav', sidebar);
+  const scrim = $('#drawerScrim');
+  const toggleBtn = document.querySelector('[data-action="toggle-sidebar"]');
+  let untrap = null;
+
+  // Build nav items (if not present)
+  if (nav && !nav.dataset.built){
+    nav.dataset.built = '1';
+    const items = [
+      ['learn','🏠','Learn'],
+      ['characters','ම','Characters'],
+      ['practice','🧩','Practice'],
+      ['quests','🗺️','Quests'],
+      ['profile','👤','Profile'],
+      ['settings','⚙️','Settings']
+    ];
+    nav.innerHTML = items.map(([r,ico,txt]) =>
+      `<button class="sidebar__link" data-route="${r}"><span aria-hidden="true">${ico}</span><span>${txt}</span></button>`
+    ).join('');
   }
 
-  function speechBubble(phrase = {}){
-    const romanised = phrase.romanised || '';
-    const si = phrase.si || '';
-    if(!romanised && !si) return '';
-    return `
-      <div class="speech-bubble" role="note" aria-label="Section phrase">
-        ${romanised ? `<p class="speech-line romanised">${romanised}</p>` : ''}
-        ${si ? `<p class="speech-line sinhala">${si}</p>` : ''}
-      </div>`;
-  }
+  const navButtons = $$('.sidebar__link', nav);
 
-  function normalizeLessonEntry(lesson, fallbackStatus, index, meta = {}){
-    const order = typeof meta.order === 'number'
-      ? meta.order
-      : (typeof index === 'number' ? index + 1 : 0);
-    const lessonIndex = typeof meta.lessonIndex === 'number'
-      ? meta.lessonIndex
-      : (typeof index === 'number' ? index + 1 : 0);
-    const skillId = meta.skillId || '';
-    const levelId = meta.levelId || '';
-    const baseType = meta.type || null;
-
-    if(typeof lesson === 'string'){
-      const typeValue = baseType;
-      return {
-        id: lesson,
-        title: typeof index === 'number' ? `Lesson ${index + 1}` : 'Lesson',
-        status: fallbackStatus,
-        type: typeValue,
-        isReview: typeValue === 'review',
-        skillId,
-        levelId,
-        order,
-        lessonIndex
-      };
-    }
-
-    if(lesson && typeof lesson === 'object'){
-      const typeValue = lesson.type || baseType || null;
-      return {
-        id: lesson.id || lesson.lessonId || '',
-        title: lesson.title || (typeof index === 'number' ? `Lesson ${index + 1}` : 'Untitled lesson'),
-        status: lesson.status || fallbackStatus,
-        type: typeValue,
-        isReview: typeValue === 'review',
-        skillId: lesson.skillId || skillId,
-        levelId: lesson.levelId || levelId,
-        order,
-        lessonIndex
-      };
-    }
-
-    const typeValue = baseType;
-    return {
-      id: '',
-      title: typeof index === 'number' ? `Lesson ${index + 1}` : 'Untitled lesson',
-      status: fallbackStatus,
-      type: typeValue,
-      isReview: typeValue === 'review',
-      skillId,
-      levelId,
-      order,
-      lessonIndex
-    };
-  }
-
-  function buildUnitLessons(unit){
-    const fallbackStatus = unit.status || 'locked';
-    const directLessons = Array.isArray(unit.lessons) ? unit.lessons : [];
-    if(directLessons.length){
-      return directLessons.map((lesson, index) => normalizeLessonEntry(lesson, fallbackStatus, index, {
-        order: index + 1,
-        lessonIndex: index + 1
-      }));
-    }
-
-    const skills = Array.isArray(unit.skills) ? unit.skills : [];
-    if(!skills.length) return [];
-
-    const flattened = [];
-    let globalOrder = 0;
-    skills.forEach(skill => {
-      const skillId = skill.skillId || skill.id || '';
-      const levels = Array.isArray(skill.levels) ? skill.levels : [];
-      levels.forEach(level => {
-        const levelId = level.levelId || level.id || '';
-        const refs = Array.isArray(level.lessons) ? level.lessons : [];
-        refs.forEach((ref, index) => {
-          globalOrder += 1;
-          const typeValue = ref && typeof ref === 'object' ? ref.type : null;
-          flattened.push(normalizeLessonEntry(ref, fallbackStatus, index, {
-            skillId,
-            levelId,
-            order: globalOrder,
-            lessonIndex: index + 1,
-            type: typeValue
-          }));
-        });
-      });
+  navButtons.forEach(btn=>{
+    on(btn,'click',()=>{
+      const route = btn.dataset.route;
+      location.hash = `/${route}`;
+      close();
     });
-
-    return flattened;
-  }
-
-  function lessonStats(lessons){
-    const total = lessons.length;
-    const completed = lessons.filter(l => l.status === 'completed').length;
-    const unlocked = lessons.filter(l => l.status === 'completed' || l.status === 'unlocked').length;
-    return { total, completed, unlocked };
-  }
-
-  function normalizeUnit(unit, index){
-    const lessons = buildUnitLessons(unit);
-    const { total, completed, unlocked } = lessonStats(lessons);
-    const progress = total ? completed / total : 0;
-    let status = unit.status || 'locked';
-    if(status !== 'locked' && completed >= total && total > 0){
-      status = 'completed';
-    }else if(status === 'locked' && unlocked > 0){
-      status = 'unlocked';
-    }
-    const number = unit.number
-      || parseInt(((unit.id || '').match(/(\d+)/) || [])[1] || '', 10)
-      || (typeof index === 'number' ? index + 1 : 1);
-    return {
-      ...unit,
-      status,
-      lessons,
-      lessonsTotal: total,
-      lessonsCompleted: completed,
-      lessonsUnlocked: unlocked,
-      progress,
-      number
-    };
-  }
-
-  function normalizeSection(section){
-    const slug = section.id || `section-${section.number || ''}`;
-    const number = section.number || parseInt((slug.match(/(\d+)/) || [])[1] || sections.length + 1, 10);
-    const baseMascot = section.mascot || `${SECTION_ROOT_RELATIVE}/${slug}/mascot.svg`;
-    const mascot = resolveAsset(baseMascot);
-    const units = (section.units || []).map((unit, index) => normalizeUnit(unit, index));
-    const lessonsTotal = units.reduce((sum, unit) => sum + unit.lessonsTotal, 0);
-    const lessonsDone = units.reduce((sum, unit) => sum + unit.lessonsCompleted, 0);
-    const progress = lessonsTotal ? lessonsDone / lessonsTotal : 0;
-    const status = section.status || (progress >= 1 ? 'completed' : units.some(u => u.status !== 'locked') ? 'unlocked' : 'locked');
-    const cta = section.cta || (status === 'locked'
-      ? 'Locked'
-      : (progress > 0 ? 'Continue' : `Start Section ${number}`));
-    const baseOverview = section.overview && typeof section.overview === 'object'
-      ? { ...section.overview }
-      : {};
-    const mergedOverview = mergeOverviewData(baseOverview, getOverviewSeed(section.number || number));
-
-    return {
-      ...section,
-      id: slug,
-      number,
-      mascot,
-      units,
-      lessonsTotal,
-      lessonsDone,
-      progress,
-      status,
-      cta,
-      overview: mergedOverview
-    };
-  }
-
-  async function loadCourseHierarchy(){
-    if(courseHierarchyState.ready) return courseHierarchyState;
-    if(courseHierarchyState.promise) return courseHierarchyState.promise;
-
-    const fetchUrl = COURSE_MAP_PATH;
-    console.log(`📘 Loading course hierarchy from ${fetchUrl}`);
-
-    const pending = (async () => {
-      const res = await fetch(fetchUrl);
-      if(!res.ok){
-        throw new Error(`Failed to fetch course map: ${res.status}`);
-      }
-
-      const data = await res.json();
-      const sectionList = Array.isArray(data.sections) ? data.sections : [];
-      courseHierarchyState.sections = sectionList;
-      courseHierarchyState.unitMap = courseHierarchyState.unitMap instanceof Map ? courseHierarchyState.unitMap : new Map();
-      courseHierarchyState.unitMap.clear();
-
-      sectionList.forEach(section => {
-        const slug = section && (section.id || section.slug || section.sectionId);
-        if(!slug) return;
-        const units = Array.isArray(section.units) ? section.units : [];
-        courseHierarchyState.unitMap.set(slug, units);
-      });
-
-      courseHierarchyState.ready = true;
-      return courseHierarchyState;
-    })()
-      .catch(err => {
-        courseHierarchyState.ready = false;
-        throw err;
-      })
-      .finally(() => {
-        courseHierarchyState.promise = null;
-      });
-
-    courseHierarchyState.promise = pending;
-    return pending;
-  }
-
-  function shouldLoadSection(section){
-    if(!section) return false;
-    const slug = section.id || section.slug || section.sectionId;
-    if(!slug) return false;
-    const status = typeof section.status === 'string' ? section.status.toLowerCase() : '';
-    const units = courseHierarchyState.unitMap.get(slug) || section.units || [];
-    const hasUnits = Array.isArray(units) && units.length > 0;
-    if(hasUnits) return true;
-    if(!status) return false;
-    return ['ready', 'published', 'live', 'available'].includes(status);
-  }
-
-  async function loadSections(){
-    const found = [];
-    try{
-      const hierarchy = await loadCourseHierarchy();
-      const sectionList = Array.isArray(hierarchy.sections) ? hierarchy.sections : [];
-      for(const section of sectionList){
-        if(!shouldLoadSection(section)) continue;
-        const slug = section.id || section.slug || section.sectionId;
-        if(!slug) continue;
-        const path = resolveAsset(`${SECTION_ROOT_RELATIVE}/${slug}/units.json`);
-        console.log(`📘 Loading lesson from ${path}`);
-        try{
-          const res = await fetch(path);
-          if(!res.ok){
-            if(res.status === 404){
-              console.warn(`Skipping missing section data at ${path}`);
-              continue;
-            }
-            throw new Error(`Request failed with status ${res.status}`);
-          }
-          const data = await res.json();
-          found.push(normalizeSection(data));
-        }catch(err){
-          console.error('Failed to load section data', slug, err);
-        }
-      }
-    }catch(err){
-      console.error('Failed to load sections list', err);
-    }
-    return found.sort((a, b) => a.number - b.number);
-  }
-
-  function resetLessonPopoverState(){
-    const panels = container.querySelectorAll('.section-overview');
-    panels.forEach(panel => {
-      collapsePanel(panel, { immediate: true });
-      const card = panel.closest('.section-card');
-      const trigger = card ? card.querySelector('.see-details') : null;
-      if(trigger){
-        trigger.setAttribute('aria-expanded', 'false');
-      }
+    on(btn,'keydown',e=>{
+      if (e.key==='Enter' || e.key===' ') { e.preventDefault(); btn.click(); }
     });
-  }
-
-  function updateCTAForSection(sectionId, config = {}){
-    if(!sectionId) return;
-    const options = typeof config === 'string' ? { text: config } : (config || {});
-    const { text, href, disabled } = options;
-    const card = container.querySelector(`.section-card[data-section-id="${sectionId}"]`);
-    if(!card) return;
-
-    const continueBtn = card.querySelector('.btn-continue');
-    if(continueBtn){
-      if(typeof text === 'string'){
-        continueBtn.textContent = text;
-      }
-      if(typeof disabled === 'boolean'){
-        continueBtn.disabled = disabled;
-      }
-      if(typeof href === 'string' && href){
-        continueBtn.setAttribute('data-href', href);
-      }
-    }
-
-    const overviewCTA = card.querySelector('.overview-cta-button');
-    if(overviewCTA){
-      if(typeof text === 'string'){
-        overviewCTA.textContent = text;
-      }
-      if(typeof href === 'string' && href){
-        overviewCTA.setAttribute('href', href);
-      }else if(href === null){
-        overviewCTA.removeAttribute('href');
-      }
-    }
-
-    const record = getSectionRecord(sectionId);
-    if(record && record.section){
-      if(typeof text === 'string'){
-        record.section.cta = text;
-      }
-      if(typeof disabled === 'boolean'){
-        record.section.status = disabled ? 'locked' : record.section.status;
-      }
-    }
-  }
-
-  async function ensureSections(){
-    if(sections.length) return sections;
-    if(loadingPromise) return loadingPromise;
-    loadingPromise = loadSections().then(result => {
-      sections = result;
-      if(!sectionsLoadedEventSent){
-        sectionsLoadedEventSent = true;
-        window.dispatchEvent(new CustomEvent('learn:sections-loaded', {
-          detail: { sections: sections.map(sec => ({ ...sec })) }
-        }));
-      }
-      return sections;
-    });
-    return loadingPromise;
-  }
-
-  function renderLearn(){
-    const cards = sections.map(sec => sectionCard(sec)).join('');
-    const listMarkup = cards || '<p class="unit-path__empty">No sections available yet.</p>';
-    container.innerHTML = `<div class="learn-wrap"><div class="sections-list">${listMarkup}</div><aside class="learn-rail hide-mobile"><h3>Coming soon</h3></aside></div>`;
-    resetLessonPopoverState();
-    const cardNodes = container.querySelectorAll('.section-card');
-    cardNodes.forEach(card => initialiseOverview(card));
-  }
-
-  function sectionCard(sec){
-    const pct = Math.round(sec.progress * 100);
-    const locked = sec.status === 'locked';
-    const trophy = trophySrc(sec.progress);
-    const note = locked ? '<small class="locked-note">Finish previous to unlock</small>' : '';
-    const completed = sec.status === 'completed' || sec.progress >= 1;
-    const btnLabel = locked ? 'Locked' : completed ? 'Completed!' : sec.cta;
-    const sectionId = String(sec.number);
-    const subtitle = sec.description || '';
-    const titleId = `section-${sectionId}-title`;
-    return `<article class="section-card" data-section-id="${sectionId}"><div class="section-card__left">
-      <div class="section-card__header">
-        <h2 class="section-title" id="${titleId}">${sec.title}</h2>
-        ${subtitle ? `<p class="section-subtitle">${subtitle}</p>` : ''}
-      </div>
-      <div class="progress-row">
-        <div class="progress" role="progressbar" aria-valuemin="0" aria-valuemax="${sec.lessonsTotal}" aria-valuenow="${sec.lessonsDone}">
-          <div class="progress__fill" style="width:${pct}%"></div>
-          <div class="progress__nums">${sec.lessonsDone} / ${sec.lessonsTotal}</div>
-        </div>
-        <img class="progress__trophy" src="${trophy}" onerror="this.onerror=null;this.src='${trophy.replace('assets','assest')}'" alt="" />
-      </div>
-      ${note}
-      <div class="section-card__actions">
-        <button class="btn-continue" data-id="${sec.number}" ${locked?'disabled':''}>${btnLabel}</button>
-        <button type="button" class="see-details" aria-expanded="false" aria-controls="section-overview-${sectionId}">See details</button>
-      </div>
-    </div>
-    <div class="section-card__img">
-      <div class="character">
-        <img src="${sec.mascot}" alt="Section ${sec.number} mascot" class="character__img" />
-        ${speechBubble(sec.phrase)}
-      </div>
-    </div>
-    </article>`;
-  }
-
-  function initialiseOverview(card){
-    if(!card) return null;
-    const sectionId = card.getAttribute('data-section-id');
-    if(!sectionId) return null;
-    const trigger = card.querySelector('.see-details');
-    if(!trigger) return null;
-    const { section } = getSectionRecord(sectionId);
-    if(!section) return null;
-
-    const titleEl = card.querySelector('.section-title');
-    const subtitleEl = card.querySelector('.section-subtitle');
-    const subtitleText = subtitleEl ? subtitleEl.textContent.trim() : '';
-    const panelId = `section-overview-${sectionId}`;
-    let panel = card.querySelector('.section-overview');
-    if(!panel){
-      panel = document.createElement('div');
-      panel.className = 'section-overview';
-      const leftCol = card.querySelector('.section-card__left') || card;
-      const actions = card.querySelector('.section-card__actions');
-      if(actions && actions.parentElement === leftCol){
-        actions.insertAdjacentElement('afterend', panel);
-      }else{
-        leftCol.append(panel);
-      }
-    }
-
-    panel.id = panelId;
-    panel.setAttribute('role', 'region');
-    if(titleEl && titleEl.id){
-      panel.setAttribute('aria-labelledby', titleEl.id);
-    }
-    panel.setAttribute('tabindex', '-1');
-    panel.dataset.sectionId = sectionId;
-
-    trigger.setAttribute('aria-controls', panelId);
-    trigger.setAttribute('aria-expanded', panel.dataset.expanded === 'true' ? 'true' : 'false');
-    if(panel.dataset.expanded !== 'true'){
-      panel.hidden = true;
-      panel.setAttribute('aria-hidden', 'true');
-      panel.setAttribute('aria-expanded', 'false');
-      panel.dataset.expanded = 'false';
-    }
-
-    renderOverviewPanel(panel, section, sectionId, titleEl, subtitleText);
-
-    if(!panel.dataset.boundEvents){
-      panel.addEventListener('click', event => {
-        const closeBtn = event.target.closest('.overview-close');
-        if(closeBtn){
-          const owningCard = panel.closest('.section-card');
-          const owningTrigger = owningCard ? owningCard.querySelector('.see-details') : null;
-          collapsePanel(panel, {
-            trigger: owningTrigger,
-            onComplete: () => {
-              if(owningTrigger) owningTrigger.focus();
-            }
-          });
-        }
-      });
-      panel.addEventListener('keydown', event => {
-        if(event.key === 'Escape' || event.key === 'Esc'){
-          event.stopPropagation();
-          const owningCard = panel.closest('.section-card');
-          const owningTrigger = owningCard ? owningCard.querySelector('.see-details') : null;
-          collapsePanel(panel, {
-            trigger: owningTrigger,
-            onComplete: () => {
-              if(owningTrigger) owningTrigger.focus();
-            }
-          });
-        }
-      });
-      panel.dataset.boundEvents = 'true';
-    }
-
-    return panel;
-  }
-
-  function renderOverviewPanel(panel, sectionData, sectionId, titleEl, subtitleText){
-    if(!panel) return;
-    const titleText = titleEl ? titleEl.textContent.trim() : (sectionData && sectionData.title) || `Section ${sectionId}`;
-    const overview = sectionData && typeof sectionData.overview === 'object' ? sectionData.overview : {};
-    const tagline = overview.tagline || subtitleText || '';
-    const summary = overview.summary || sectionData.description || '';
-    const helpfulHints = Array.isArray(overview.helpfulHints)
-      ? overview.helpfulHints.map(item => {
-        if(!item) return '';
-        if(typeof item === 'string') return item;
-        if(typeof item === 'object') return item.text || item.tip || item.title || '';
-        return String(item);
-      }).filter(Boolean)
-      : [];
-    const grammarConcepts = Array.isArray(overview.grammarConcepts)
-      ? overview.grammarConcepts.map(concept => {
-        if(!concept) return null;
-        if(typeof concept === 'string'){
-          return { title: concept };
-        }
-        if(typeof concept === 'object') return concept;
-        return null;
-      }).filter(Boolean)
-      : [];
-    const cta = overview.cta && typeof overview.cta === 'object' ? overview.cta : {};
-    const ctaLabel = cta.label || cta.text || sectionData.cta || (sectionData.progress > 0 ? 'Continue' : 'Start');
-    const ctaHref = typeof cta.href === 'string' ? cta.href : '';
-
-    const headingMarkup = `<div class="overview-header"><h3 class="overview-heading">${escapeHtml(`${titleText} overview`)}</h3><button type="button" class="overview-close" aria-label="Close details">&times;</button></div>`;
-    const taglineMarkup = tagline ? `<p class="overview-tagline">${escapeHtml(tagline)}</p>` : '';
-    const summaryMarkup = summary ? `<p class="overview-summary">${escapeHtml(summary)}</p>` : '';
-
-    const hintsMarkup = helpfulHints.length
-      ? `<h4 class="overview-subheading">Helpful hints</h4><ul class="overview-hints">${helpfulHints.map(item => `<li>${escapeHtml(item)}</li>`).join('')}</ul>`
-      : '';
-
-    const conceptsMarkup = grammarConcepts.length
-      ? `<h4 class="overview-subheading">Grammar concepts</h4><div class="overview-concepts">${grammarConcepts.map(concept => {
-        if(!concept || typeof concept !== 'object') return '';
-        const conceptTitle = concept.title || '';
-        const explanation = concept.explanation || concept.summary || '';
-        const examples = Array.isArray(concept.examples) ? concept.examples.filter(Boolean).slice(0, 2) : [];
-        const exampleMarkup = examples.map(example => {
-          if(!example) return '';
-          if(typeof example === 'string'){
-            return `<div class="overview-example"><p class="example-l1">${escapeHtml(example)}</p></div>`;
-          }
-          const primary = example.l1 || example.text || example.sentence || example.example || example.phrase || '';
-          const gloss = example.gloss || example.translation || example.meaning || '';
-          const primaryMarkup = primary ? `<p class="example-l1">${escapeHtml(primary)}</p>` : '';
-          const glossMarkup = gloss ? `<p class="example-gloss">${escapeHtml(gloss)}</p>` : '';
-          return `<div class="overview-example">${primaryMarkup}${glossMarkup}</div>`;
-        }).join('');
-        const explanationMarkup = explanation ? `<p>${escapeHtml(explanation)}</p>` : '';
-        const titleMarkup = conceptTitle ? `<h5>${escapeHtml(conceptTitle)}</h5>` : '';
-        return `<article class="overview-concept">${titleMarkup}${explanationMarkup}${examples.length ? `<div class="overview-examples">${exampleMarkup}</div>` : ''}</article>`;
-      }).join('')}</div>`
-      : '';
-
-    const hasContent = Boolean(taglineMarkup || summaryMarkup || hintsMarkup || conceptsMarkup);
-    const placeholderMarkup = hasContent ? '' : '<p class="overview-placeholder">Overview details coming soon. Stay tuned!</p>';
-
-    const ctaMarkup = ctaLabel
-      ? `<div class="overview-cta">${ctaHref
-        ? `<a class="overview-cta-button" href="${escapeAttribute(ctaHref)}">${escapeHtml(ctaLabel)}</a>`
-        : `<button type="button" class="overview-cta-button" data-id="${escapeAttribute(sectionId)}">${escapeHtml(ctaLabel)}</button>`}</div>`
-      : '';
-
-    panel.innerHTML = `${headingMarkup}${taglineMarkup}${summaryMarkup}${hintsMarkup}${conceptsMarkup}${placeholderMarkup}${ctaMarkup}`;
-
-    if(panel.dataset.expanded === 'true'){
-      panel.hidden = false;
-      panel.removeAttribute('hidden');
-      panel.setAttribute('aria-hidden', 'false');
-      panel.setAttribute('aria-expanded', 'true');
-      panel.style.maxHeight = `${panel.scrollHeight}px`;
-    }else{
-      panel.style.maxHeight = '0px';
-    }
-  }
-
-  function closeAll(except){
-    const panels = container.querySelectorAll('.section-overview');
-    panels.forEach(panel => {
-      if(panel === except) return;
-      const card = panel.closest('.section-card');
-      const trigger = card ? card.querySelector('.see-details') : null;
-      collapsePanel(panel, { trigger });
-    });
-  }
-
-  function expandPanel(panel, trigger){
-    if(!panel) return;
-    closeAll(panel);
-    panel.hidden = false;
-    panel.removeAttribute('hidden');
-    panel.dataset.expanded = 'true';
-    panel.setAttribute('aria-expanded', 'true');
-    panel.setAttribute('aria-hidden', 'false');
-    panel.classList.add('is-open');
-    if(trigger){
-      trigger.setAttribute('aria-expanded', 'true');
-    }
-    panel.style.maxHeight = '0px';
-    panel.getBoundingClientRect();
-    panel.style.maxHeight = `${panel.scrollHeight}px`;
-    const onEnd = event => {
-      if(event.target !== panel || (event.propertyName && event.propertyName !== 'max-height')) return;
-      panel.style.maxHeight = `${panel.scrollHeight}px`;
-      panel.removeEventListener('transitionend', onEnd);
-    };
-    panel.addEventListener('transitionend', onEnd);
-    requestAnimationFrame(() => {
-      try{
-        panel.focus({ preventScroll: true });
-      }catch(err){
-        panel.focus();
-      }
-    });
-  }
-
-  function collapsePanel(panel, opts = {}){
-    if(!panel) return;
-    const { trigger = null, immediate = false, onComplete } = opts;
-    const isExpanded = panel.dataset.expanded === 'true' || panel.getAttribute('aria-expanded') === 'true';
-    const finish = () => {
-      panel.hidden = true;
-      panel.setAttribute('aria-hidden', 'true');
-      panel.setAttribute('aria-expanded', 'false');
-      panel.dataset.expanded = 'false';
-      panel.classList.remove('is-open');
-      panel.style.maxHeight = '';
-      if(trigger){
-        trigger.setAttribute('aria-expanded', 'false');
-      }
-      if(typeof onComplete === 'function') onComplete();
-    };
-
-    if(!isExpanded && panel.hidden){
-      finish();
-      return;
-    }
-
-    if(immediate){
-      finish();
-      return;
-    }
-
-    const currentHeight = panel.scrollHeight;
-    panel.style.maxHeight = `${currentHeight}px`;
-    panel.getBoundingClientRect();
-    panel.style.maxHeight = '0px';
-    const onEnd = event => {
-      if(event.target !== panel || (event.propertyName && event.propertyName !== 'max-height')) return;
-      panel.removeEventListener('transitionend', onEnd);
-      finish();
-    };
-    panel.addEventListener('transitionend', onEnd);
-  }
-
-  function renderUnit(sectionNum, unit){
-    const assetRoot = 'assets/general';
-    const mascotPath = resolveAsset(`${assetRoot}/section${sectionNum}_unit_${unit.number}.svg`);
-    const mascotFallback = resolveAsset(`${assetRoot}/section1_unit_1.svg`);
-    const lessons = unit.lessons || [];
-    const hasReviewLesson = lessons.some(lesson => lesson && lesson.isReview);
-    const allComplete = lessons.length > 0 && lessons.every(lesson => lesson.status === 'completed');
-    const rewardDefined = unit.reward === 'chest' || unit.chest === true || (unit.reward && unit.reward.type === 'chest');
-    const midpoint = lessons.length ? Math.ceil(lessons.length / 2) : 0;
-    const mascotSide = unit.number % 2 === 0 ? 'left' : 'right';
-    const rows = [];
-    const fallbackBubbleTitle = unit.title || '';
-    const fallbackBubbleTotal = lessons.length || 0;
-    const lessonBubbleMeta = new Map();
-    const skillTitleById = new Map();
-
-    if(Array.isArray(unit.skills)){
-      unit.skills.forEach(skill => {
-        if(!skill || typeof skill !== 'object') return;
-        const skillId = skill.skillId || skill.id || '';
-        const skillTitle = skill.title || fallbackBubbleTitle;
-        if(skillId){
-          skillTitleById.set(skillId, skillTitle);
-        }
-        const levels = Array.isArray(skill.levels) ? skill.levels : [];
-        if(levels.length){
-          levels.forEach(level => {
-            if(!level || typeof level !== 'object') return;
-            const levelKey = level.levelId || level.id || '';
-            const levelTotal = Number(level.lessonCount) || (Array.isArray(level.lessons) ? level.lessons.length : 0);
-            if(levelKey){
-              lessonBubbleMeta.set(levelKey, {
-                title: skillTitle,
-                total: levelTotal
-              });
-            }
-          });
-        }else if(skillId){
-          const levelTotal = Number(skill.lessonCount) || 0;
-          if(levelTotal > 0){
-            lessonBubbleMeta.set(skillId, {
-              title: skillTitle,
-              total: levelTotal
-            });
-          }
-        }
-      });
-    }
-    const iconForStatus = status => {
-      switch(status){
-        case 'completed':
-        case 'complete':
-          return resolveAsset(`${assetRoot}/lesson_complete.svg`);
-        case 'unlocked':
-        case 'start':
-          return resolveAsset(`${assetRoot}/start_lesson.svg`);
-        default:
-          return resolveAsset(`${assetRoot}/lesson_locked.svg`);
-      }
-    };
-    const altForStatus = status => {
-      switch(status){
-        case 'completed':
-        case 'complete':
-          return 'Lesson completed';
-        case 'unlocked':
-        case 'start':
-          return 'Start lesson';
-        default:
-          return 'Locked lesson';
-      }
-    };
-    const trophyIconForStatus = status => {
-      switch(status){
-        case 'completed':
-        case 'complete':
-          return resolveAsset(`${assetRoot}/trophy-gold_1.svg`);
-        default:
-          return resolveAsset(`${assetRoot}/trophy-silver_1.svg`);
-      }
-    };
-    const altForReview = status => {
-      switch(status){
-        case 'completed':
-        case 'complete':
-          return 'Review completed';
-        case 'unlocked':
-        case 'start':
-          return 'Start review';
-        default:
-          return 'Review locked';
-      }
-    };
-
-    lessons.forEach((lesson, index) => {
-      const status = lesson.status || 'locked';
-      const isReview = Boolean(lesson && lesson.isReview);
-      const side = index % 2 === 0 ? 'left' : 'right';
-      const rowClasses = ['lesson-row', `lesson-row--${isReview ? 'center' : side}`, 'lesson-row--lesson'];
-      if(isReview) rowClasses.push('trophy');
-      const buttonClasses = ['lesson', `lesson--${status}`];
-      if(isReview) buttonClasses.push('lesson--review');
-      const iconSrc = isReview ? trophyIconForStatus(status) : iconForStatus(status);
-      const altText = isReview ? altForReview(status) : altForStatus(status);
-      const lessonIdAttr = lesson && lesson.id ? ` data-lesson-id="${escapeAttribute(lesson.id)}"` : '';
-      const skillAttr = lesson && lesson.skillId ? ` data-skill-id="${escapeAttribute(lesson.skillId)}"` : '';
-      const levelAttr = lesson && lesson.levelId ? ` data-level-id="${escapeAttribute(lesson.levelId)}"` : '';
-      const lessonNumber = typeof lesson.lessonIndex === 'number' ? lesson.lessonIndex : index + 1;
-      const rawTitle = lesson && lesson.title ? lesson.title : `Lesson ${lessonNumber}`;
-      const titleAttr = rawTitle ? ` aria-label="${escapeAttribute(rawTitle)}"` : '';
-      const bubbleKey = lesson && (lesson.levelId || lesson.skillId) ? (lesson.levelId || lesson.skillId) : '__unit__';
-      if(!lessonBubbleMeta.has(bubbleKey)){
-        const derivedTitle = (lesson && lesson.skillId && skillTitleById.get(lesson.skillId)) || fallbackBubbleTitle || rawTitle;
-        const groupTotal = lessons.filter(item => {
-          const groupKey = item && (item.levelId || item.skillId) ? (item.levelId || item.skillId) : '__unit__';
-          return groupKey === bubbleKey;
-        }).length;
-        lessonBubbleMeta.set(bubbleKey, {
-          title: derivedTitle,
-          total: groupTotal || fallbackBubbleTotal || lessons.length || 1
-        });
-      }
-      const bubbleMeta = lessonBubbleMeta.get(bubbleKey) || { title: fallbackBubbleTitle || rawTitle, total: fallbackBubbleTotal || lessons.length || 1 };
-      const bubbleTitle = bubbleMeta.title || rawTitle;
-      const totalLessons = bubbleMeta.total || fallbackBubbleTotal || lessons.length || 1;
-      const isLocked = status === 'locked';
-      const bubbleCta = isLocked
-        ? 'Complete all levels above to unlock this!'
-        : 'Start Lesson!!';
-
-      rows.push(`
-        <div class="${rowClasses.join(' ')}">
-          <button type="button" class="${buttonClasses.join(' ')}"${lessonIdAttr}${skillAttr}${levelAttr}${titleAttr} aria-expanded="false">
-            <img src="${iconSrc}" alt="${altText}" />
-          </button>
-          <div class="lesson-bubble" data-lesson-bubble hidden>
-            <div class="lesson-bubble__content">
-              <div class="lesson-bubble__header">
-                <p class="lesson-bubble__title">${escapeHtml(bubbleTitle)}</p>
-                <p class="lesson-bubble__meta">Lesson ${lessonNumber} of ${totalLessons}</p>
-              </div>
-              <div class="lesson-bubble__footer">
-                <button type="button" class="lesson-bubble__cta" data-lesson-status="${status}"${isLocked ? ' disabled' : ''}>${escapeHtml(bubbleCta)}</button>
-              </div>
-            </div>
-          </div>
-        </div>`);
-      if(index === midpoint - 1){
-        rows.push(`
-          <div class="lesson-row mascot lesson-row--${mascotSide}">
-            <img src="${mascotPath}" onerror="this.onerror=null;this.src='${mascotFallback}'" alt="Unit mascot" />
-          </div>`);
-      }
-    });
-
-    if(!lessons.length){
-      rows.push(`
-        <div class="lesson-row mascot lesson-row--${mascotSide}">
-          <img src="${mascotPath}" onerror="this.onerror=null;this.src='${mascotFallback}'" alt="Unit mascot" />
-        </div>`);
-    }
-    if(rewardDefined){
-      rows.push(`
-        <div class="lesson-row lesson-row--center chest">
-          <img src="${assetRoot}/path.svg" alt="Reward chest" />
-        </div>`);
-    }
-
-    if(allComplete && !hasReviewLesson){
-      rows.push(`
-        <div class="lesson-row lesson-row--center trophy">
-          <img src="${assetRoot}/trophy-gold_1.svg" alt="Trophy" />
-        </div>`);
-    }
-
-    return `
-    <section class="unit">
-      <header class="unit-header">
-        <hr /><h2>${unit.title}</h2><hr />
-      </header>
-      <div class="unit-path">
-        <div class="unit-connector" aria-hidden="true">
-          <svg class="unit-connector__trail" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 72.94 100" preserveAspectRatio="xMidYMin slice">
-            <defs>
-              <pattern id="unit-connector-pattern-${sectionNum}-${unit.number}" patternUnits="userSpaceOnUse" width="72.94" height="80">
-                <image href="${assetRoot}/path.svg" width="72.94" height="31.31" x="0" y="24" preserveAspectRatio="xMidYMid meet" />
-              </pattern>
-            </defs>
-            <rect class="unit-connector__fill" width="72.94" height="100" fill="url(#unit-connector-pattern-${sectionNum}-${unit.number})" />
-          </svg>
-        </div>
-        ${rows.join('')}
-      </div>
-    </section>`;
-  }
-
-  function renderSection(number){
-    const sec = sections.find(s => String(s.number) === String(number));
-    if(!sec){
-      container.innerHTML = '<p>Section not found.</p>';
-      return;
-    }
-    const unitsMarkup = sec.units.length
-      ? sec.units.map(unit => renderUnit(sec.number, unit)).join('')
-      : '<p class="unit-path__empty">No units available yet.</p>';
-
-    container.innerHTML = `<div class="section-page">
-    <button class="btn-back" data-action="back">← Back</button>
-    ${unitsMarkup}
-  </div>`;
-    connectLessons('lesson-01', 'lesson-02');
-  }
-
-  function closeLessonBubbles(except){
-    const bubbles = container.querySelectorAll('.lesson-bubble:not([hidden])');
-    bubbles.forEach(bubble => {
-      if(except && bubble === except) return;
-      const wasOpen = bubble.classList.contains('is-open');
-      bubble.classList.remove('is-open');
-      if(wasOpen){
-        const handle = event => {
-          if(event.target !== bubble) return;
-          if(!bubble.classList.contains('is-open')){
-            bubble.setAttribute('hidden', '');
-          }
-          bubble.removeEventListener('transitionend', handle);
-        };
-        bubble.addEventListener('transitionend', handle);
-      }else if(!bubble.hasAttribute('hidden')){
-        bubble.setAttribute('hidden', '');
-      }
-      const button = bubble.previousElementSibling;
-      if(button && button.matches('.lesson')){
-        button.setAttribute('aria-expanded', 'false');
-      }
-    });
-  }
-
-  function openLessonBubble(button, bubble){
-    if(!bubble || !button) return;
-    closeLessonBubbles(bubble);
-    bubble.removeAttribute('hidden');
-    bubble.getBoundingClientRect();
-    bubble.classList.add('is-open');
-    button.setAttribute('aria-expanded', 'true');
-  }
-
- function toggleLessonBubble(button){
-    if(!button) return;
-    const row = button.closest('.lesson-row');
-    if(!row) return;
-    const bubble = row.querySelector('.lesson-bubble');
-    if(!bubble) return;
-    const isOpen = bubble.classList.contains('is-open');
-    if(isOpen){
-      closeLessonBubbles();
-    }else{
-      openLessonBubble(button, bubble);
-    }
-  }
-
-  function handleClick(e){
-    const lessonButton = e.target.closest('.lesson-row--lesson .lesson');
-    if(lessonButton){
-      toggleLessonBubble(lessonButton);
-      return;
-    }
-
-    const seeDetailsButton = e.target.closest('.see-details');
-    if(seeDetailsButton){
-      const card = seeDetailsButton.closest('.section-card');
-      const panel = card ? initialiseOverview(card) : null;
-      if(!panel) return;
-      const isExpanded = seeDetailsButton.getAttribute('aria-expanded') === 'true';
-      if(isExpanded){
-        collapsePanel(panel, { trigger: seeDetailsButton });
-      }else{
-        expandPanel(panel, seeDetailsButton);
-      }
-      return;
-    }
-
-    if(!e.target.closest('.lesson-bubble__content')){
-      closeLessonBubbles();
-    }
-
-    const continueBtn = e.target.closest('.btn-continue');
-    if(continueBtn){
-      const id = continueBtn.dataset.id;
-      const sec = sections.find(s=>String(s.number) === String(id));
-      if(sec && sec.status !== 'locked') location.hash = `#/section/${id}`;
-      return;
-    }
-
-    const overviewCtaBtn = e.target.closest('button.overview-cta-button');
-    if(overviewCtaBtn){
-      const id = overviewCtaBtn.dataset.id || overviewCtaBtn.closest('.section-card')?.getAttribute('data-section-id');
-      const sec = sections.find(s=>String(s.number) === String(id));
-      if(sec && sec.status !== 'locked') location.hash = `#/section/${id}`;
-      return;
-    }
-
-    const backBtn = e.target.closest('[data-action="back"]');
-    if(backBtn){
-      location.hash = '#/learn';
-      return;
-    }
-
-    const unitToggle = e.target.closest('[data-unit-toggle]');
-    if(unitToggle){
-      const node = unitToggle.closest('.unit-node');
-      if(node && !node.classList.contains('is-locked')){
-        const expanded = unitToggle.getAttribute('aria-expanded') === 'true';
-        unitToggle.setAttribute('aria-expanded', (!expanded).toString());
-        node.classList.toggle('is-open', !expanded);
-        const lessons = node.querySelector('.unit-node__lessons');
-        if(lessons){
-          lessons.hidden = expanded;
-        }
-      }
-    }
-  }
-
-  async function router(){
-    await ensureSections();
-    const hash = location.hash || '#/learn';
-    const m = hash.match(/^#\/section\/(\d+)/);
-    if(m){
-      renderSection(m[1]);
-    }else{
-      renderLearn();
-    }
-  }
-
-  container.addEventListener('click', handleClick);
-  ensureSections().then(() => {
-    router();
-    window.addEventListener('hashchange', router);
   });
 
-  function getSectionRecord(sectionId){
-    const index = sections.findIndex(sec => String(sec.number) === String(sectionId));
-    return { index, section: index >= 0 ? sections[index] : null };
+  function open(){
+    sidebar.classList.add('open');
+    scrim.hidden = false;
+    document.body.classList.add('drawer-open');
+    toggleBtn && toggleBtn.setAttribute('aria-expanded','true');
+    untrap = trapFocus(sidebar);
+  }
+  function close(){
+    sidebar.classList.remove('open');
+    scrim.hidden = true;
+    document.body.classList.remove('drawer-open');
+    toggleBtn && toggleBtn.setAttribute('aria-expanded','false');
+    untrap && untrap();
   }
 
-  function readOverviewSeedData(){
-    const script = document.getElementById('sections-overview-data');
-    if(!script) return new Map();
-    const text = script.textContent || script.innerText || '';
-    if(!text.trim()) return new Map();
-    try{
-      const parsed = JSON.parse(text);
-      const map = new Map();
-      if(parsed && typeof parsed === 'object'){
-        Object.keys(parsed).forEach(key => {
-          const value = parsed[key];
-          if(value && typeof value === 'object'){
-            map.set(String(key), value);
-          }
-        });
+  on(toggleBtn,'click',()=>{
+    if (sidebar.classList.contains('open')) close(); else open();
+  });
+  on(scrim,'click',close);
+
+  function setActive(route){
+    navButtons.forEach(b=>{
+      const active = b.dataset.route===route;
+      b.toggleAttribute('aria-current', active);
+      b.classList.toggle('is-active', active);
+    });
+  }
+  return { setActive };
+}
+
+// Views
+const views = {
+  home:   $('#view-learn'),
+  learn:  $('#view-learn'),
+  characters: $('#view-characters'),
+  practice:   $('#view-practice'),
+  quests:     $('#view-quests'),
+  profile:    $('#view-profile'),
+  settings:   $('#view-settings')
+};
+
+function show(route){
+  Object.values(views).forEach(v=>v && (v.hidden = true));
+  const el = views[route] || views.home;
+  if (el) el.hidden = false;
+}
+
+
+// Hash router
+function parseHash(){
+  const h = location.hash.replace(/^#\/?/,'').toLowerCase();
+  const route = ROUTES.includes(h) ? h : (h.split('?')[0]||'home');
+  return route;
+}
+function initRouter(sidebarCtl){
+  function apply(){
+    const r = parseHash();
+    show(r);
+    sidebarCtl.setActive(r);
+  }
+  window.addEventListener('hashchange', apply);
+  apply();
+}
+
+// Settings form
+function initSettingsForm(){
+  const form = $('#settingsForm');
+  if (!form) return;
+  // hydrate
+  form.sfx.checked = !!AppState.prefs.sfx;
+  form.anim.checked = !!AppState.prefs.anim;
+  form.motivate.checked = !!AppState.prefs.motivate;
+  form.listen.checked = !!AppState.prefs.listen;
+  form.romanized.checked = !!AppState.prefs.romanized;
+  [...form.appearance].forEach(r => r.checked = (r.value === AppState.prefs.appearance));
+
+  on(form,'submit',e=>{
+    e.preventDefault();
+    AppState.prefs = {
+      ...AppState.prefs,
+      sfx: form.sfx.checked,
+      anim: form.anim.checked,
+
+      motivate: form.motivate.checked,
+      listen: form.listen.checked,
+      romanized: form.romanized.checked,
+      appearance: form.appearance.value
+    };
+    savePrefs();
+  });
+}
+
+/* -------------------------
+   Profile & Debug tools
+------------------------- */
+
+function profileStatsMarkup(){
+  return `
+    <div class="card profile-card profile-stats">
+      <h2 class="card__title">Your stats</h2>
+      <ul class="stats">
+        <li><strong id="stat-streak">0</strong> day streak</li>
+        <li><strong id="stat-xp">0</strong> XP total</li>
+        <li><strong id="stat-crown">0</strong> crowns</li>
+      </ul>
+    </div>`;
+}
+
+const EXERCISE_MODULE_BASES = (() => {
+  const bases = [];
+  const seen = new Set();
+
+  const repoBasePath = REPO_BASE_PATH;
+  const repoBaseWithSlash =
+    repoBasePath === './' ? './' : ensureTrailingSlash(repoBasePath || '/');
+  const exerciseAssetsBasePath =
+    repoBaseWithSlash === './'
+      ? './assets/Lessons/exercises/'
+      : `${repoBaseWithSlash}assets/Lessons/exercises/`;
+
+  const addCandidate = (candidate) => {
+    if (!candidate) return;
+
+    try {
+      const resolved = new URL(exerciseAssetsBasePath, candidate).href;
+      if (!seen.has(resolved)) {
+        seen.add(resolved);
+        bases.push(resolved);
       }
-      return map;
-    }catch(err){
-      console.error('learn: failed to parse overview seed data', err);
-      return new Map();
+    } catch (err) {
+      // Ignore invalid URLs — we'll fall back to other candidates.
     }
-  }
+  };
 
-  function getOverviewSeed(sectionId){
-    if(!sectionId) return null;
-    const key = String(sectionId);
-    return overviewSeedData.has(key) ? overviewSeedData.get(key) : null;
-  }
+  const addLocationDirectory = () => {
+    if (typeof window === 'undefined' || !window.location) return;
+    const { origin, pathname, href } = window.location;
 
-  function mergeOverviewData(base = {}, seed = null){
-    const merged = base && typeof base === 'object' ? { ...base } : {};
-    if(seed && typeof seed === 'object'){
-      if(Object.prototype.hasOwnProperty.call(seed, 'tagline')){
-        merged.tagline = seed.tagline;
-      }
-      if(Object.prototype.hasOwnProperty.call(seed, 'summary')){
-        merged.summary = seed.summary;
-      }
-      if(Object.prototype.hasOwnProperty.call(seed, 'helpfulHints')){
-        merged.helpfulHints = Array.isArray(seed.helpfulHints) ? seed.helpfulHints.slice() : seed.helpfulHints;
-      }
-      if(Object.prototype.hasOwnProperty.call(seed, 'grammarConcepts')){
-        merged.grammarConcepts = Array.isArray(seed.grammarConcepts) ? seed.grammarConcepts.slice() : seed.grammarConcepts;
-      }
-      if(Object.prototype.hasOwnProperty.call(seed, 'cta')){
-        const baseCTA = merged.cta && typeof merged.cta === 'object' ? merged.cta : {};
-        merged.cta = seed.cta && typeof seed.cta === 'object' ? { ...baseCTA, ...seed.cta } : baseCTA;
-      }
+    if (href) {
+      addCandidate(href);
     }
-    return merged;
-  }
 
-  function clamp(value, min, max){
-    return Math.min(max, Math.max(min, value));
-  }
-
-  function refreshSectionCard(section){
-    if(!section) return;
-    const card = container.querySelector(`.section-card[data-section-id="${section.number}"]`);
-    if(card){
-      const pct = Math.round((Number(section.progress) || 0) * 100);
-      const fill = card.querySelector('.progress__fill');
-      if(fill) fill.style.width = `${pct}%`;
-      const nums = card.querySelector('.progress__nums');
-      if(nums) nums.textContent = `${section.lessonsDone} / ${section.lessonsTotal}`;
-      const bar = card.querySelector('.progress');
-      if(bar){
-        bar.setAttribute('aria-valuenow', section.lessonsDone);
-        bar.setAttribute('aria-valuemax', section.lessonsTotal);
+    if (origin) {
+      // Include the current directory so GitHub Pages deployments under a repo path work.
+      if (pathname && pathname !== '/') {
+        const directory = pathname.endsWith('/')
+          ? pathname
+          : pathname.replace(/[^/]*$/, '/');
+        addCandidate(`${origin}${directory}`);
       }
-      const trophy = card.querySelector('.progress__trophy');
-      if(trophy){
-        const nextSrc = trophySrc(section.progress);
-        if(trophy.getAttribute('src') !== nextSrc){
-          trophy.setAttribute('src', nextSrc);
+
+      addCandidate(`${origin}/`);
+    }
+  };
+
+  if (typeof document !== 'undefined') {
+    if (document.currentScript?.src) {
+      addCandidate(document.currentScript.src);
+    }
+
+    const scripts = document.getElementsByTagName('script');
+    if (scripts && scripts.length) {
+      for (const script of scripts) {
+        if (script?.src) {
+          addCandidate(script.src);
         }
       }
-      const mainBtn = card.querySelector('.btn-continue');
-      if(mainBtn){
-        const locked = section.status === 'locked';
-        mainBtn.disabled = locked;
-        const label = locked ? 'Locked' : (section.cta || (section.progress > 0 ? 'Continue' : `Start Section ${section.number}`));
-        mainBtn.textContent = label;
+    }
+
+    if (document.baseURI) {
+      addCandidate(document.baseURI);
+    }
+
+    const manifest = document.querySelector('link[rel="manifest"]');
+    if (manifest?.href) {
+      addCandidate(manifest.href);
+    }
+  }
+
+  addLocationDirectory();
+
+  if (!bases.length) {
+    const fallback = (() => {
+      if (typeof document !== 'undefined' && document.baseURI) {
+        try {
+          return new URL(exerciseAssetsBasePath, document.baseURI).href;
+        } catch (err) {
+          // ignore and fall through
+        }
       }
-      initialiseOverview(card);
+
+      if (typeof window !== 'undefined' && window.location?.href) {
+        try {
+          return new URL(exerciseAssetsBasePath, window.location.href).href;
+        } catch (err) {
+          // ignore and fall through
+        }
+      }
+
+      return exerciseAssetsBasePath;
+    })();
+
+    bases.push(fallback);
+  }
+
+  if (typeof console !== 'undefined' && typeof console.log === 'function') {
+    console.log('📦 Exercise module base URLs:', bases);
+  }
+
+  return bases;
+})();
+
+async function loadExerciseModule(path) {
+  let lastError;
+
+  for (const base of EXERCISE_MODULE_BASES) {
+    try {
+      const resolved = new URL(path, base);
+      return await import(/* webpackIgnore: true */ resolved.href);
+    } catch (error) {
+      lastError = error;
     }
   }
 
-  function refreshSectionDetailIfActive(section){
-    const match = location.hash.match(/^#\/section\/(\d+)/);
-    if(match && String(match[1]) === String(section.number)){
-      renderSection(section.number);
+  return Promise.reject(lastError || new Error(`Failed to load exercise module "${path}".`));
+}
+
+const LESSON_SIMULATOR_EXERCISES = [
+  {
+    id: 'match-pairs',
+    label: 'Match Pairs',
+    description: 'Match Sinhala words and phrases to their translations.',
+    loader: () => loadExerciseModule('MatchPairs/index.js')
+  },
+  {
+    id: 'word-bank',
+    label: 'Word Bank',
+    description: 'Assemble answers from a bank of word tiles.',
+    loader: () => loadExerciseModule('WordBank/index.js')
+  },
+  {
+    id: 'translate-to-target',
+    label: 'Translate to Sinhala',
+    description: 'Type the Sinhala translation for the given prompt.',
+    loader: () => loadExerciseModule('TranslateToTarget/index.js')
+  },
+  {
+    id: 'translate-to-base',
+    label: 'Translate to English',
+    description: 'Translate Sinhala sentences back into English.',
+    loader: () => loadExerciseModule('TranslateToBase/index.js')
+  },
+  {
+    id: 'picture-choice',
+    label: 'Picture Choice',
+    description: 'Choose the image that best matches the cue.',
+    loader: () => loadExerciseModule('PictureChoice/index.js')
+  },
+  {
+    id: 'fill-blank',
+    label: 'Fill in the Blank',
+    description: 'Complete sentences by supplying the missing word.',
+    loader: () => loadExerciseModule('FillBlank/index.js')
+  },
+  {
+    id: 'listening',
+    label: 'Listening',
+    description: 'Listen to audio and identify what you heard.',
+    loader: () => loadExerciseModule('Listening/index.js')
+  },
+  {
+    id: 'dialogue',
+    label: 'Dialogue',
+    description: 'Step through a guided conversation.',
+    loader: () => loadExerciseModule('Dialogue/index.js')
+  },
+  {
+    id: 'speak',
+    label: 'Speaking',
+    description: 'Practice pronouncing Sinhala aloud.',
+    loader: () => loadExerciseModule('Speak/index.js')
+  }
+];
+
+const LESSON_SIMULATOR_EXERCISE_LOOKUP = new Map(LESSON_SIMULATOR_EXERCISES.map(entry => [entry.id, entry]));
+
+const LessonSimulator = (() => {
+  let overlayEl = null;
+  let contentEl = null;
+  let closeBtn = null;
+  let lastTrigger = null;
+  let keyHandlerBound = false;
+  let simulationState = null;
+
+  function ensureOverlay(){
+    if(overlayEl) return;
+    overlayEl = document.createElement('div');
+    overlayEl.id = 'lessonSimulator';
+    overlayEl.className = 'lesson-simulator-overlay';
+    overlayEl.setAttribute('hidden', '');
+    overlayEl.innerHTML = `
+      <div class="lesson-simulator-overlay__scrim" data-sim-action="close"></div>
+      <div class="lesson-simulator" role="dialog" aria-modal="true" aria-labelledby="lessonSimulatorTitle">
+        <button type="button" class="lesson-simulator__close" aria-label="Exit lesson simulator" data-sim-action="close">✕</button>
+        <div class="lesson-simulator__content" id="lessonSimulatorContent"></div>
+      </div>`;
+    document.body.appendChild(overlayEl);
+    contentEl = overlayEl.querySelector('#lessonSimulatorContent');
+    closeBtn = overlayEl.querySelector('.lesson-simulator__close');
+    overlayEl.addEventListener('click', event => {
+      if(event.target && event.target.dataset && event.target.dataset.simAction === 'close'){
+        event.preventDefault();
+        close();
+      }
+    });
+  }
+
+  function onKeydown(event){
+    if(event.key === 'Escape' && overlayEl && !overlayEl.hasAttribute('hidden')){
+      event.preventDefault();
+      close();
     }
   }
 
-  function setSectionState(sectionId, patch = {}){
-    const { index, section } = getSectionRecord(sectionId);
-    if(index < 0 || !section) return null;
-    const totalLessons = Number(section.lessonsTotal) || 0;
-    let lessonsDone = Object.prototype.hasOwnProperty.call(patch, 'lessonsDone')
-      ? clamp(Math.round(Number(patch.lessonsDone) || 0), 0, totalLessons)
-      : section.lessonsDone;
-    let progress = Object.prototype.hasOwnProperty.call(patch, 'progress')
-      ? clamp(Number(patch.progress) || 0, 0, 1)
-      : section.progress;
+  function renderShell(config = {}){
+    if(!contentEl) return null;
+    const {
+      lessonTitle = 'Lesson',
+      lessonNumberText = 'Lesson simulator',
+      sectionTitle = '',
+      unitTitle = ''
+    } = config;
 
-    if(Object.prototype.hasOwnProperty.call(patch, 'progress') && !Object.prototype.hasOwnProperty.call(patch, 'lessonsDone')){
-      lessonsDone = totalLessons ? Math.round(progress * totalLessons) : 0;
-    }else if(Object.prototype.hasOwnProperty.call(patch, 'lessonsDone') && !Object.prototype.hasOwnProperty.call(patch, 'progress')){
-      progress = totalLessons ? lessonsDone / totalLessons : 0;
+    contentEl.innerHTML = '';
+
+    const header = document.createElement('header');
+    header.className = 'lesson-simulator__header';
+
+    const eyebrow = document.createElement('p');
+    eyebrow.className = 'lesson-simulator__eyebrow';
+    eyebrow.textContent = lessonNumberText || 'Lesson simulator';
+    header.appendChild(eyebrow);
+
+    const title = document.createElement('h2');
+    title.id = 'lessonSimulatorTitle';
+    title.className = 'lesson-simulator__title';
+    title.textContent = lessonTitle || 'Lesson';
+    header.appendChild(title);
+
+    const meta = document.createElement('p');
+    meta.className = 'lesson-simulator__meta';
+    const metaParts = [sectionTitle, unitTitle].filter(Boolean);
+    meta.textContent = metaParts.length ? metaParts.join(' • ') : 'Step through the selected exercises.';
+    header.appendChild(meta);
+
+    const progress = document.createElement('p');
+    progress.className = 'lesson-simulator__progress';
+    progress.textContent = 'Preparing exercises…';
+
+    const stage = document.createElement('div');
+    stage.className = 'lesson-simulator__stage';
+
+    const status = document.createElement('p');
+    status.className = 'lesson-simulator__status';
+    status.textContent = 'Loading…';
+
+    const controls = document.createElement('div');
+    controls.className = 'lesson-simulator__controls';
+
+    const nextBtn = document.createElement('button');
+    nextBtn.type = 'button';
+    nextBtn.className = 'btn btn--primary lesson-simulator__next';
+    nextBtn.textContent = 'Next exercise';
+    nextBtn.hidden = true;
+    nextBtn.disabled = true;
+    controls.appendChild(nextBtn);
+
+    contentEl.append(header, progress, stage, status, controls);
+
+    return { stage, status, progress, nextBtn };
+  }
+
+  function clearNextAction(options = {}){
+    if(!simulationState || !simulationState.nextBtn) return;
+    const { hide = true } = options;
+    if(simulationState.autoAdvanceTimer){
+      clearTimeout(simulationState.autoAdvanceTimer);
+      simulationState.autoAdvanceTimer = null;
+    }
+    if(simulationState.nextHandler){
+      simulationState.nextBtn.removeEventListener('click', simulationState.nextHandler);
+      simulationState.nextHandler = null;
+    }
+    simulationState.nextBtn.disabled = true;
+    if(hide){
+      simulationState.nextBtn.hidden = true;
+    }
+  }
+
+  function setNextAction({ label = 'Continue', callback, autoAdvance } = {}){
+    if(!simulationState || !simulationState.nextBtn) return;
+    clearNextAction({ hide: false });
+    simulationState.nextBtn.hidden = false;
+    simulationState.nextBtn.textContent = label;
+    if(typeof callback === 'function'){
+      simulationState.nextHandler = callback;
+      simulationState.nextBtn.disabled = false;
+      simulationState.nextBtn.addEventListener('click', callback);
+      if(autoAdvance){
+        simulationState.autoAdvanceTimer = window.setTimeout(() => {
+          if(simulationState && simulationState.nextHandler === callback){
+            callback();
+          }
+        }, autoAdvance);
+      }
+    }else{
+      simulationState.nextBtn.disabled = true;
+    }
+  }
+
+  async function runExercise(index){
+    if(!simulationState) return;
+    if(index >= simulationState.total){
+      finishSimulation();
+      return;
     }
 
-    const nextStatus = Object.prototype.hasOwnProperty.call(patch, 'status')
-      ? patch.status
-      : (progress >= 1 ? 'completed' : (section.status === 'locked' && progress <= 0 ? 'locked' : 'unlocked'));
+    simulationState.currentIndex = index;
+    const exercises = simulationState.exercises;
+    const exerciseId = exercises[index];
+    const meta = LESSON_SIMULATOR_EXERCISE_LOOKUP.get(exerciseId) || { id: exerciseId };
+    const label = meta.label || exerciseId;
 
-    const nextCTA = Object.prototype.hasOwnProperty.call(patch, 'cta')
-      ? patch.cta
-      : (progress > 0 ? 'Continue' : `Start Section ${section.number}`);
+    if(simulationState.progressEl){
+      simulationState.progressEl.textContent = `Exercise ${index + 1} of ${simulationState.total}: ${label}`;
+    }
+    if(simulationState.statusEl){
+      simulationState.statusEl.textContent = 'Complete this exercise to continue.';
+    }
 
-    const updated = {
-      ...section,
-      ...patch,
-      lessonsDone,
-      progress,
-      status: nextStatus,
-      cta: nextCTA
+    clearNextAction({ hide: false });
+    if(simulationState.nextBtn){
+      simulationState.nextBtn.hidden = false;
+      simulationState.nextBtn.textContent = index === simulationState.total - 1 ? 'Finish simulation' : 'Next exercise';
+      simulationState.nextBtn.disabled = true;
+    }
+
+    const stage = simulationState.stageEl;
+    if(stage){
+      stage.innerHTML = `<div class="lesson-simulator__loader" role="status">Loading ${label}…</div>`;
+    }
+
+    const token = {};
+    simulationState.activeToken = token;
+
+    if(!meta.loader || typeof meta.loader !== 'function'){
+      if(stage){
+        stage.innerHTML = `<p class="lesson-simulator__error">Exercise "${label}" is not available in this build.</p>`;
+      }
+      if(simulationState.statusEl){
+        simulationState.statusEl.textContent = 'This exercise is unavailable. You can skip it.';
+      }
+      setNextAction({ label: 'Skip exercise', callback: () => runExercise(index + 1) });
+      return;
+    }
+
+    try{
+      // Set global lesson context so exercises know which lesson data to use
+      window.BashaLanka = window.BashaLanka || {};
+      const existingLesson = window.BashaLanka.currentLesson || {};
+      const lessonMeta = existingLesson.meta || simulationState?.config?.lessonMeta || null;
+      const detail = existingLesson.detail || {};
+
+      if(!existingLesson.meta && lessonMeta){
+        existingLesson.meta = lessonMeta;
+      }
+      if(!existingLesson.detail){
+        existingLesson.detail = detail;
+      }
+
+      const fillDetailField = (field, keys = [field]) => {
+        if(detail[field] != null) return;
+        if(!lessonMeta) return;
+        for(const key of keys){
+          if(lessonMeta[key] != null){
+            detail[field] = lessonMeta[key];
+            return;
+          }
+        }
+      };
+
+      fillDetailField('id', ['id', 'lessonId']);
+      fillDetailField('title', ['title', 'lessonTitle']);
+      fillDetailField('sectionId');
+      fillDetailField('unitId');
+      fillDetailField('lessonId', ['lessonId', 'id']);
+
+      existingLesson.exercise = meta;
+      window.BashaLanka.currentLesson = existingLesson;
+
+      const mod = await meta.loader();
+      if(!simulationState || simulationState.activeToken !== token) return;
+      const init = typeof mod?.default === 'function' ? mod.default : null;
+      if(typeof init !== 'function'){
+        throw new Error('Exercise init function missing');
+      }
+
+      const host = document.createElement('div');
+      host.className = 'lesson-simulator__exercise-host';
+      host.setAttribute('data-exercise', meta.slot || meta.id);
+      if(stage){
+        stage.innerHTML = '';
+        stage.appendChild(host);
+      }
+
+      let completed = false;
+      const handleComplete = () => {
+        if(completed || !simulationState || simulationState.currentIndex !== index) return;
+        completed = true;
+        if(simulationState.statusEl){
+          simulationState.statusEl.textContent = index === simulationState.total - 1
+            ? 'All exercises finished!'
+            : 'Nice work! Preparing the next exercise…';
+        }
+        if(index === simulationState.total - 1){
+          finishSimulation();
+        }else{
+          setNextAction({ label: 'Next exercise', callback: () => runExercise(index + 1), autoAdvance: 1200 });
+        }
+      };
+
+      await init({ target: host, onComplete: handleComplete });
+      if(contentEl){
+        contentEl.scrollTop = 0;
+      }
+    }catch(err){
+      console.error('Lesson simulator failed to load exercise', err);
+      if(!simulationState || simulationState.activeToken !== token) return;
+      if(simulationState.stageEl){
+        simulationState.stageEl.innerHTML = `<p class="lesson-simulator__error">We couldn’t load ${label}. You can skip it.</p>`;
+      }
+      if(simulationState.statusEl){
+      simulationState.statusEl.textContent = 'The exercise encountered an error.';
+      }
+      setNextAction({ label: 'Skip exercise', callback: () => runExercise(index + 1) });
+    }
+  }
+
+  function finishSimulation(){
+    if(!simulationState || simulationState.completed) return;
+    simulationState.completed = true;
+    if(simulationState.stageEl){
+      simulationState.stageEl.innerHTML = '<div class="lesson-simulator__complete">Lesson simulation complete! 🎉</div>';
+    }
+    if(simulationState.statusEl){
+      simulationState.statusEl.textContent = 'Lesson simulation complete. Returning to the admin tools.';
+    }
+    setNextAction({ label: 'Return to admin', callback: close, autoAdvance: 1500 });
+  }
+
+  function open(config = {}){
+    ensureOverlay();
+    const shell = renderShell(config) || {};
+    const exercises = Array.isArray(config.selectedExercises)
+      ? config.selectedExercises.map(String).filter(Boolean)
+      : [];
+
+    if(typeof window !== 'undefined'){
+      window.BashaLanka = window.BashaLanka || {};
+      window.BashaLanka.currentLesson = {
+        meta: config.lessonMeta || null,
+        detail: config.lessonDetail || null
+      };
+    }
+
+    simulationState = {
+      config,
+      exercises,
+      total: exercises.length,
+      currentIndex: -1,
+      stageEl: shell.stage || null,
+      statusEl: shell.status || null,
+      progressEl: shell.progress || null,
+      nextBtn: shell.nextBtn || null,
+      nextHandler: null,
+      autoAdvanceTimer: null,
+      completed: false,
+      activeToken: null
     };
 
-    sections[index] = updated;
-    refreshSectionCard(updated);
-    refreshSectionDetailIfActive(updated);
-    window.dispatchEvent(new CustomEvent('learn:section-updated', { detail: { section: { ...updated } } }));
-    return updated;
+    lastTrigger = config && config.trigger ? config.trigger : null;
+
+    overlayEl.removeAttribute('hidden');
+    document.body.classList.add('lesson-simulator-open');
+    if(!keyHandlerBound){
+      document.addEventListener('keydown', onKeydown);
+      keyHandlerBound = true;
+    }
+    requestAnimationFrame(() => {
+      if(closeBtn){
+        closeBtn.focus();
+      }
+    });
+
+    if(!simulationState.total){
+      if(simulationState.progressEl){
+        simulationState.progressEl.textContent = 'No exercises selected.';
+      }
+      if(simulationState.statusEl){
+        simulationState.statusEl.textContent = 'Choose at least one exercise to run the simulator.';
+      }
+      if(simulationState.stageEl){
+        simulationState.stageEl.innerHTML = '<p class="lesson-simulator__error">No exercises were selected.</p>';
+      }
+      setNextAction({ label: 'Return to admin', callback: close });
+      return;
+    }
+
+    runExercise(0);
   }
 
-  function setSectionProgress(sectionId, progressValue){
-    return setSectionState(sectionId, { progress: progressValue });
+  function close(){
+    if(!overlayEl) return;
+    if(simulationState){
+      clearNextAction();
+      simulationState = null;
+    }
+    if(!overlayEl.hasAttribute('hidden')){
+      overlayEl.setAttribute('hidden', '');
+    }
+    document.body.classList.remove('lesson-simulator-open');
+    if(keyHandlerBound){
+      document.removeEventListener('keydown', onKeydown);
+      keyHandlerBound = false;
+    }
+    if(contentEl){
+      contentEl.innerHTML = '';
+    }
+    if(lastTrigger && typeof lastTrigger.focus === 'function'){
+      lastTrigger.focus();
+    }
   }
 
-  function getSectionsSnapshot(){
-    return sections.map(sec => ({ ...sec }));
+  return Object.freeze({ open, close });
+})();
+
+const DebugTools = (() => {
+  const controls = [];
+  let controlsContainer = null;
+  let sectionSelect = null;
+  let hostEl = null;
+  const lessonOptionMap = new Map();
+  const simulatorState = {
+    container: null,
+    lessonSelect: null,
+    exerciseToggle: null,
+    exerciseMenu: null,
+    summary: null,
+    startButton: null,
+    selectedExercises: new Set()
+  };
+  const fallbackLessonsCache = {
+    promise: null,
+    sections: []
+  };
+  let documentClickHandler = null;
+
+  function appendControl(entry){
+    if(!controlsContainer) return;
+    const row = document.createElement('div');
+    row.className = 'debug-control';
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'btn btn--ghost debug-control__btn';
+    btn.textContent = entry.label;
+    btn.addEventListener('click', () => {
+      if(!sectionSelect || sectionSelect.disabled) return;
+      const sectionId = sectionSelect.value;
+      if(sectionId) entry.callback(sectionId);
+    });
+    row.appendChild(btn);
+    controlsContainer.appendChild(row);
   }
 
-  function escapeHtml(value){
-    return String(value || '')
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#39;');
+  function setControlsDisabled(disabled){
+    if(!controlsContainer) return;
+    controlsContainer.querySelectorAll('button').forEach(btn => {
+      btn.disabled = !!disabled;
+    });
   }
 
-  function escapeAttribute(value){
-    return escapeHtml(value).replace(/`/g, '&#96;');
+  function populateSections(){
+    if(!sectionSelect) return;
+    const learn = window.__LEARN__;
+    if(!learn || typeof learn.ensureSections !== 'function'){ setControlsDisabled(true); return; }
+    learn.ensureSections().then(() => {
+      const snapshot = typeof learn.getSectionsSnapshot === 'function' ? learn.getSectionsSnapshot() : [];
+      const options = snapshot.map(sec => `<option value="${sec.number}">Section ${sec.number}: ${escapeHTML(sec.title || 'Untitled')}</option>`);
+      if(options.length){
+        sectionSelect.innerHTML = options.join('');
+        sectionSelect.disabled = false;
+        setControlsDisabled(false);
+      }else{
+        sectionSelect.innerHTML = '<option value="" disabled selected>No sections</option>';
+        sectionSelect.disabled = true;
+        setControlsDisabled(true);
+      }
+    }).catch(() => {
+      sectionSelect.innerHTML = '<option value="" disabled selected>Unavailable</option>';
+      sectionSelect.disabled = true;
+      setControlsDisabled(true);
+    });
   }
 
-  async function ensureCourseHierarchy(){
-    if(courseHierarchyState.ready && !courseHierarchyState.promise) return courseHierarchyState;
-    if(courseHierarchyState.promise) return courseHierarchyState.promise;
-    const load = fetch(resolveAsset('data/course.index.json'), { cache: 'no-cache' })
-      .then(res => res.ok ? res.json() : null)
-      .then(data => {
-        const sections = Array.isArray(data)
-          ? data
-          : (data && Array.isArray(data.sections) ? data.sections : []);
-        courseHierarchyState.sections = sections;
-        courseHierarchyState.unitMap = new Map();
-        sections.forEach(section => {
-          const units = Array.isArray(section.units) ? section.units : [];
-          units.forEach(unit => {
-            courseHierarchyState.unitMap.set(unit.id, { unit, section });
-          });
-        });
-        courseHierarchyState.ready = true;
-        courseHierarchyState.promise = null;
-        return courseHierarchyState;
-      })
-      .catch(err => {
-        console.error('learn: failed to load course index', err);
-        courseHierarchyState.sections = [];
-        courseHierarchyState.unitMap = new Map();
-        courseHierarchyState.promise = null;
-        return courseHierarchyState;
-      });
-    courseHierarchyState.promise = load;
+  function updateExerciseSummary(){
+    if(!simulatorState.summary) return;
+    const count = simulatorState.selectedExercises.size;
+    if(!count){
+      simulatorState.summary.textContent = 'No exercises selected';
+      return;
+    }
+    const labels = Array.from(simulatorState.selectedExercises).map(id => {
+      const meta = LESSON_SIMULATOR_EXERCISE_LOOKUP.get(id);
+      return meta ? meta.label : id;
+    });
+    if(count <= 2){
+      simulatorState.summary.textContent = labels.join(', ');
+    }else{
+      simulatorState.summary.textContent = `${count} exercises selected`;
+    }
+  }
+
+  function updateStartButtonState(){
+    if(!simulatorState.startButton) return;
+    const hasLesson = Boolean(simulatorState.lessonSelect && simulatorState.lessonSelect.value);
+    const hasExercises = simulatorState.selectedExercises.size > 0;
+    simulatorState.startButton.disabled = !(hasLesson && hasExercises);
+  }
+
+  function closeExerciseMenu(){
+    if(!simulatorState.exerciseMenu) return;
+    simulatorState.exerciseMenu.hidden = true;
+    if(simulatorState.exerciseToggle){
+      simulatorState.exerciseToggle.setAttribute('aria-expanded', 'false');
+    }
+  }
+
+  function toggleExerciseMenu(){
+    if(!simulatorState.exerciseMenu) return;
+    const willOpen = simulatorState.exerciseMenu.hidden;
+    simulatorState.exerciseMenu.hidden = !willOpen;
+    if(simulatorState.exerciseToggle){
+      simulatorState.exerciseToggle.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+    }
+  }
+
+  function handleExerciseChange(event){
+    const input = event.target;
+    if(!input || input.type !== 'checkbox') return;
+    const value = input.value;
+    if(!value) return;
+    if(input.checked){
+      simulatorState.selectedExercises.add(value);
+    }else{
+      simulatorState.selectedExercises.delete(value);
+    }
+    updateExerciseSummary();
+    updateStartButtonState();
+  }
+
+  function handleDocumentClick(event){
+    if(!simulatorState.exerciseMenu || simulatorState.exerciseMenu.hidden) return;
+    if(!simulatorState.container) return;
+    if(simulatorState.exerciseMenu.contains(event.target)) return;
+    if(simulatorState.exerciseToggle && simulatorState.exerciseToggle.contains(event.target)) return;
+    closeExerciseMenu();
+  }
+
+  function ensureFallbackLessons(){
+    if(fallbackLessonsCache.sections.length) return Promise.resolve(fallbackLessonsCache.sections);
+    if(fallbackLessonsCache.promise) return fallbackLessonsCache.promise;
+    const load = (async () => {
+      const collected = [];
+      for(let index = 1; index <= 50; index += 1){
+        const slug = `section-${index}`;
+        const path = resolveAssetPath(`assets/sections/${slug}/units.json`);
+        try{
+          const res = await fetch(path, { cache: 'no-cache' });
+          if(!res.ok){
+            break;
+          }
+          const data = await res.json();
+          if(data){
+            collected.push(data);
+          }
+        }catch(err){
+          console.warn('debug: failed to load lesson data for simulator', err);
+          break;
+        }
+      }
+      fallbackLessonsCache.sections = collected;
+      fallbackLessonsCache.promise = null;
+      return collected;
+    })();
+    fallbackLessonsCache.promise = load;
     return load;
   }
 
-  async function ensureUnitLessonData(unitId){
-    if(!unitId) return null;
-    const cached = lessonDataCache.get(unitId);
-    if(cached){
-      if(typeof cached.then === 'function') return cached;
-      return Promise.resolve(cached);
-    }
-    const promise = fetch(resolveAsset(`data/${unitId}.lessons.json`), { cache: 'no-cache' })
-      .then(res => res.ok ? res.json() : null)
-      .catch(err => {
-        console.warn('learn: failed to load lesson data for', unitId, err);
-        return null;
-      })
-      .then(data => {
-        lessonDataCache.set(unitId, data);
-        return data;
+  function populateLessons(){
+    if(!simulatorState.lessonSelect) return;
+    const select = simulatorState.lessonSelect;
+    const learn = window.__LEARN__;
+    select.disabled = true;
+    select.innerHTML = '<option value="">Loading…</option>';
+    lessonOptionMap.clear();
+    updateStartButtonState();
+    const buildOptions = sections => {
+      const options = [];
+      sections.forEach((section, sectionIndex) => {
+        const sectionNumber = section.number || sectionIndex + 1;
+        const sectionTitle = section.title || (sectionNumber ? `Section ${sectionNumber}` : 'Section');
+        const units = Array.isArray(section.units) ? section.units : [];
+        units.forEach((unit, unitIndex) => {
+          const unitId = unit.id || '';
+          const unitTitle = unit.title || `Unit ${unitIndex + 1}`;
+          const unitNumber = unit.number || unitIndex + 1;
+          const lessons = Array.isArray(unit.lessons) ? unit.lessons : [];
+          lessons.forEach((lesson, index) => {
+            const lessonId = lesson && lesson.id ? lesson.id : '';
+            if(!lessonId) return;
+            const key = [sectionNumber, unitId, lessonId, lesson.skillId || '', lesson.levelId || ''].join('|');
+            const lessonTitle = lesson.title || `Lesson ${index + 1}`;
+            const textParts = [
+              sectionNumber ? `Section ${sectionNumber}` : sectionTitle,
+              unitTitle,
+              lessonTitle
+            ].filter(Boolean);
+            lessonOptionMap.set(key, {
+              sectionNumber,
+              sectionTitle,
+              unitId,
+              unitNumber,
+              unitTitle,
+              lessonId,
+              lessonTitle,
+              lessonIndex: index + 1,
+              totalLessons: lessons.length || 0,
+              skillId: lesson.skillId || '',
+              levelId: lesson.levelId || ''
+            });
+            options.push(`<option value="${key}">${escapeHTML(textParts.join(' • '))}</option>`);
+          });
+        });
       });
-    lessonDataCache.set(unitId, promise);
-    return promise;
-  }
+      if(options.length){
+        select.innerHTML = `<option value="">Choose a lesson</option>${options.join('')}`;
+        select.disabled = false;
+      }else{
+        select.innerHTML = '<option value="">No lessons available</option>';
+        select.disabled = true;
+      }
+      updateStartButtonState();
+    };
 
-  function normalizeLevelLessons(level){
-    const refs = Array.isArray(level && level.lessons) ? level.lessons : [];
-    return refs.map((ref, index) => {
-      if(typeof ref === 'string'){
-        return { id: ref, order: index + 1 };
-      }
-      if(ref && typeof ref === 'object'){
-        return {
-          ...ref,
-          id: ref.id || ref.lessonId || '',
-          order: index + 1
-        };
-      }
-      return { id: '', order: index + 1 };
+    if(learn && typeof learn.ensureSections === 'function'){
+      learn.ensureSections().then(() => {
+        const snapshot = typeof learn.getSectionsSnapshot === 'function' ? learn.getSectionsSnapshot() : [];
+        buildOptions(snapshot);
+      }).catch(() => {
+        ensureFallbackLessons().then(buildOptions).catch(() => {
+          select.innerHTML = '<option value="">Failed to load lessons</option>';
+          select.disabled = true;
+          updateStartButtonState();
+        });
+      });
+      return;
+    }
+
+    ensureFallbackLessons().then(buildOptions).catch(() => {
+      select.innerHTML = '<option value="">Failed to load lessons</option>';
+      select.disabled = true;
+      updateStartButtonState();
     });
   }
 
-  async function getLessonPositionMeta({ unitId, skillId, levelId, lessonId } = {}){
-    if(!unitId){
-      return {
-        currentIndex: 0,
-        totalLessons: 0,
-        lesson: null,
-        lessonId: '',
-        skill: null,
-        level: null,
-        unit: null,
-        section: null,
-        type: null,
-        isReview: false
-      };
-    }
+  function fetchLessonDetail(meta){
+    if(!meta || !meta.unitId) return Promise.resolve(null);
+    return fetch(`data/${meta.unitId}.lessons.json`, { cache: 'no-cache' })
+      .then(res => res.ok ? res.json() : null)
+      .then(data => {
+        if(!data || !Array.isArray(data.lessons)) return null;
+        return data.lessons.find(item => item.id === meta.lessonId) || null;
+      })
+      .catch(() => null);
+  }
 
-    const hierarchy = await ensureCourseHierarchy();
-    const entry = hierarchy.unitMap.get(unitId);
-    if(!entry || !entry.unit){
-      return {
-        currentIndex: 0,
-        totalLessons: 0,
-        lesson: null,
-        lessonId: lessonId || '',
-        skill: null,
-        level: null,
-        unit: null,
-        section: null,
-        type: null,
-        isReview: false
-      };
-    }
-
-    const skills = Array.isArray(entry.unit.skills) ? entry.unit.skills : [];
-    const skill = skills.find(s => (skillId && (s.skillId === skillId || s.id === skillId))) || skills[0] || null;
-    if(!skill){
-      return {
-        currentIndex: 0,
-        totalLessons: 0,
-        lesson: null,
-        lessonId: lessonId || '',
-        skill: null,
-        level: null,
-        unit: entry.unit,
-        section: entry.section,
-        type: null,
-        isReview: false
-      };
-    }
-
-    const levels = Array.isArray(skill.levels) ? skill.levels : [];
-    const level = levels.find(l => (levelId && (l.levelId === levelId || l.id === levelId))) || levels[0] || null;
-    if(!level){
-      return {
-        currentIndex: 0,
-        totalLessons: 0,
-        lesson: null,
-        lessonId: lessonId || '',
-        skill,
-        level: null,
-        unit: entry.unit,
-        section: entry.section,
-        type: null,
-        isReview: false
-      };
-    }
-
-    const lessons = normalizeLevelLessons(level);
-    const declaredTotal = Number(level.lessonCount) || 0;
-    const fallbackTotal = lessons.length;
-    const totalLessons = declaredTotal || fallbackTotal;
-
-    let targetId = lessonId || '';
-    let matchIndex = -1;
-    if(targetId){
-      matchIndex = lessons.findIndex(item => item.id === targetId);
-    }
-    if(matchIndex < 0 && lessons.length){
-      targetId = lessons[0].id;
-      matchIndex = 0;
-    }
-    const currentIndex = matchIndex >= 0 ? matchIndex + 1 : 0;
-
-    const lessonData = await ensureUnitLessonData(unitId);
-    let lessonDetail = null;
-    if(lessonData && Array.isArray(lessonData.lessons)){
-      lessonDetail = lessonData.lessons.find(item => item.id === targetId) || null;
-    }
-
-    const typeValue = lessonDetail && lessonDetail.type
-      ? lessonDetail.type
-      : (matchIndex >= 0 && lessons[matchIndex] && lessons[matchIndex].type ? lessons[matchIndex].type : null);
-    const isReview = typeValue === 'review';
-
-    return {
-      currentIndex,
-      totalLessons,
-      lesson: lessonDetail,
-      lessonId: targetId,
-      skill,
-      level,
-      unit: entry.unit,
-      section: entry.section,
-      type: typeValue,
-      isReview
+  function handleStartClick(){
+    if(!simulatorState.lessonSelect || !simulatorState.startButton) return;
+    const value = simulatorState.lessonSelect.value;
+    if(!value) return;
+    const meta = lessonOptionMap.get(value);
+    if(!meta) return;
+    const exercises = Array.from(simulatorState.selectedExercises);
+    if(!exercises.length) return;
+    const learn = window.__LEARN__;
+    const params = {
+      unitId: meta.unitId,
+      lessonId: meta.lessonId,
+      skillId: meta.skillId,
+      levelId: meta.levelId
     };
+    const fallbackCounter = meta.totalLessons && meta.lessonIndex
+      ? `Lesson ${meta.lessonIndex} of ${meta.totalLessons}`
+      : '';
+
+    simulatorState.startButton.disabled = true;
+
+    if(learn && typeof learn.getLessonPosition === 'function'){
+      const positionPromise = learn.getLessonPosition(params);
+      const counterPromise = typeof learn.getLessonCounterText === 'function'
+        ? learn.getLessonCounterText(params)
+        : Promise.resolve('');
+
+      Promise.all([positionPromise, counterPromise]).then(([position, counterText]) => {
+        const lessonDetail = position && position.lesson ? position.lesson : null;
+        const lessonTitle = (lessonDetail && lessonDetail.title) || meta.lessonTitle;
+        const sectionTitle = (position && position.section && position.section.title) || meta.sectionTitle;
+        const unitTitle = (position && position.unit && position.unit.title) || meta.unitTitle;
+        const counter = counterText || (position && position.currentIndex && position.totalLessons
+          ? `Lesson ${position.currentIndex} of ${position.totalLessons}`
+          : fallbackCounter);
+        LessonSimulator.open({
+          lessonTitle,
+          sectionTitle,
+          unitTitle,
+          lessonNumberText: counter,
+          lessonDetail,
+          lessonMeta: meta,
+          selectedExercises: exercises,
+          trigger: simulatorState.startButton
+        });
+      }).catch(() => {
+        fetchLessonDetail(meta).then(lessonDetail => {
+          LessonSimulator.open({
+            lessonTitle: (lessonDetail && lessonDetail.title) || meta.lessonTitle,
+            sectionTitle: meta.sectionTitle,
+            unitTitle: meta.unitTitle,
+            lessonNumberText: fallbackCounter,
+            lessonDetail,
+            lessonMeta: meta,
+            selectedExercises: exercises,
+            trigger: simulatorState.startButton
+          });
+        });
+      }).finally(() => {
+        closeExerciseMenu();
+        simulatorState.startButton.disabled = false;
+        updateStartButtonState();
+      });
+      return;
+    }
+
+    fetchLessonDetail(meta).then(lessonDetail => {
+      LessonSimulator.open({
+        lessonTitle: (lessonDetail && lessonDetail.title) || meta.lessonTitle,
+        sectionTitle: meta.sectionTitle,
+        unitTitle: meta.unitTitle,
+        lessonNumberText: fallbackCounter,
+        lessonDetail,
+        lessonMeta: meta,
+        selectedExercises: exercises,
+        trigger: simulatorState.startButton
+      });
+    }).finally(() => {
+      closeExerciseMenu();
+      simulatorState.startButton.disabled = false;
+      updateStartButtonState();
+    });
   }
 
-  async function getLessonCounterText(params = {}){
-    const meta = await getLessonPositionMeta(params);
-    if(!meta.totalLessons || !meta.currentIndex) return '';
-    return `Lesson ${meta.currentIndex} of ${meta.totalLessons}`;
+  function registerDebugControl(label, callback){
+    const entry = { label, callback };
+    controls.push(entry);
+    if(controlsContainer) appendControl(entry);
+    return entry;
   }
 
-  const learnAPI = {
-    ensureSections,
-    getSectionsSnapshot,
-    setSectionState,
-    setSectionProgress,
-    updateCTAForSection,
-    getLessonPosition: getLessonPositionMeta,
-    getLessonCounterText
+  function mount(root){
+    if(!root) return;
+    hostEl = root;
+    root.innerHTML = `
+      <section class="debug-panel" aria-labelledby="debug-tools-title">
+        <div class="debug-panel__header">
+          <h2 id="debug-tools-title">Debug Tools</h2>
+        </div>
+        <div class="debug-panel__picker">
+          <label for="debugSectionSelect">Target section</label>
+          <select id="debugSectionSelect" class="select"></select>
+        </div>
+        <div class="debug-panel__controls"></div>
+        <div class="debug-panel__simulator" id="lessonSimulatorConfig">
+          <div class="debug-panel__simulator-header">
+            <h3 id="lesson-sim-title">Lesson simulator</h3>
+            <p class="debug-panel__simulator-hint">Preview lesson content and selected exercises.</p>
+          </div>
+          <label class="debug-panel__field" for="debugLessonSelect">
+            <span>Lesson</span>
+            <select id="debugLessonSelect" class="select">
+              <option value="">Loading…</option>
+            </select>
+          </label>
+          <div class="debug-multiselect" data-role="lesson-exercise-picker">
+            <button type="button" class="btn btn--ghost debug-multiselect__toggle" id="debugExerciseToggle" aria-haspopup="true" aria-expanded="false">Choose exercises</button>
+            <div class="debug-multiselect__menu" id="debugExerciseMenu" hidden>
+              ${LESSON_SIMULATOR_EXERCISES.map(ex => `<label class="debug-multiselect__option"><input type="checkbox" value="${ex.id}"> ${escapeHTML(ex.label)}</label>`).join('')}
+            </div>
+            <p class="debug-multiselect__summary" id="debugExerciseSummary">No exercises selected</p>
+          </div>
+          <button type="button" class="btn btn--primary debug-simulator-start" id="debugStartLessonBtn" disabled>Start lesson</button>
+        </div>
+      </section>`;
+    controlsContainer = root.querySelector('.debug-panel__controls');
+    sectionSelect = root.querySelector('#debugSectionSelect');
+    simulatorState.container = root.querySelector('#lessonSimulatorConfig');
+    simulatorState.lessonSelect = root.querySelector('#debugLessonSelect');
+    simulatorState.exerciseToggle = root.querySelector('#debugExerciseToggle');
+    simulatorState.exerciseMenu = root.querySelector('#debugExerciseMenu');
+    simulatorState.summary = root.querySelector('#debugExerciseSummary');
+    simulatorState.startButton = root.querySelector('#debugStartLessonBtn');
+    simulatorState.selectedExercises = new Set();
+    populateSections();
+    populateLessons();
+    controls.forEach(appendControl);
+    updateExerciseSummary();
+    updateStartButtonState();
+    if(simulatorState.lessonSelect){
+      simulatorState.lessonSelect.addEventListener('change', () => {
+        updateStartButtonState();
+        closeExerciseMenu();
+      });
+    }
+    if(simulatorState.exerciseMenu){
+      simulatorState.exerciseMenu.addEventListener('change', handleExerciseChange);
+    }
+    if(simulatorState.exerciseToggle){
+      simulatorState.exerciseToggle.addEventListener('click', event => {
+        event.preventDefault();
+        toggleExerciseMenu();
+      });
+    }
+    if(simulatorState.startButton){
+      simulatorState.startButton.addEventListener('click', handleStartClick);
+    }
+    if(!documentClickHandler){
+      documentClickHandler = handleDocumentClick;
+      document.addEventListener('click', documentClickHandler);
+    }
+  }
+
+  function unmount(){
+    if(hostEl){
+      hostEl.innerHTML = '';
+    }
+    controlsContainer = null;
+    sectionSelect = null;
+    hostEl = null;
+    lessonOptionMap.clear();
+    simulatorState.selectedExercises.clear();
+    simulatorState.container = null;
+    simulatorState.lessonSelect = null;
+    simulatorState.exerciseToggle = null;
+    simulatorState.exerciseMenu = null;
+    simulatorState.summary = null;
+    simulatorState.startButton = null;
+    if(documentClickHandler){
+      document.removeEventListener('click', documentClickHandler);
+      documentClickHandler = null;
+    }
+  }
+
+  window.addEventListener('learn:sections-loaded', () => {
+    populateSections();
+    populateLessons();
+  });
+
+  return {
+    registerDebugControl,
+    mount,
+    unmount,
+    refresh: () => {
+      populateSections();
+      populateLessons();
+    }
   };
-  window.__LEARN__ = Object.assign(window.__LEARN__ || {}, learnAPI);
 })();
+
+function withSection(sectionId, handler){
+  if(!sectionId) return;
+  const learn = window.__LEARN__;
+  if(!learn || typeof learn.ensureSections !== 'function'){
+    console.warn('Learn module not ready yet.');
+    return;
+  }
+  learn.ensureSections().then(() => {
+    const snapshot = typeof learn.getSectionsSnapshot === 'function' ? learn.getSectionsSnapshot() : [];
+    const section = snapshot.find(sec => String(sec.number) === String(sectionId));
+    if(section){
+      handler(section, learn);
+    }
+  });
+}
+
+DebugTools.registerDebugControl('Set Section to Not Started', sectionId => {
+  withSection(sectionId, (_section, learn) => {
+    learn.setSectionState?.(sectionId, { progress: 0, lessonsDone: 0, status: 'unlocked' });
+  });
+});
+
+DebugTools.registerDebugControl('Set Section to Half Complete', sectionId => {
+  withSection(sectionId, (section, learn) => {
+    const total = Number(section.lessonsTotal) || 0;
+    const lessonsDone = total ? Math.max(1, Math.round(total / 2)) : 0;
+    learn.setSectionState?.(sectionId, { lessonsDone, status: 'unlocked' });
+  });
+});
+
+DebugTools.registerDebugControl('Set Section to Complete', sectionId => {
+  withSection(sectionId, (section, learn) => {
+    const total = Number(section.lessonsTotal) || 0;
+    learn.setSectionState?.(sectionId, { progress: 1, lessonsDone: total, status: 'completed' });
+  });
+});
+
+function renderProfileView(){
+  const wrap = $('#profileContent');
+  if(!wrap) return;
+  DebugTools.unmount();
+  const { username, isAdmin } = AppState.user;
+  const statsMarkup = profileStatsMarkup();
+
+  if(!username){
+    wrap.innerHTML = `
+      <div class="profile-grid">
+        <form id="profileLoginForm" class="card profile-card profile-login" autocomplete="off">
+          <fieldset>
+            <legend>Log in</legend>
+            <label class="label" for="profile-username">Username</label>
+            <div class="profile-form__row">
+              <input id="profile-username" name="username" class="input" type="text" required placeholder="Enter username" />
+              <button type="submit" class="btn btn--primary">Login</button>
+            </div>
+            <p class="profile-hint">Use “admin” for debug tools.</p>
+          </fieldset>
+        </form>
+        ${statsMarkup}
+      </div>`;
+    requestAnimationFrame(() => {
+      const input = $('#profile-username');
+      if(input) input.focus();
+    });
+    return;
+  }
+
+  wrap.innerHTML = `
+    <div class="profile-grid">
+      <div class="card profile-card profile-summary">
+        <p class="profile-welcome">Welcome, <strong>${escapeHTML(username)}</strong></p>
+        <button type="button" class="btn btn--ghost" data-action="profile-logout">Logout</button>
+      </div>
+      ${statsMarkup}
+      ${isAdmin ? '<div class="card profile-card profile-debug" id="debugPanelRoot"></div>' : ''}
+    </div>`;
+
+  if(isAdmin){
+    const debugRoot = wrap.querySelector('#debugPanelRoot');
+    if(debugRoot){
+      DebugTools.mount(debugRoot);
+    }
+  }
+}
+
+function handleProfileSubmit(event){
+  const form = event.target.closest('#profileLoginForm');
+  if(!form) return;
+  event.preventDefault();
+  const username = form.username?.value || '';
+  const user = createUser(username);
+  AppState.user = user;
+  persistUser(user);
+  renderProfileView();
+}
+
+function handleProfileClick(event){
+  const logoutBtn = event.target.closest('[data-action="profile-logout"]');
+  if(logoutBtn){
+    event.preventDefault();
+    AppState.user = createUser('');
+    persistUser(AppState.user);
+    renderProfileView();
+  }
+}
+
+function initProfile(){
+  const view = $('#view-profile');
+  if(!view) return;
+  renderProfileView();
+  on(view, 'submit', handleProfileSubmit);
+  on(view, 'click', handleProfileClick);
+}
+
+// Install (PWA)
+function initInstall() {
+  const btn = $('#installBtn');
+  if (btn) btn.hidden = true;
+
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    AppState.installPromptEvt = e;
+    if (btn) btn.hidden = false;
+  });
+
+  on(btn, 'click', async () => {
+    const evt = AppState.installPromptEvt;
+    if (!evt) return;
+    evt.prompt();
+    await evt.userChoice;
+    if (btn) btn.hidden = true;
+  });
+
+  window.addEventListener('appinstalled', () => {
+    if (btn) btn.hidden = true;
+    AppState.installPromptEvt = null;
+  });
+}
+
+// Service worker
+function initServiceWorker() {
+  if (!('serviceWorker' in navigator)) return;
+
+  navigator.serviceWorker.register('./sw.js').then((reg) => {
+    if (reg.update) reg.update();
+    reg.addEventListener('updatefound', () => {
+      const newWorker = reg.installing;
+      if (!newWorker) return;
+      newWorker.addEventListener('statechange', () => {
+        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+          console.log('New content available; it will be used on next reload.');
+        }
+      });
+    });
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      console.log('SW controller changed');
+    });
+  }).catch((err) => console.warn('SW registration failed', err));
+}
+
+// Debug helpers
+function exposeForDebug() {
+  window.__APP__ = { AppState };
+}
+
+// Init
+window.addEventListener('DOMContentLoaded', () => {
+  initTheme();
+  const sidebarCtl = initSidebar();
+  initInstall();
+  initServiceWorker();
+  initSettingsForm();
+  initProfile();
+  initRouter(sidebarCtl);
+  exposeForDebug();
+});
+
+typeof module !== 'undefined' && (module.exports = { debounce, trapFocus });typeof module !== 'undefined' && (module.exports = { debounce, trapFocus });
