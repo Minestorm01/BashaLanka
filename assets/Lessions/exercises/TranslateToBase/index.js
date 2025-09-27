@@ -138,6 +138,50 @@ async function loadLessonManifest() {
   return manifestCache.promise;
 }
 
+function normaliseLessonPath(lessonPath) {
+  if (typeof lessonPath !== 'string') {
+    return '';
+  }
+
+  const trimmed = lessonPath.trim();
+  if (!trimmed) {
+    return '';
+  }
+
+  if (/^https?:/i.test(trimmed) || trimmed.startsWith('//')) {
+    return trimmed;
+  }
+
+  return trimmed.replace(/^\.\//, '/');
+}
+
+async function loadLessonSource(lessonPath) {
+  if (!lessonPath || typeof lessonPath !== 'string') {
+    throw new Error('Lesson path is required to load lesson source.');
+  }
+
+  const normalisedPath = normaliseLessonPath(lessonPath);
+  if (!normalisedPath) {
+    throw new Error(`Invalid lesson path provided: ${lessonPath}`);
+  }
+
+  const url = new URL(normalisedPath, LESSON_MANIFEST_URL);
+  const response = await fetch(url, { cache: 'no-cache' });
+
+  if (!response.ok) {
+    throw new Error(`Failed to load lesson markdown: ${lessonPath}`);
+  }
+
+  const markdown = await response.text();
+  const vocab = extractVocabEntries(markdown);
+
+  return {
+    path: normalisedPath,
+    markdown,
+    vocab,
+  };
+}
+
 function narrowCandidates(candidates, predicate) {
   if (!Array.isArray(candidates) || !candidates.length) {
     return [];
@@ -203,9 +247,20 @@ async function fetchLessonVocab() {
 
   const global = window.BashaLanka || {};
   const context = global.currentLesson || null;
+  const detail = context?.detail || null;
 
   if (!context) {
     throw new Error('Lesson context unavailable for TranslateToBase exercise.');
+  }
+
+  if (detail?.lessonPath) {
+    const lesson = await loadLessonSource(detail.lessonPath);
+
+    if (!lesson.vocab.length) {
+      throw new Error('Lesson markdown is missing vocab entries for TranslateToBase exercise.');
+    }
+
+    return lesson.vocab;
   }
 
   const manifest = await loadLessonManifest();
@@ -215,20 +270,17 @@ async function fetchLessonVocab() {
     throw new Error('Unable to resolve lesson markdown path for TranslateToBase exercise.');
   }
 
-  const url = new URL(manifestEntry.path, LESSON_MANIFEST_URL);
-  const response = await fetch(url, { cache: 'no-cache' });
-  if (!response.ok) {
-    throw new Error(`Failed to load lesson markdown: ${manifestEntry.path}`);
+  const lesson = await loadLessonSource(manifestEntry.path);
+
+  if (detail && typeof detail === 'object') {
+    detail.lessonPath = lesson.path;
   }
 
-  const markdown = await response.text();
-  const vocab = extractVocabEntries(markdown);
-
-  if (!vocab.length) {
+  if (!lesson.vocab.length) {
     throw new Error('Lesson markdown is missing vocab entries for TranslateToBase exercise.');
   }
 
-  return vocab;
+  return lesson.vocab;
 }
 
 export function pickRandomVocab(vocabEntries) {
@@ -449,7 +501,17 @@ export async function initTranslateToBaseExercise(options = {}) {
   }
 
   ensureStylesheet(STYLESHEET_ID, './styles.css', { baseUrl: import.meta.url });
-  const rawConfig = await loadConfig({ config: configOverride, baseUrl: import.meta.url });
+  let rawConfig;
+
+  if (configOverride) {
+    rawConfig = await loadConfig({ config: configOverride, baseUrl: import.meta.url });
+  } else if (window.BashaLanka?.currentLesson?.detail?.lessonPath) {
+    const lesson = await loadLessonSource(window.BashaLanka.currentLesson.detail.lessonPath);
+    rawConfig = buildTranslateToBaseConfig(lesson.vocab);
+  } else {
+    rawConfig = await loadConfig({ baseUrl: import.meta.url });
+  }
+
   const config = prepareConfig(rawConfig);
   const { wrapper, choicesContainer, feedback } = buildLayout(config);
   target.innerHTML = '';
