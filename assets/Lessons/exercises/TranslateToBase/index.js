@@ -290,6 +290,44 @@ async function fetchLessonVocab() {
     throw new Error('Lesson context unavailable for TranslateToBase exercise.');
   }
 
+  const detailVocab = Array.isArray(detail?.vocab) ? detail.vocab : null;
+
+  if (detailVocab && detailVocab.length) {
+    const entries = detailVocab
+      .map((entry) => {
+        if (!entry || typeof entry !== 'object') {
+          return null;
+        }
+
+        const si = normaliseText(entry.si) || entry.si;
+        const en = normaliseText(entry.en) || entry.en;
+        const translit = normaliseText(entry.translit || entry.transliteration);
+
+        if (!si || !en) {
+          return null;
+        }
+
+        return {
+          ...entry,
+          si,
+          en,
+          translit,
+          transliteration: translit || entry.transliteration,
+        };
+      })
+      .filter(Boolean);
+
+    if (entries.length >= 4) {
+      const uniqueEnglish = new Set(
+        entries.map((entry) => normaliseText(entry.en).toLowerCase()).filter(Boolean),
+      );
+
+      if (uniqueEnglish.size >= 4) {
+        return entries;
+      }
+    }
+  }
+
   if (detail?.lessonPath) {
     const lesson = await loadLessonSource(detail.lessonPath);
 
@@ -552,11 +590,18 @@ export async function initTranslateToBaseExercise(options = {}) {
 
   if (configOverride) {
     rawConfig = await loadConfig({ config: configOverride, baseUrl: import.meta.url });
-  } else if (window.BashaLanka?.currentLesson?.detail?.lessonPath) {
-    const lesson = await loadLessonSource(window.BashaLanka.currentLesson.detail.lessonPath);
-    rawConfig = buildTranslateToBaseConfig(lesson.vocab);
   } else {
-    rawConfig = await loadConfig({ baseUrl: import.meta.url });
+    const context = window.BashaLanka?.currentLesson || {};
+    const detail = context.detail || {};
+
+    if (Array.isArray(detail.vocab) && detail.vocab.length) {
+      rawConfig = buildTranslateToBaseConfig(detail.vocab);
+    } else if (detail.lessonPath) {
+      const lesson = await loadLessonSource(detail.lessonPath);
+      rawConfig = buildTranslateToBaseConfig(lesson.vocab);
+    } else {
+      rawConfig = await loadConfig({ baseUrl: import.meta.url });
+    }
   }
 
   const config = prepareConfig(rawConfig);
