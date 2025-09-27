@@ -208,6 +208,61 @@
     return found.sort((a, b) => a.number - b.number);
   }
 
+  function resetLessonPopoverState(){
+    const panels = container.querySelectorAll('.section-overview');
+    panels.forEach(panel => {
+      collapsePanel(panel, { immediate: true });
+      const card = panel.closest('.section-card');
+      const trigger = card ? card.querySelector('.see-details') : null;
+      if(trigger){
+        trigger.setAttribute('aria-expanded', 'false');
+      }
+    });
+  }
+
+  function updateCTAForSection(sectionId, config = {}){
+    if(!sectionId) return;
+    const options = typeof config === 'string' ? { text: config } : (config || {});
+    const { text, href, disabled } = options;
+    const card = container.querySelector(`.section-card[data-section-id="${sectionId}"]`);
+    if(!card) return;
+
+    const continueBtn = card.querySelector('.btn-continue');
+    if(continueBtn){
+      if(typeof text === 'string'){
+        continueBtn.textContent = text;
+      }
+      if(typeof disabled === 'boolean'){
+        continueBtn.disabled = disabled;
+      }
+      if(typeof href === 'string' && href){
+        continueBtn.setAttribute('data-href', href);
+      }
+    }
+
+    const overviewCTA = card.querySelector('.overview-cta-button');
+    if(overviewCTA){
+      if(typeof text === 'string'){
+        overviewCTA.textContent = text;
+      }
+      if(typeof href === 'string' && href){
+        overviewCTA.setAttribute('href', href);
+      }else if(href === null){
+        overviewCTA.removeAttribute('href');
+      }
+    }
+
+    const record = getSectionRecord(sectionId);
+    if(record && record.section){
+      if(typeof text === 'string'){
+        record.section.cta = text;
+      }
+      if(typeof disabled === 'boolean'){
+        record.section.status = disabled ? 'locked' : record.section.status;
+      }
+    }
+  }
+
   async function ensureSections(){
     if(sections.length) return sections;
     if(loadingPromise) return loadingPromise;
