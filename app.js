@@ -274,7 +274,7 @@ const EXERCISE_MODULE_BASES = (() => {
     if (!candidate) return;
 
     try {
-      const resolved = new URL('assets/Lessions/exercises/', candidate).href;
+      const resolved = new URL('./assets/Lessons/exercises/', candidate).href;
       if (!seen.has(resolved)) {
         seen.add(resolved);
         bases.push(resolved);
