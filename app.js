@@ -266,42 +266,94 @@ function profileStatsMarkup(){
     </div>`;
 }
 
-const EXERCISE_MODULE_BASE = (() => {
-  if (typeof document === 'undefined') {
-    return './assets/Lessions/exercises/';
+const EXERCISE_MODULE_BASES = (() => {
+  const bases = [];
+  const seen = new Set();
+
+  const addCandidate = (candidate) => {
+    if (!candidate) return;
+
+    try {
+      const resolved = new URL(
+        './assets/Lessions/exercises/',
+        candidate
+      ).href;
+
+      if (!seen.has(resolved)) {
+        seen.add(resolved);
+        bases.push(resolved);
+      }
+    } catch (err) {
+      // Ignore invalid URLs — we'll fall back to other candidates.
+    }
+  };
+
+  if (typeof document !== 'undefined') {
+    if (document.currentScript?.src) {
+      addCandidate(document.currentScript.src);
+    }
+
+    const scripts = document.getElementsByTagName('script');
+    if (scripts && scripts.length) {
+      for (const script of scripts) {
+        if (script && script.src) {
+          addCandidate(script.src);
+        }
+      }
+    }
+
+    if (document.baseURI) {
+      addCandidate(document.baseURI);
+    }
+
+    const manifest = document.querySelector('link[rel="manifest"]');
+    if (manifest?.href) {
+      addCandidate(manifest.href);
+    }
   }
 
-  const scripts = document.getElementsByTagName('script') || [];
-  let referenceUrl = document.currentScript ? document.currentScript.src : '';
+  if (typeof window !== 'undefined' && window.location) {
+    const { origin, href, pathname } = window.location;
 
-  if (!referenceUrl) {
-    for (const script of scripts) {
-      if (script && script.src && script.src.includes('app.js')) {
-        referenceUrl = script.src;
-        break;
+    addCandidate(href);
+
+    if (origin) {
+      addCandidate(`${origin}/`);
+
+      if (pathname && pathname !== '/') {
+        const pathWithoutFile = pathname.replace(/[^/]*$/, '');
+        if (pathWithoutFile) {
+          addCandidate(`${origin}${pathWithoutFile}`);
+        }
+
+        const segments = pathname.split('/').filter(Boolean);
+        if (segments.length) {
+          addCandidate(`${origin}/${segments[0]}/`);
+        }
       }
     }
   }
 
-  if (!referenceUrl && typeof window !== 'undefined') {
-    referenceUrl = window.location ? window.location.href : '';
+  if (!bases.length) {
+    bases.push('./assets/Lessions/exercises/');
   }
 
-  try {
-    const base = new URL('./assets/Lessions/exercises/', referenceUrl || window.location.href);
-    return base.href;
-  } catch (error) {
-    return './assets/Lessions/exercises/';
-  }
+  return bases;
 })();
 
-function loadExerciseModule(path) {
-  try {
-    const resolved = new URL(path, EXERCISE_MODULE_BASE);
-    return import(/* webpackIgnore: true */ resolved.href);
-  } catch (error) {
-    return Promise.reject(error);
+async function loadExerciseModule(path) {
+  let lastError;
+
+  for (const base of EXERCISE_MODULE_BASES) {
+    try {
+      const resolved = new URL(path, base);
+      return await import(/* webpackIgnore: true */ resolved.href);
+    } catch (error) {
+      lastError = error;
+    }
   }
+
+  return Promise.reject(lastError || new Error(`Failed to load exercise module "${path}".`));
 }
 
 const LESSON_SIMULATOR_EXERCISES = [
