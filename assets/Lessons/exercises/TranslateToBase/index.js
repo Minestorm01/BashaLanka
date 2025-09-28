@@ -375,13 +375,14 @@ function buildLayout(config) {
 soundButton.addEventListener('click', async (event) => {
   event.preventDefault();
 
-  // Normalise filename: strip punctuation, replace spaces, then encode
-  const baseFileName = encodeURIComponent(
-    config.prompt
-      .trim()
-      .replace(/[?!.:,]/g, '')   // strip punctuation
-      .replace(/\s+/g, '_')      // convert spaces to underscores
-  );
+  // Normalise filename: strip punctuation, collapse spaces into underscores
+  const rawFileName = config.prompt
+    .trim()
+    .replace(/[?!.:,]/g, '')   // strip punctuation
+    .replace(/\s+/g, '_');     // turn all spaces into underscores
+
+  // Encode safely for URLs
+  const baseFileName = encodeURIComponent(rawFileName);
 
   const fastPath = `assets/Sinhala_Audio/${baseFileName}_fast.mp3`;
   const slowPath = `assets/Sinhala_Audio/${baseFileName}_slowed.mp3`;
