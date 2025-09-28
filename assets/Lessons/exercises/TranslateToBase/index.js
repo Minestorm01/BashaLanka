@@ -374,31 +374,30 @@ function buildLayout(config) {
 // 🔊 Custom audio playback from /assets/Sinhala_Audio
 soundButton.addEventListener('click', async (event) => {
   event.preventDefault();
-  const baseFileName = config.prompt.trim();
+  
+  const baseFileName = config.prompt
+    .trim()
+    .replace(/[?!.:,]/g, '')   // strip punctuation
+    .replace(/\s+/g, '_');     // turn spaces into underscores
+
   const fastPath = `assets/Sinhala_Audio/${baseFileName}_fast.mp3`;
   const slowPath = `assets/Sinhala_Audio/${baseFileName}_slowed.mp3`;
 
   if (!soundButton.audioEl) {
     soundButton.audioEl = new Audio();
-    soundButton.clickCount = 0;
   }
   const audioEl = soundButton.audioEl;
 
-  // count clicks
-  soundButton.clickCount = (soundButton.clickCount || 0) + 1;
+  if (!soundButton.playCount) {
+    soundButton.playCount = 0;
+  }
 
-  // every 4th click = slow
-  const isSlow = soundButton.clickCount % 4 === 0;
-  const src = isSlow ? slowPath : fastPath;
+  soundButton.playCount++;
+  const useSlow = soundButton.playCount % 4 === 0; // every 4th click = slow
 
-  // stop any current playback
-  audioEl.pause();
-  audioEl.currentTime = 0;
-
-  // play file
-  audioEl.src = src;
-  audioEl.play().catch((err) => {
-    console.error('Audio playback error:', err);
+  const fileToPlay = useSlow ? slowPath : fastPath;
+  audioEl.src = fileToPlay;
+  audioEl.play().catch((err) => console.error('Audio playback error:', err));
   });
 });
 
