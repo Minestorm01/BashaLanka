@@ -28,7 +28,7 @@ function playSinhalaAudio(word, speed = 'fast') {
   const playbackSpeed = typeof speed === 'string' && speed.trim() ? speed.trim() : 'fast';
   const encodedWord = encodeURIComponent(rawWord);
   const encodedSpeed = encodeURIComponent(playbackSpeed);
-  const audioPath = `assets/Sinhala%20Audio/${encodedWord}_${encodedSpeed}.mp3`;
+  const audioPath = `/assets/Sinhala%20Audio/${encodedWord}_${encodedSpeed}.mp3`;
 
   if (currentSinhalaAudio) {
     try {
@@ -39,6 +39,10 @@ function playSinhalaAudio(word, speed = 'fast') {
         console.warn('Unable to reset previous Sinhala audio', error);
       }
     }
+  }
+
+  if (typeof console !== 'undefined' && console.log) {
+    console.log('Playing Sinhala audio:', audioPath);
   }
 
   const audio = new Audio(audioPath);
