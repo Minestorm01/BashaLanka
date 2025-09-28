@@ -493,11 +493,6 @@ function buildLayout(config) {
   bubble.className = 'translate-to-base__bubble';
   headerMain.appendChild(bubble);
 
-  const prompt = document.createElement('span');
-  prompt.className = 'translate-to-base__prompt-si';
-  prompt.textContent = config.prompt;
-  bubble.appendChild(prompt);
-
   const soundButton = document.createElement('button');
   soundButton.type = 'button';
   soundButton.className = 'translate-to-base__sound';
@@ -509,14 +504,23 @@ function buildLayout(config) {
   soundIcon.setAttribute('aria-hidden', 'true');
   soundButton.appendChild(soundIcon);
 
+  const promptRow = document.createElement('div');
+  promptRow.className = 'translate-to-base__prompt-row';
+  bubble.appendChild(promptRow);
+
+  const prompt = document.createElement('span');
+  prompt.className = 'translate-to-base__prompt-si';
+  prompt.textContent = config.prompt;
+  promptRow.appendChild(prompt);
+
+  promptRow.appendChild(soundButton);
+
   if (config.transliteration) {
     const transliteration = document.createElement('span');
     transliteration.className = 'translate-to-base__prompt-translit';
     transliteration.textContent = config.transliteration;
     bubble.appendChild(transliteration);
   }
-
-  bubble.appendChild(soundButton);
 
   soundButton.addEventListener('click', (event) => {
     event.preventDefault();
