@@ -213,12 +213,16 @@ function playSinhalaAudio(word, speed = 'fast') {
   const safeWord = String(word).trim();
   if (!safeWord) return;
 
+  // Encode for URL safety (handles spaces + Sinhala characters properly)
   const encodedWord = encodeURIComponent(safeWord);
-  // Correct folder name
-  const path = `assets/Sinhala Audio/${encodedWord}_${speed}.mp3`;
 
-  // Build a proper absolute URL for GitHub Pages
+  // Correct folder path
+  const path = `assets/Sinhala%20Audio/${encodedWord}_${speed}.mp3`;
+
+  // On GitHub Pages, files are served relative to repo root
   const src = `${window.location.origin}/BashaLanka/${path}`;
+
+  console.log("Trying to load audio from:", src); // <-- debug log
 
   try {
     const audio = new Audio(src);
