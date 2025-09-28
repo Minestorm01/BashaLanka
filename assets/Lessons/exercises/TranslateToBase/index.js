@@ -508,12 +508,12 @@ function buildLayout(config) {
   promptRow.className = 'translate-to-base__prompt-row';
   bubble.appendChild(promptRow);
 
+  promptRow.appendChild(soundButton);
+
   const prompt = document.createElement('span');
   prompt.className = 'translate-to-base__prompt-si';
   prompt.textContent = config.prompt;
   promptRow.appendChild(prompt);
-
-  promptRow.appendChild(soundButton);
 
   if (config.transliteration) {
     const transliteration = document.createElement('span');

@@ -124,7 +124,8 @@
   cursor: pointer;
   transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
   flex-shrink: 0;
-  margin-left: clamp(0.35rem, 1vw, 0.5rem);
+  margin-right: clamp(0.35rem, 1vw, 0.5rem);
+  margin-left: 0;
 }
 
 .translate-to-base__sound:hover,
