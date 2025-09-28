@@ -17,42 +17,43 @@ let currentSinhalaAudio = null;
 
 function playSinhalaAudio(word, speed = 'fast') {
   if (typeof Audio === 'undefined') {
+    console.warn('Audio API not supported');
     return null;
   }
 
   const rawWord = typeof word === 'string' ? word.trim() : '';
   if (!rawWord) {
+    console.warn('No word provided to play audio');
     return null;
   }
 
   const playbackSpeed = typeof speed === 'string' && speed.trim() ? speed.trim() : 'fast';
   const encodedWord = encodeURIComponent(rawWord);
   const encodedSpeed = encodeURIComponent(playbackSpeed);
-  const audioPath = `/assets/Sinhala%20Audio/${encodedWord}_${encodedSpeed}.mp3`;
+  const audioPath = `/assets/Sinhala Audio/${encodedWord}_${encodedSpeed}.mp3`;
+
+  console.log('Trying audio path:', audioPath);
 
   if (currentSinhalaAudio) {
     try {
       currentSinhalaAudio.pause();
       currentSinhalaAudio.currentTime = 0;
     } catch (error) {
-      if (typeof console !== 'undefined' && console.warn) {
-        console.warn('Unable to reset previous Sinhala audio', error);
-      }
+      console.warn('Unable to reset previous Sinhala audio', error);
     }
-  }
-
-  if (typeof console !== 'undefined' && console.log) {
-    console.log('Playing Sinhala audio:', audioPath);
   }
 
   const audio = new Audio(audioPath);
   currentSinhalaAudio = audio;
 
-  audio.play().catch((error) => {
-    if (typeof console !== 'undefined' && console.warn) {
-      console.warn('Unable to play Sinhala audio', error);
-    }
-  });
+  audio
+    .play()
+    .then(() => {
+      console.log('Playing successfully:', audioPath);
+    })
+    .catch((error) => {
+      console.error('Error playing audio:', error);
+    });
 
   return audio;
 }
@@ -355,7 +356,9 @@ function buildLayout(config, options = {}) {
     soundButton.appendChild(soundIcon);
 
     soundButton.addEventListener('click', () => {
-      playSinhalaAudio(sinhalaPrompt, 'fast');
+      console.log('Clicked sound button for:', sinhalaPrompt);
+      const audio = playSinhalaAudio(sinhalaPrompt, 'fast');
+      console.log('Audio element created:', audio);
     });
 
     prompt.appendChild(soundButton);
