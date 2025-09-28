@@ -115,7 +115,7 @@
 
 .translate-to-base__sound {
   display: grid;
-  margin-left: -5rem; /* adjust the value until it looks right */
+  margin-left: -20rem; /* adjust the value until it looks right */
   place-items: center;
   width: clamp(2.25rem, 6vw, 2.75rem);
   height: clamp(2.25rem, 6vw, 2.75rem);
