@@ -207,6 +207,34 @@ function shouldShowRomanizedPronunciation() {
   return fallback;
 }
 
+function playSinhalaAudio(word, speed = 'fast') {
+  if (typeof Audio === 'undefined' || !word) {
+    return;
+  }
+
+  const safeWord = String(word).trim();
+  if (!safeWord) {
+    return;
+  }
+
+  const encodedWord = encodeURIComponent(safeWord);
+  const path = `assets/Sinhala%20Audio/${encodedWord}_${speed}.mp3`;
+  const src = resolveLessonAssetPath ? resolveLessonAssetPath(path) : path;
+
+  try {
+    const audio = new Audio(src);
+    audio.play().catch((err) => {
+      if (typeof console !== 'undefined' && console.error) {
+        console.error('Failed to play audio:', err);
+      }
+    });
+  } catch (error) {
+    if (typeof console !== 'undefined' && console.error) {
+      console.error('Failed to initialise audio playback:', error);
+    }
+  }
+}
+
 export function buildTranslateToTargetConfig(vocabEntries) {
   const items = Array.isArray(vocabEntries) ? vocabEntries.map(normaliseVocabEntry).filter(Boolean) : [];
 
@@ -292,6 +320,34 @@ function buildLayout(config, options = {}) {
   prompt.className = 'translate-to-target__prompt';
   prompt.textContent = config.prompt;
   header.appendChild(prompt);
+
+  const promptRow = document.createElement('div');
+  promptRow.className = 'translate-to-target__prompt-row';
+
+  const sinhalaWord = document.createElement('span');
+  sinhalaWord.className = 'translate-to-target__prompt-si';
+  const answer = Array.isArray(config.answers) ? config.answers[0] : null;
+  const answerText = typeof answer === 'string' ? answer : '';
+  sinhalaWord.textContent = answerText;
+  promptRow.appendChild(sinhalaWord);
+
+  const soundBtn = document.createElement('button');
+  soundBtn.type = 'button';
+  soundBtn.className = 'translate-to-target__sound';
+  soundBtn.setAttribute('aria-label', 'Play Sinhala audio');
+  soundBtn.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M3 9v6h4l5 5V4l-5 5H3z"/></svg>';
+
+  if (!answerText) {
+    soundBtn.disabled = true;
+    soundBtn.setAttribute('aria-disabled', 'true');
+  }
+
+  soundBtn.addEventListener('click', () => {
+    playSinhalaAudio(sinhalaWord.textContent, 'fast');
+  });
+
+  promptRow.appendChild(soundBtn);
+  header.appendChild(promptRow);
 
   const choicesContainer = document.createElement('div');
   choicesContainer.className = 'translate-to-target__choices';
