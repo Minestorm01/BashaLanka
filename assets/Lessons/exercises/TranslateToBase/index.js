@@ -374,11 +374,14 @@ function buildLayout(config) {
 // 🔊 Custom audio playback from /assets/Sinhala_Audio
 soundButton.addEventListener('click', async (event) => {
   event.preventDefault();
-  
-  const baseFileName = config.prompt
-    .trim()
-    .replace(/[?!.:,]/g, '')   // strip punctuation
-    .replace(/\s+/g, '_');     // convert spaces to underscores
+
+  // Normalise filename: strip punctuation, replace spaces, then encode
+  const baseFileName = encodeURIComponent(
+    config.prompt
+      .trim()
+      .replace(/[?!.:,]/g, '')   // strip punctuation
+      .replace(/\s+/g, '_')      // convert spaces to underscores
+  );
 
   const fastPath = `assets/Sinhala_Audio/${baseFileName}_fast.mp3`;
   const slowPath = `assets/Sinhala_Audio/${baseFileName}_slowed.mp3`;
@@ -403,7 +406,7 @@ soundButton.addEventListener('click', async (event) => {
   // play file
   audioEl.src = src;
   audioEl.play().catch((err) => {
-    console.error('Audio playback error:', err);
+    console.error('Audio playback error:', err, 'for src:', src);
   });
 });
 
