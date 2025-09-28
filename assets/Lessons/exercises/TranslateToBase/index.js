@@ -371,54 +371,36 @@ function buildLayout(config) {
     bubble.appendChild(transliteration);
   }
 
-  // 🔊 Custom audio playback from /assets/Sinhala_Audio
-  soundButton.addEventListener('click', async (event) => {
-    event.preventDefault();
-    const baseFileName = config.prompt.trim();
-    const fastPath = `assets/Sinhala_Audio/${baseFileName}_fast.mp3`;
-    const slowPath = `assets/Sinhala_Audio/${baseFileName}_slowed.mp3`;
+// 🔊 Custom audio playback from /assets/Sinhala_Audio
+soundButton.addEventListener('click', async (event) => {
+  event.preventDefault();
+  const baseFileName = config.prompt.trim();
+  const fastPath = `assets/Sinhala_Audio/${baseFileName}_fast.mp3`;
+  const slowPath = `assets/Sinhala_Audio/${baseFileName}_slowed.mp3`;
 
-    if (!soundButton.audioEl) {
-      soundButton.audioEl = new Audio();
-    }
-    const audioEl = soundButton.audioEl;
+  if (!soundButton.audioEl) {
+    soundButton.audioEl = new Audio();
+    soundButton.clickCount = 0;
+  }
+  const audioEl = soundButton.audioEl;
 
-    if (soundButton.isPlaying) {
-      soundButton.isPlaying = false;
-      audioEl.pause();
-      audioEl.currentTime = 0;
-      return;
-    }
+  // count clicks
+  soundButton.clickCount = (soundButton.clickCount || 0) + 1;
 
-    soundButton.isPlaying = true;
+  // every 4th click = slow
+  const isSlow = soundButton.clickCount % 4 === 0;
+  const src = isSlow ? slowPath : fastPath;
 
-    const playFile = (src) =>
-      new Promise((resolve, reject) => {
-        audioEl.src = src;
-        audioEl.onended = () => resolve();
-        audioEl.onerror = (err) => reject(err);
-        audioEl.play().catch(reject);
-      });
+  // stop any current playback
+  audioEl.pause();
+  audioEl.currentTime = 0;
 
-    const playCycle = async () => {
-      try {
-        for (let i = 0; i < 3 && soundButton.isPlaying; i++) {
-          await playFile(fastPath);
-        }
-        if (soundButton.isPlaying) {
-          await playFile(slowPath);
-        }
-        if (soundButton.isPlaying) {
-          playCycle();
-        }
-      } catch (err) {
-        console.error('Audio playback error:', err);
-        soundButton.isPlaying = false;
-      }
-    };
-
-    playCycle();
+  // play file
+  audioEl.src = src;
+  audioEl.play().catch((err) => {
+    console.error('Audio playback error:', err);
   });
+});
 
   const choicesContainer = document.createElement('div');
   choicesContainer.className = 'translate-to-base__choices';
