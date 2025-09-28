@@ -124,8 +124,7 @@
   cursor: pointer;
   transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
   flex-shrink: 0;
-  margin-right: clamp(0.35rem, 1vw, 0.5rem);
-  margin-left: 0;
+  margin: 0; /* allow flex gap to control spacing */
 }
 
 .translate-to-base__sound:hover,
