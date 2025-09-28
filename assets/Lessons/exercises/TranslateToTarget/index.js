@@ -208,31 +208,25 @@ function shouldShowRomanizedPronunciation() {
 }
 
 function playSinhalaAudio(word, speed = 'fast') {
-  if (typeof Audio === 'undefined' || !word) {
-    return;
-  }
+  if (typeof Audio === 'undefined' || !word) return;
 
   const safeWord = String(word).trim();
-  if (!safeWord) {
-    return;
-  }
+  if (!safeWord) return;
 
   const encodedWord = encodeURIComponent(safeWord);
-  const path = `assets/Sinhala%20Audio/${encodedWord}_${speed}.mp3`;
-  const src = resolveLessonAssetPath ? resolveLessonAssetPath(path) : path;
+  // IMPORTANT: include "BashaLanka" in the path because of GitHub Pages
+  const path = `BashaLanka/assets/Sinhala%20Audio/${encodedWord}_${speed}.mp3`;
+  const src = `${window.location.origin}/${path}`;
 
   try {
     const audio = new Audio(src);
     audio.play().catch((err) => {
-      if (typeof console !== 'undefined' && console.error) {
-        console.error('Failed to play audio:', err);
-      }
+      console.error('Failed to play audio:', err);
     });
   } catch (error) {
-    if (typeof console !== 'undefined' && console.error) {
-      console.error('Failed to initialise audio playback:', error);
-    }
+    console.error('Failed to initialise audio playback:', error);
   }
+}
 }
 
 export function buildTranslateToTargetConfig(vocabEntries) {
