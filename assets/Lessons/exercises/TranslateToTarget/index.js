@@ -214,19 +214,20 @@ function playSinhalaAudio(word, speed = 'fast') {
   if (!safeWord) return;
 
   const encodedWord = encodeURIComponent(safeWord);
-  // IMPORTANT: include "BashaLanka" in the path because of GitHub Pages
-  const path = `BashaLanka/assets/Sinhala%20Audio/${encodedWord}_${speed}.mp3`;
-  const src = `${window.location.origin}/${path}`;
+  // Correct folder name
+  const path = `assets/Sinhala Audio/${encodedWord}_${speed}.mp3`;
+
+  // Build a proper absolute URL for GitHub Pages
+  const src = `${window.location.origin}/BashaLanka/${path}`;
 
   try {
     const audio = new Audio(src);
     audio.play().catch((err) => {
-      console.error('Failed to play audio:', err);
+      console.error('Failed to play audio:', err, 'at', src);
     });
   } catch (error) {
     console.error('Failed to initialise audio playback:', error);
   }
-}
 }
 
 export function buildTranslateToTargetConfig(vocabEntries) {
