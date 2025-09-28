@@ -90,13 +90,13 @@
   width: 100%;
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: center; /* centres the Sinhala */
   gap: clamp(0.5rem, 1.5vw, 0.85rem);
   flex-wrap: nowrap;
+  position: relative; /* anchor for absolute sound button */
 }
 
 .translate-to-base__prompt-si {
-  display: block;
   text-align: center;
   font-size: clamp(1.575rem, 4.5vw, 2.25rem);
   font-weight: 700;
@@ -114,6 +114,10 @@
 }
 
 .translate-to-base__sound {
+  position: absolute;
+  left: 0.5rem;   /* nudge in from the edge */
+  top: 50%;
+  transform: translateY(-50%);
   display: grid;
   place-items: center;
   width: clamp(2.25rem, 6vw, 2.75rem);
@@ -124,19 +128,18 @@
   cursor: pointer;
   transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
   flex-shrink: 0;
-  margin: -30%; /* allow flex gap to control spacing */
 }
 
 .translate-to-base__sound:hover,
 .translate-to-base__sound:focus-visible {
-  transform: translateY(-1px);
+  transform: translateY(-50%) scale(1.05);
   border-color: rgba(11, 203, 136, 0.8);
   outline: none;
   background: rgba(11, 203, 136, 0.28);
 }
 
 .translate-to-base__sound:active {
-  transform: translateY(1px);
+  transform: translateY(-50%) scale(0.95);
 }
 
 .translate-to-base__sound-icon {
