@@ -26,20 +26,14 @@ function resolveLessonBaseUrl() {
       }
     }
   }
-
   return new URL('.', LESSON_MANIFEST_URL);
 }
 
-const manifestCache = {
-  data: null,
-  promise: null,
-};
+const manifestCache = { data: null, promise: null };
 
 function padNumber(value) {
   const number = Number(value);
-  if (!Number.isFinite(number) || number <= 0) {
-    return '';
-  }
+  if (!Number.isFinite(number) || number <= 0) return '';
   return String(number).padStart(2, '0');
 }
 
@@ -48,16 +42,11 @@ function normaliseKey(value) {
 }
 
 function parseInlineObject(text) {
-  if (!text) {
-    return null;
-  }
-
+  if (!text) return null;
   let content = text.trim();
-
   if (content.startsWith('{') && content.endsWith('}')) {
     content = content.slice(1, -1);
   }
-
   const normalised = content.replace(/\s*\n\s*/g, ' ');
   const entry = {};
   const pattern = /([A-Za-z0-9_-]+)\s*:\s*(?:"([^"]*)"|'([^']*)'|([^,}]+))/g;
@@ -68,25 +57,17 @@ function parseInlineObject(text) {
     entry[key] = normaliseText(value);
     match = pattern.exec(normalised);
   }
-
   return Object.keys(entry).length ? entry : null;
 }
 
 function extractVocabEntries(markdown) {
-  if (typeof markdown !== 'string') {
-    return [];
-  }
-
+  if (typeof markdown !== 'string') return [];
   const match = markdown.match(/^\s*vocab:\s*([\s\S]*?)(?:\n[A-Za-z0-9_-]+\s*:|\n{2,}(?=\S)|$)/m);
-  if (!match) {
-    return [];
-  }
-
+  if (!match) return [];
   const block = match[1] || '';
   const lines = block.split(/\r?\n/);
   const segments = [];
   let buffer = '';
-
   lines.forEach((line) => {
     const trimmed = line.trim();
     if (!trimmed) {
@@ -96,24 +77,15 @@ function extractVocabEntries(markdown) {
       }
       return;
     }
-
     if (/^-\s+/.test(trimmed)) {
-      if (buffer) {
-        segments.push(buffer);
-      }
+      if (buffer) segments.push(buffer);
       buffer = trimmed.replace(/^-\s+/, '');
     } else if (buffer) {
       buffer += ` ${trimmed}`;
     }
   });
-
-  if (buffer) {
-    segments.push(buffer);
-  }
-
-  return segments
-    .map(parseInlineObject)
-    .filter((entry) => entry && (entry.si || entry.en));
+  if (buffer) segments.push(buffer);
+  return segments.map(parseInlineObject).filter((entry) => entry && (entry.si || entry.en));
 }
 
 function parseUnitNumber(value) {
@@ -129,16 +101,11 @@ function parseSectionNumber(value) {
 }
 
 async function loadLessonManifest() {
-  if (manifestCache.data) {
-    return manifestCache.data;
-  }
-
+  if (manifestCache.data) return manifestCache.data;
   if (!manifestCache.promise) {
     manifestCache.promise = fetch(LESSON_MANIFEST_URL, { cache: 'no-cache' })
       .then((response) => {
-        if (!response.ok) {
-          throw new Error('Failed to load lesson manifest.');
-        }
+        if (!response.ok) throw new Error('Failed to load lesson manifest.');
         return response.json();
       })
       .then((data) => {
@@ -149,30 +116,16 @@ async function loadLessonManifest() {
         manifestCache.promise = null;
       });
   }
-
   return manifestCache.promise;
 }
 
 function normaliseLessonPath(lessonPath) {
-  if (typeof lessonPath !== 'string') {
-    return '';
-  }
-
+  if (typeof lessonPath !== 'string') return '';
   const trimmed = lessonPath.trim();
-  if (!trimmed) {
-    return '';
-  }
-
-  if (/^https?:/i.test(trimmed) || trimmed.startsWith('//')) {
-    return trimmed;
-  }
-
+  if (!trimmed) return '';
+  if (/^https?:/i.test(trimmed) || trimmed.startsWith('//')) return trimmed;
   const withoutLeadingDot = trimmed.replace(/^\.\/+/, '');
-
-  if (!withoutLeadingDot) {
-    return '';
-  }
-
+  if (!withoutLeadingDot) return '';
   return withoutLeadingDot.replace(/^\/+/, '');
 }
 
@@ -180,96 +133,61 @@ async function loadLessonSource(lessonPath) {
   if (!lessonPath || typeof lessonPath !== 'string') {
     throw new Error('Lesson path is required to load lesson source.');
   }
-
   const normalisedPath = normaliseLessonPath(lessonPath);
-  if (!normalisedPath) {
-    throw new Error(`Invalid lesson path provided: ${lessonPath}`);
-  }
-
-  if (typeof console !== 'undefined' && console.log) {
-    console.log('🔎 loadLessonSource trying:', lessonPath);
-    console.log('Normalised lesson path:', normalisedPath);
-  }
-
+  if (!normalisedPath) throw new Error(`Invalid lesson path provided: ${lessonPath}`);
   const baseUrl = resolveLessonBaseUrl();
   const lessonAssetPath = resolveLessonAssetPath(normalisedPath);
   const url = new URL(lessonAssetPath, baseUrl);
-
-  if (typeof console !== 'undefined' && console.log) {
-    console.log('Lesson asset path for fetch:', lessonAssetPath);
-    console.log('📘 Lesson markdown URL:', url.toString());
-  }
   const response = await fetch(url, { cache: 'no-cache' });
-
-  if (!response.ok) {
-    throw new Error(`Failed to load lesson markdown: ${lessonPath}`);
-  }
-
+  if (!response.ok) throw new Error(`Failed to load lesson markdown: ${lessonPath}`);
   const markdown = await response.text();
   const vocab = extractVocabEntries(markdown);
-
-  return {
-    path: normalisedPath,
-    markdown,
-    vocab,
-  };
+  return { path: normalisedPath, markdown, vocab };
 }
 
 function narrowCandidates(candidates, predicate) {
-  if (!Array.isArray(candidates) || !candidates.length) {
-    return [];
-  }
+  if (!Array.isArray(candidates) || !candidates.length) return [];
   const filtered = candidates.filter(predicate);
   return filtered.length ? filtered : candidates;
 }
 
 function resolveManifestEntry(manifest, context = {}) {
   const lessons = Array.isArray(manifest?.lessons) ? manifest.lessons : [];
-  if (!lessons.length) {
-    return null;
-  }
-
+  if (!lessons.length) return null;
   const meta = context.meta || {};
   const detail = context.detail || {};
-
   const lessonIdCandidates = [detail.id, detail.lessonId, meta.lessonId]
-    .map((value) => (value ? value.toString().toLowerCase() : ''))
+    .map((v) => (v ? v.toString().toLowerCase() : ''))
     .filter(Boolean);
-
   let candidates = lessons.slice();
-
   if (lessonIdCandidates.length) {
     candidates = narrowCandidates(candidates, (entry) =>
-      lessonIdCandidates.includes((entry.lessonId || '').toString().toLowerCase()),
+      lessonIdCandidates.includes((entry.lessonId || '').toString().toLowerCase())
     );
   }
-
   const sectionNumber = meta.sectionNumber || parseSectionNumber(detail.sectionId);
   if (sectionNumber) {
     const sectionPrefix = `section-${padNumber(sectionNumber)}`;
     candidates = narrowCandidates(candidates, (entry) =>
-      normaliseText(entry.sectionId).startsWith(sectionPrefix),
+      normaliseText(entry.sectionId).startsWith(sectionPrefix)
     );
   }
-
-  const unitNumber = meta.unitNumber || parseUnitNumber(meta.unitId) || parseUnitNumber(detail.unitId);
+  const unitNumber =
+    meta.unitNumber || parseUnitNumber(meta.unitId) || parseUnitNumber(detail.unitId);
   if (unitNumber) {
     const unitPrefix = `unit-${padNumber(unitNumber)}`;
     candidates = narrowCandidates(candidates, (entry) =>
-      normaliseText(entry.unitId).startsWith(unitPrefix),
+      normaliseText(entry.unitId).startsWith(unitPrefix)
     );
   }
-
   const lessonTitleCandidates = [detail.title, meta.lessonTitle]
     .map((value) => normaliseKey(value))
     .filter(Boolean);
-
   if (lessonTitleCandidates.length) {
     candidates = narrowCandidates(candidates, (entry) =>
-      lessonTitleCandidates.includes(normaliseKey(entry.lessonTitle)),
+      lessonTitleCandidates.includes(normaliseKey(entry.lessonTitle))
     );
   }
-
   return candidates[0] || null;
 }
 
@@ -277,84 +195,47 @@ async function fetchLessonVocab() {
   if (typeof window === 'undefined') {
     throw new Error('TranslateToBase requires a browser environment.');
   }
-
   const global = window.BashaLanka || {};
   const context = global.currentLesson || null;
   const detail = context?.detail || null;
-
-  if (typeof console !== 'undefined' && console.log) {
-    console.log('TranslateToBase detail at fetch time:', detail);
-  }
-
-  if (!context) {
-    throw new Error('Lesson context unavailable for TranslateToBase exercise.');
-  }
+  if (!context) throw new Error('Lesson context unavailable for TranslateToBase exercise.');
 
   const detailVocab = Array.isArray(detail?.vocab) ? detail.vocab : null;
-
   if (detailVocab && detailVocab.length) {
     const entries = detailVocab
       .map((entry) => {
-        if (!entry || typeof entry !== 'object') {
-          return null;
-        }
-
+        if (!entry || typeof entry !== 'object') return null;
         const si = normaliseText(entry.si) || entry.si;
         const en = normaliseText(entry.en) || entry.en;
         const translit = normaliseText(entry.translit || entry.transliteration);
-
-        if (!si || !en) {
-          return null;
-        }
-
-        return {
-          ...entry,
-          si,
-          en,
-          translit,
-          transliteration: translit || entry.transliteration,
-        };
+        if (!si || !en) return null;
+        return { ...entry, si, en, translit, transliteration: translit || entry.transliteration };
       })
       .filter(Boolean);
-
     if (entries.length >= 4) {
       const uniqueEnglish = new Set(
-        entries.map((entry) => normaliseText(entry.en).toLowerCase()).filter(Boolean),
+        entries.map((entry) => normaliseText(entry.en).toLowerCase()).filter(Boolean)
       );
-
-      if (uniqueEnglish.size >= 4) {
-        return entries;
-      }
+      if (uniqueEnglish.size >= 4) return entries;
     }
   }
-
   if (detail?.lessonPath) {
     const lesson = await loadLessonSource(detail.lessonPath);
-
-    if (!lesson.vocab.length) {
+    if (!lesson.vocab.length)
       throw new Error('Lesson markdown is missing vocab entries for TranslateToBase exercise.');
-    }
-
     return lesson.vocab;
   }
-
   const manifest = await loadLessonManifest();
   const manifestEntry = resolveManifestEntry(manifest, context);
-
-  if (!manifestEntry || !manifestEntry.path) {
+  if (!manifestEntry?.path) {
     throw new Error('Unable to resolve lesson markdown path for TranslateToBase exercise.');
   }
-
   const lesson = await loadLessonSource(manifestEntry.path);
-
   if (detail && typeof detail === 'object') {
     detail.lessonPath = lesson.path;
   }
-
-  if (!lesson.vocab.length) {
+  if (!lesson.vocab.length)
     throw new Error('Lesson markdown is missing vocab entries for TranslateToBase exercise.');
-  }
-
   return lesson.vocab;
 }
 
@@ -362,11 +243,7 @@ export function pickRandomVocab(vocabEntries) {
   const items = Array.isArray(vocabEntries)
     ? vocabEntries.filter((entry) => entry && entry.si && entry.en)
     : [];
-
-  if (!items.length) {
-    return null;
-  }
-
+  if (!items.length) return null;
   const index = Math.floor(Math.random() * items.length);
   return items[index];
 }
@@ -375,49 +252,29 @@ export function buildTranslateToBaseConfig(vocabEntries) {
   const items = Array.isArray(vocabEntries)
     ? vocabEntries.filter((entry) => entry && entry.si && entry.en)
     : [];
-
-  if (!items.length) {
-    throw new Error('TranslateToBase requires at least one vocab entry.');
-  }
-
+  if (!items.length) throw new Error('TranslateToBase requires at least one vocab entry.');
   const selected = pickRandomVocab(items);
-  if (!selected) {
-    throw new Error('Failed to select a vocab entry for TranslateToBase.');
-  }
-
+  if (!selected) throw new Error('Failed to select a vocab entry for TranslateToBase.');
   const englishMap = new Map();
   items.forEach((entry) => {
     const label = normaliseText(entry.en);
     if (!label) return;
-
     const existing = englishMap.get(label);
-    if (!existing || entry === selected) {
-      englishMap.set(label, entry);
-    }
+    if (!existing || entry === selected) englishMap.set(label, entry);
   });
-
   const uniqueEntries = Array.from(englishMap.values());
   const distractorPool = uniqueEntries.filter((entry) => entry !== selected);
-
   if (distractorPool.length < 3) {
     throw new Error('TranslateToBase requires at least four distinct vocab entries.');
   }
-
   const distractors = shuffle(distractorPool).slice(0, 3);
-
   const prompt = normaliseText(selected.si) || selected.si;
   const transliteration = normaliseText(selected.translit || selected.transliteration);
   const correctEnglish = normaliseText(selected.en);
-
   const choices = shuffle([selected, ...distractors]).map((entry) => {
     const label = normaliseText(entry.en) || entry.en;
-    return {
-      label,
-      value: label,
-      isCorrect: entry === selected,
-    };
+    return { label, value: label, isCorrect: entry === selected };
   });
-
   return {
     prompt,
     transliteration,
@@ -433,18 +290,10 @@ export function buildTranslateToBaseConfig(vocabEntries) {
 
 async function loadConfig(options = {}) {
   const configOverride = options?.config;
-
-  if (configOverride && typeof configOverride === 'object') {
-    return configOverride;
-  }
-
+  if (configOverride && typeof configOverride === 'object') return configOverride;
   if (typeof configOverride === 'string' && configOverride.trim()) {
-    return loadLegacyConfig({
-      config: configOverride,
-      baseUrl: import.meta.url,
-    });
+    return loadLegacyConfig({ config: configOverride, baseUrl: import.meta.url });
   }
-
   const vocab = await fetchLessonVocab();
   return buildTranslateToBaseConfig(vocab);
 }
@@ -522,20 +371,53 @@ function buildLayout(config) {
     bubble.appendChild(transliteration);
   }
 
-  soundButton.addEventListener('click', (event) => {
+  // 🔊 Custom audio playback from /assets/Sinhala_Audio
+  soundButton.addEventListener('click', async (event) => {
     event.preventDefault();
-    if (
-      typeof window === 'undefined' ||
-      typeof window.speechSynthesis === 'undefined' ||
-      typeof window.SpeechSynthesisUtterance !== 'function'
-    ) {
+    const baseFileName = config.prompt.trim();
+    const fastPath = `assets/Sinhala_Audio/${baseFileName}_fast.mp3`;
+    const slowPath = `assets/Sinhala_Audio/${baseFileName}_slowed.mp3`;
+
+    if (!soundButton.audioEl) {
+      soundButton.audioEl = new Audio();
+    }
+    const audioEl = soundButton.audioEl;
+
+    if (soundButton.isPlaying) {
+      soundButton.isPlaying = false;
+      audioEl.pause();
+      audioEl.currentTime = 0;
       return;
     }
 
-    window.speechSynthesis.cancel();
-    const utter = new window.SpeechSynthesisUtterance(config.prompt);
-    utter.lang = 'si-LK';
-    window.speechSynthesis.speak(utter);
+    soundButton.isPlaying = true;
+
+    const playFile = (src) =>
+      new Promise((resolve, reject) => {
+        audioEl.src = src;
+        audioEl.onended = () => resolve();
+        audioEl.onerror = (err) => reject(err);
+        audioEl.play().catch(reject);
+      });
+
+    const playCycle = async () => {
+      try {
+        for (let i = 0; i < 3 && soundButton.isPlaying; i++) {
+          await playFile(fastPath);
+        }
+        if (soundButton.isPlaying) {
+          await playFile(slowPath);
+        }
+        if (soundButton.isPlaying) {
+          playCycle();
+        }
+      } catch (err) {
+        console.error('Audio playback error:', err);
+        soundButton.isPlaying = false;
+      }
+    };
+
+    playCycle();
   });
 
   const choicesContainer = document.createElement('div');
@@ -553,65 +435,44 @@ function buildLayout(config) {
   instructions.textContent = config.instructions;
   surface.appendChild(instructions);
 
-  return {
-    wrapper,
-    choicesContainer,
-    feedback,
-  };
+  return { wrapper, choicesContainer, feedback };
 }
 
 function prepareConfig(rawConfig) {
   if (!rawConfig || typeof rawConfig !== 'object') {
     throw new Error('TranslateToBase config must be an object.');
   }
-
   const prompt = normaliseText(rawConfig.prompt);
-  if (!prompt) {
-    throw new Error('TranslateToBase config requires a prompt.');
-  }
-
+  if (!prompt) throw new Error('TranslateToBase config requires a prompt.');
   const badge = normaliseText(rawConfig.badge) || 'NEW WORD';
   const transliteration = normaliseText(rawConfig.transliteration);
-  const instructions = normaliseText(rawConfig.instructions) || 'Select the matching English meaning.';
+  const instructions =
+    normaliseText(rawConfig.instructions) || 'Select the matching English meaning.';
   const successMessage = normaliseText(rawConfig.successMessage) || 'Correct! Nice work.';
   const errorMessage = normaliseText(rawConfig.errorMessage) || 'Not quite, try again.';
   const initialMessage = normaliseText(rawConfig.initialMessage);
-
   const answersLookup = createAnswerLookup(rawConfig.answers);
-
   const rawChoices = Array.isArray(rawConfig.choices) ? rawConfig.choices : [];
   const choices = rawChoices
     .map((choice) => normaliseChoiceItem(choice, { fallbackLabelKeys: ['value'] }))
     .filter((choice) => choice && choice.label);
-
-  if (!choices.length) {
-    throw new Error('TranslateToBase config requires at least one choice.');
-  }
-
+  if (!choices.length) throw new Error('TranslateToBase config requires at least one choice.');
   choices.forEach((choice) => {
     if (choice.isCorrect) {
       addAnswerToLookup(answersLookup, choice.value || choice.label);
     }
   });
-
   if (!answersLookup.size) {
     throw new Error('TranslateToBase config requires at least one correct answer.');
   }
-
   const hydratedChoices = choices.map((choice) => {
     const value = choice.value || choice.label;
     const isCorrect =
       choice.isCorrect ||
       answerLookupHas(answersLookup, value) ||
       answerLookupHas(answersLookup, choice.label);
-    return {
-      ...choice,
-      label: choice.label,
-      value,
-      isCorrect,
-    };
+    return { ...choice, label: choice.label, value, isCorrect };
   });
-
   return {
     ...rawConfig,
     badge,
@@ -630,26 +491,19 @@ export async function initTranslateToBaseExercise(options = {}) {
   if (typeof document === 'undefined') {
     throw new Error('TranslateToBase requires a browser environment.');
   }
-
   const {
     target = document.querySelector(DEFAULT_CONTAINER_SELECTOR),
     config: configOverride,
     onComplete,
   } = options;
-
-  if (!target) {
-    throw new Error('TranslateToBase target element not found.');
-  }
-
+  if (!target) throw new Error('TranslateToBase target element not found.');
   ensureStylesheet(STYLESHEET_ID, './styles.css', { baseUrl: import.meta.url });
   let rawConfig;
-
   if (configOverride) {
     rawConfig = await loadConfig({ config: configOverride, baseUrl: import.meta.url });
   } else {
     const context = window.BashaLanka?.currentLesson || {};
     const detail = context.detail || {};
-
     if (Array.isArray(detail.vocab) && detail.vocab.length) {
       rawConfig = buildTranslateToBaseConfig(detail.vocab);
     } else if (detail.lessonPath) {
@@ -659,18 +513,12 @@ export async function initTranslateToBaseExercise(options = {}) {
       rawConfig = await loadConfig({ baseUrl: import.meta.url });
     }
   }
-
   const config = prepareConfig(rawConfig);
   const { wrapper, choicesContainer, feedback } = buildLayout(config);
   target.innerHTML = '';
   target.appendChild(wrapper);
-
   const answers = new Set(config.answers.map(normaliseAnswer));
-
-  const state = {
-    completed: false,
-  };
-
+  const state = { completed: false };
   const buttons = config.choices.map((choice) =>
     createChoiceButton({
       label: choice.label,
@@ -685,9 +533,7 @@ export async function initTranslateToBaseExercise(options = {}) {
           button.classList.add('translate-to-base__choice--correct');
           buttons.forEach((btn) => {
             btn.disabled = true;
-            if (btn !== button) {
-              btn.classList.add('translate-to-base__choice--disabled');
-            }
+            if (btn !== button) btn.classList.add('translate-to-base__choice--disabled');
           });
           if (typeof onComplete === 'function') {
             onComplete({ value });
@@ -700,14 +546,9 @@ export async function initTranslateToBaseExercise(options = {}) {
       },
     })
   );
-
   buttons.forEach((button) => choicesContainer.appendChild(button));
   setStatusMessage(feedback, config.initialMessage || '', 'neutral');
-
-  return {
-    buttons,
-    config,
-  };
+  return { buttons, config };
 }
 
 if (typeof window !== 'undefined') {
