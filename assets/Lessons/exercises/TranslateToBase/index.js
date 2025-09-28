@@ -493,16 +493,17 @@ function buildLayout(config) {
   bubble.className = 'translate-to-base__bubble';
   headerMain.appendChild(bubble);
 
-  const soundButton = document.createElement('button');
-  soundButton.type = 'button';
-  soundButton.className = 'translate-to-base__sound';
-  soundButton.setAttribute('aria-label', `Play pronunciation for ${config.prompt}`);
-  const soundIcon = document.createElement('img');
-  soundIcon.className = 'translate-to-base__sound-icon';
-  soundIcon.src = 'assets/general/Sound_out_1.svg';
-  soundIcon.alt = '';
-  soundIcon.setAttribute('aria-hidden', 'true');
-  soundButton.appendChild(soundIcon);
+const soundButton = document.createElement('button');
+soundButton.type = 'button';
+soundButton.className = 'translate-to-base__sound';
+soundButton.setAttribute('aria-label', `Play pronunciation for ${config.prompt}`);
+
+const soundIcon = document.createElement('img');
+soundIcon.className = 'translate-to-base__sound-icon';
+soundIcon.src = 'assets/general/Sound_out_1.svg';
+soundIcon.alt = '';
+soundIcon.setAttribute('aria-hidden', 'true');
+soundButton.appendChild(soundIcon);
 
   const promptRow = document.createElement('div');
   promptRow.className = 'translate-to-base__prompt-row';
@@ -522,21 +523,21 @@ function buildLayout(config) {
     bubble.appendChild(transliteration);
   }
 
-  soundButton.addEventListener('click', (event) => {
-    event.preventDefault();
-    if (
-      typeof window === 'undefined' ||
-      typeof window.speechSynthesis === 'undefined' ||
-      typeof window.SpeechSynthesisUtterance !== 'function'
-    ) {
-      return;
-    }
+soundButton.addEventListener('click', (event) => {
+  event.preventDefault();
+  if (
+    typeof window === 'undefined' ||
+    typeof window.speechSynthesis === 'undefined' ||
+    typeof window.SpeechSynthesisUtterance !== 'function'
+  ) {
+    return;
+  }
 
-    window.speechSynthesis.cancel();
-    const utter = new window.SpeechSynthesisUtterance(config.prompt);
-    utter.lang = 'si-LK';
-    window.speechSynthesis.speak(utter);
-  });
+  window.speechSynthesis.cancel();
+  const utter = new window.SpeechSynthesisUtterance(config.prompt);
+  utter.lang = 'si-LK'; // Sinhala locale
+  window.speechSynthesis.speak(utter);
+});
 
   const choicesContainer = document.createElement('div');
   choicesContainer.className = 'translate-to-base__choices';
