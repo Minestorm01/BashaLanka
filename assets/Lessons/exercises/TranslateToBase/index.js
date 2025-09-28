@@ -460,7 +460,7 @@ function buildLayout(config) {
   surface.className = 'translate-to-base__surface';
   wrapper.appendChild(surface);
 
-  const header = document.createElement('header');
+  const header = document.createElement('div');
   header.className = 'translate-to-base__header';
   surface.appendChild(header);
 
@@ -469,18 +469,74 @@ function buildLayout(config) {
   badge.textContent = formatBadge(config.badge || 'NEW WORD');
   header.appendChild(badge);
 
+  const headerMain = document.createElement('div');
+  headerMain.className = 'translate-to-base__header-main';
+  header.appendChild(headerMain);
 
-  const prompt = document.createElement('h2');
-  prompt.className = 'translate-to-base__prompt';
+  const lessonContext = window.BashaLanka?.currentLesson || {};
+  const lessonDetail = lessonContext.detail || {};
+  const lessonMeta = lessonContext.meta || {};
+  let mascotSrc = lessonDetail.mascot;
+  if (!mascotSrc && lessonMeta.sectionNumber) {
+    mascotSrc = `assets/sections/section-${lessonMeta.sectionNumber}/mascot.svg`;
+  }
+  if (!mascotSrc) {
+    mascotSrc = 'assets/sections/section-1/mascot.svg';
+  }
+  const mascot = document.createElement('img');
+  mascot.className = 'translate-to-base__mascot';
+  mascot.src = mascotSrc;
+  mascot.alt = 'Lesson mascot';
+  headerMain.appendChild(mascot);
+
+  const bubble = document.createElement('div');
+  bubble.className = 'translate-to-base__bubble';
+  headerMain.appendChild(bubble);
+
+  const soundButton = document.createElement('button');
+  soundButton.type = 'button';
+  soundButton.className = 'translate-to-base__sound';
+  soundButton.setAttribute('aria-label', `Play pronunciation for ${config.prompt}`);
+  const soundIcon = document.createElement('img');
+  soundIcon.className = 'translate-to-base__sound-icon';
+  soundIcon.src = 'assets/general/Sound_out_1.svg';
+  soundIcon.alt = '';
+  soundIcon.setAttribute('aria-hidden', 'true');
+  soundButton.appendChild(soundIcon);
+
+  const promptRow = document.createElement('div');
+  promptRow.className = 'translate-to-base__prompt-row';
+  bubble.appendChild(promptRow);
+
+  promptRow.appendChild(soundButton);
+
+  const prompt = document.createElement('span');
+  prompt.className = 'translate-to-base__prompt-si';
   prompt.textContent = config.prompt;
-  header.appendChild(prompt);
+  promptRow.appendChild(prompt);
 
   if (config.transliteration) {
-    const transliteration = document.createElement('p');
-    transliteration.className = 'translate-to-base__transliteration';
+    const transliteration = document.createElement('span');
+    transliteration.className = 'translate-to-base__prompt-translit';
     transliteration.textContent = config.transliteration;
-    header.appendChild(transliteration);
+    bubble.appendChild(transliteration);
   }
+
+  soundButton.addEventListener('click', (event) => {
+    event.preventDefault();
+    if (
+      typeof window === 'undefined' ||
+      typeof window.speechSynthesis === 'undefined' ||
+      typeof window.SpeechSynthesisUtterance !== 'function'
+    ) {
+      return;
+    }
+
+    window.speechSynthesis.cancel();
+    const utter = new window.SpeechSynthesisUtterance(config.prompt);
+    utter.lang = 'si-LK';
+    window.speechSynthesis.speak(utter);
+  });
 
   const choicesContainer = document.createElement('div');
   choicesContainer.className = 'translate-to-base__choices';
