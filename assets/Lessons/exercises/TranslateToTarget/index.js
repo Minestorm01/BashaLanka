@@ -13,16 +13,86 @@ const DEFAULT_CONTAINER_SELECTOR = '[data-exercise="translate-to-target"]';
 const STYLESHEET_ID = 'translate-to-target-styles';
 const LESSON_MANIFEST_URL = new URL('../../lesson.manifest.json', import.meta.url);
 
-function playSinhalaAudio(translit, speed = 'fast') {
-  if (!translit) return;
+function normaliseAudioKey(value, { removeDiacritics = false, toLowerCase = true } = {}) {
+  if (!value) {
+    return '';
+  }
 
-  const safeWord = translit.trim().toLowerCase();
-  const filePath = `assets/Sinhala_Audio/${safeWord}_${speed}.mp3`;
+  let result = String(value).trim();
 
-  const audio = new Audio(filePath);
-  audio.play().catch((err) => {
-    console.error('Failed to play audio:', err, filePath);
+  if (!result) {
+    return '';
+  }
+
+  result = result.normalize('NFC');
+
+  if (removeDiacritics) {
+    result = result.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    result = result.normalize('NFC');
+  }
+
+  if (toLowerCase) {
+    result = result.toLowerCase();
+  }
+
+  result = result.replace(/["'‘’“”.,!?¿¡;:()/\\]/g, '');
+  result = result.replace(/\s+/g, ' ');
+
+  return result.trim();
+}
+
+function buildAudioSources(translit, prompt, speed = 'fast') {
+  const candidates = new Set();
+
+  const safeSpeed = speed && typeof speed === 'string' ? speed.trim() || 'fast' : 'fast';
+
+  const transliterationKey = normaliseAudioKey(translit, {
+    removeDiacritics: true,
+    toLowerCase: true,
   });
+
+  if (transliterationKey) {
+    candidates.add(`assets/Sinhala_Audio/${transliterationKey}_${safeSpeed}.mp3`);
+  }
+
+  const promptKey = normaliseAudioKey(prompt, {
+    removeDiacritics: false,
+    toLowerCase: false,
+  });
+
+  if (promptKey) {
+    candidates.add(`assets/Sinhala_Audio/${promptKey}_${safeSpeed}.mp3`);
+  }
+
+  return Array.from(candidates).map((path) => resolveLessonAssetPath(path));
+}
+
+function playSinhalaAudio(translit, speed = 'fast', prompt = '') {
+  const sources = buildAudioSources(translit, prompt, speed);
+
+  if (!sources.length) {
+    return;
+  }
+
+  const tryPlay = (index) => {
+    const source = sources[index];
+
+    if (!source) {
+      return;
+    }
+
+    const audio = new Audio(source);
+    audio.play().catch((err) => {
+      if (index + 1 < sources.length) {
+        tryPlay(index + 1);
+        return;
+      }
+
+      console.error('Failed to play audio:', err, source);
+    });
+  };
+
+  tryPlay(0);
 }
 
 function resolveLessonBaseUrl() {
@@ -339,7 +409,7 @@ function buildLayout(config, options = {}) {
   soundButton.appendChild(soundIcon);
 
   soundButton.addEventListener('click', () => {
-    playSinhalaAudio(config.translit, 'fast');
+    playSinhalaAudio(config.translit, 'fast', config.prompt);
   });
 
   promptRow.appendChild(soundButton);
@@ -378,8 +448,6 @@ function buildLayout(config, options = {}) {
 
 function applyChoiceContent(button, choice, showTransliteration) {
   if (!button || !choice) {
-    return;
-  }
 
   const label = document.createElement('span');
   label.className = 'translate-to-target__choice-script';
