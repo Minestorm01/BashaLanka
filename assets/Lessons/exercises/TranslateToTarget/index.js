@@ -13,6 +13,46 @@ const DEFAULT_CONTAINER_SELECTOR = '[data-exercise="translate-to-target"]';
 const STYLESHEET_ID = 'translate-to-target-styles';
 const LESSON_MANIFEST_URL = new URL('../../lesson.manifest.json', import.meta.url);
 
+let currentSinhalaAudio = null;
+
+function playSinhalaAudio(word, speed = 'fast') {
+  if (typeof Audio === 'undefined') {
+    return null;
+  }
+
+  const rawWord = typeof word === 'string' ? word.trim() : '';
+  if (!rawWord) {
+    return null;
+  }
+
+  const playbackSpeed = typeof speed === 'string' && speed.trim() ? speed.trim() : 'fast';
+  const encodedWord = encodeURIComponent(rawWord);
+  const encodedSpeed = encodeURIComponent(playbackSpeed);
+  const audioPath = `assets/Sinhala%20Audio/${encodedWord}_${encodedSpeed}.mp3`;
+
+  if (currentSinhalaAudio) {
+    try {
+      currentSinhalaAudio.pause();
+      currentSinhalaAudio.currentTime = 0;
+    } catch (error) {
+      if (typeof console !== 'undefined' && console.warn) {
+        console.warn('Unable to reset previous Sinhala audio', error);
+      }
+    }
+  }
+
+  const audio = new Audio(audioPath);
+  currentSinhalaAudio = audio;
+
+  audio.play().catch((error) => {
+    if (typeof console !== 'undefined' && console.warn) {
+      console.warn('Unable to play Sinhala audio', error);
+    }
+  });
+
+  return audio;
+}
+
 function resolveLessonBaseUrl() {
   if (typeof window !== 'undefined' && window.location?.href) {
     try {
@@ -207,33 +247,6 @@ function shouldShowRomanizedPronunciation() {
   return fallback;
 }
 
-function playSinhalaAudio(word, speed = 'fast') {
-  if (typeof Audio === 'undefined' || !word) return;
-
-  const safeWord = String(word).trim();
-  if (!safeWord) return;
-
-  // Encode for URL safety (handles spaces + Sinhala characters properly)
-  const encodedWord = encodeURIComponent(safeWord);
-
-  // Correct folder path
-  const path = `assets/Sinhala%20Audio/${encodedWord}_${speed}.mp3`;
-
-  // On GitHub Pages, files are served relative to repo root
-  const src = `${window.location.origin}/BashaLanka/${path}`;
-
-  console.log("Trying to load audio from:", src); // <-- debug log
-
-  try {
-    const audio = new Audio(src);
-    audio.play().catch((err) => {
-      console.error('Failed to play audio:', err, 'at', src);
-    });
-  } catch (error) {
-    console.error('Failed to initialise audio playback:', error);
-  }
-}
-
 export function buildTranslateToTargetConfig(vocabEntries) {
   const items = Array.isArray(vocabEntries) ? vocabEntries.map(normaliseVocabEntry).filter(Boolean) : [];
 
@@ -317,36 +330,34 @@ function buildLayout(config, options = {}) {
 
   const prompt = document.createElement('h2');
   prompt.className = 'translate-to-target__prompt';
-  prompt.textContent = config.prompt;
-  header.appendChild(prompt);
 
-  const promptRow = document.createElement('div');
-  promptRow.className = 'translate-to-target__prompt-row';
+  const promptText = document.createElement('span');
+  promptText.className = 'translate-to-target__prompt-text';
+  promptText.textContent = config.prompt;
+  prompt.appendChild(promptText);
 
-  const sinhalaWord = document.createElement('span');
-  sinhalaWord.className = 'translate-to-target__prompt-si';
-  const answer = Array.isArray(config.answers) ? config.answers[0] : null;
-  const answerText = typeof answer === 'string' ? answer : '';
-  sinhalaWord.textContent = answerText;
-  promptRow.appendChild(sinhalaWord);
+  const sinhalaPrompt = Array.isArray(config.answers) && config.answers.length ? config.answers[0] : '';
+  if (sinhalaPrompt) {
+    const soundButton = document.createElement('button');
+    soundButton.type = 'button';
+    soundButton.className = 'translate-to-base__sound';
+    soundButton.setAttribute('aria-label', `Play pronunciation for ${sinhalaPrompt}`);
 
-  const soundBtn = document.createElement('button');
-  soundBtn.type = 'button';
-  soundBtn.className = 'translate-to-target__sound';
-  soundBtn.setAttribute('aria-label', 'Play Sinhala audio');
-  soundBtn.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M3 9v6h4l5 5V4l-5 5H3z"/></svg>';
+    const soundIcon = document.createElement('img');
+    soundIcon.className = 'translate-to-base__sound-icon';
+    soundIcon.src = 'assets/general/Sound_out_1.svg';
+    soundIcon.alt = '';
+    soundIcon.setAttribute('aria-hidden', 'true');
+    soundButton.appendChild(soundIcon);
 
-  if (!answerText) {
-    soundBtn.disabled = true;
-    soundBtn.setAttribute('aria-disabled', 'true');
+    soundButton.addEventListener('click', () => {
+      playSinhalaAudio(sinhalaPrompt, 'fast');
+    });
+
+    prompt.appendChild(soundButton);
   }
 
-  soundBtn.addEventListener('click', () => {
-    playSinhalaAudio(sinhalaWord.textContent, 'fast');
-  });
-
-  promptRow.appendChild(soundBtn);
-  header.appendChild(promptRow);
+  header.appendChild(prompt);
 
   const choicesContainer = document.createElement('div');
   choicesContainer.className = 'translate-to-target__choices';
