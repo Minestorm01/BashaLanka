@@ -13,88 +13,6 @@ const DEFAULT_CONTAINER_SELECTOR = '[data-exercise="translate-to-target"]';
 const STYLESHEET_ID = 'translate-to-target-styles';
 const LESSON_MANIFEST_URL = new URL('../../lesson.manifest.json', import.meta.url);
 
-function normaliseAudioKey(value, { removeDiacritics = false, toLowerCase = true } = {}) {
-  if (!value) {
-    return '';
-  }
-
-  let result = String(value).trim();
-
-  if (!result) {
-    return '';
-  }
-
-  result = result.normalize('NFC');
-
-  if (removeDiacritics) {
-    result = result.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-    result = result.normalize('NFC');
-  }
-
-  if (toLowerCase) {
-    result = result.toLowerCase();
-  }
-
-  result = result.replace(/["'‘’“”.,!?¿¡;:()/\\]/g, '');
-  result = result.replace(/\s+/g, ' ');
-
-  return result.trim();
-}
-
-function buildAudioSources(translit, prompt, speed = 'fast') {
-  const candidates = new Set();
-
-  const safeSpeed = speed && typeof speed === 'string' ? speed.trim() || 'fast' : 'fast';
-
-  const transliterationKey = normaliseAudioKey(translit, {
-    removeDiacritics: true,
-    toLowerCase: true,
-  });
-
-  if (transliterationKey) {
-    candidates.add(`assets/Sinhala_Audio/${transliterationKey}_${safeSpeed}.mp3`);
-  }
-
-  const promptKey = normaliseAudioKey(prompt, {
-    removeDiacritics: false,
-    toLowerCase: false,
-  });
-
-  if (promptKey) {
-    candidates.add(`assets/Sinhala_Audio/${promptKey}_${safeSpeed}.mp3`);
-  }
-
-  return Array.from(candidates).map((path) => resolveLessonAssetPath(path));
-}
-
-function playSinhalaAudio(translit, speed = 'fast', prompt = '') {
-  const sources = buildAudioSources(translit, prompt, speed);
-
-  if (!sources.length) {
-    return;
-  }
-
-  const tryPlay = (index) => {
-    const source = sources[index];
-
-    if (!source) {
-      return;
-    }
-
-    const audio = new Audio(source);
-    audio.play().catch((err) => {
-      if (index + 1 < sources.length) {
-        tryPlay(index + 1);
-        return;
-      }
-
-      console.error('Failed to play audio:', err, source);
-    });
-  };
-
-  tryPlay(0);
-}
-
 function resolveLessonBaseUrl() {
   if (typeof window !== 'undefined' && window.location?.href) {
     try {
@@ -376,43 +294,10 @@ function buildLayout(config, options = {}) {
   promptGroup.style.alignItems = 'center';
   promptGroup.style.gap = '0.35rem';
 
-  const promptRow = document.createElement('div');
-  promptRow.style.display = 'flex';
-  promptRow.style.alignItems = 'center';
-  promptRow.style.gap = '0.5rem';
-  promptGroup.appendChild(promptRow);
-
   const prompt = document.createElement('h2');
   prompt.className = 'translate-to-target__prompt';
   prompt.textContent = config.prompt || '';
-  promptRow.appendChild(prompt);
-
-  const soundButton = document.createElement('button');
-  soundButton.type = 'button';
-  soundButton.className = 'translate-to-target__sound';
-  soundButton.setAttribute('aria-label', `Play pronunciation for ${config.prompt}`);
-
-  const soundIcon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-  soundIcon.setAttribute('viewBox', '0 0 24 24');
-  soundIcon.setAttribute('width', '24');
-  soundIcon.setAttribute('height', '24');
-  soundIcon.setAttribute('aria-hidden', 'true');
-
-  const speakerPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-  speakerPath.setAttribute('fill', 'currentColor');
-  speakerPath.setAttribute(
-    'd',
-    'M5 9v6h3.586L14 20.414V3.586L8.586 9H5zm12.5 3a3.5 3.5 0 0 0-1.75-3.03v6.06A3.5 3.5 0 0 0 17.5 12zm-1.75-6.89v1.91A5.5 5.5 0 0 1 19.5 12a5.5 5.5 0 0 1-3.75 4.98v1.91A7.5 7.5 0 0 0 21.5 12a7.5 7.5 0 0 0-5.75-6.89z'
-  );
-  soundIcon.appendChild(speakerPath);
-
-  soundButton.appendChild(soundIcon);
-
-  soundButton.addEventListener('click', () => {
-    playSinhalaAudio(config.translit, 'fast', config.prompt);
-  });
-
-  promptRow.appendChild(soundButton);
+  promptGroup.appendChild(prompt);
 
   if (config.translit) {
     const transliteration = document.createElement('p');
