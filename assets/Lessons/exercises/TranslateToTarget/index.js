@@ -288,26 +288,10 @@ function buildLayout(config, options = {}) {
   badge.textContent = formatBadge(config.badge || 'TRANSLATE');
   header.appendChild(badge);
 
-  const promptGroup = document.createElement('div');
-  promptGroup.style.display = 'flex';
-  promptGroup.style.flexDirection = 'column';
-  promptGroup.style.alignItems = 'center';
-  promptGroup.style.gap = '0.35rem';
-
   const prompt = document.createElement('h2');
   prompt.className = 'translate-to-target__prompt';
-  prompt.textContent = config.prompt || '';
-  promptGroup.appendChild(prompt);
-
-  if (config.translit) {
-    const transliteration = document.createElement('p');
-    transliteration.className = 'translate-to-target__transliteration';
-    transliteration.textContent = config.translit;
-    transliteration.lang = 'si-Latn';
-    promptGroup.appendChild(transliteration);
-  }
-
-  header.appendChild(promptGroup);
+  prompt.textContent = config.prompt;
+  header.appendChild(prompt);
 
   const choicesContainer = document.createElement('div');
   choicesContainer.className = 'translate-to-target__choices';
@@ -333,6 +317,8 @@ function buildLayout(config, options = {}) {
 
 function applyChoiceContent(button, choice, showTransliteration) {
   if (!button || !choice) {
+    return;
+  }
 
   const label = document.createElement('span');
   label.className = 'translate-to-target__choice-script';
