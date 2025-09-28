@@ -13,51 +13,6 @@ const DEFAULT_CONTAINER_SELECTOR = '[data-exercise="translate-to-target"]';
 const STYLESHEET_ID = 'translate-to-target-styles';
 const LESSON_MANIFEST_URL = new URL('../../lesson.manifest.json', import.meta.url);
 
-let currentSinhalaAudio = null;
-
-function playSinhalaAudio(word, speed = 'fast') {
-  if (typeof Audio === 'undefined') {
-    console.warn('Audio API not supported');
-    return null;
-  }
-
-  const rawWord = typeof word === 'string' ? word.trim() : '';
-  if (!rawWord) {
-    console.warn('No word provided to play audio');
-    return null;
-  }
-
-  const playbackSpeed = typeof speed === 'string' && speed.trim() ? speed.trim() : 'fast';
-  const encodedWord = encodeURIComponent(rawWord);
-  const encodedSpeed = encodeURIComponent(playbackSpeed);
-  const audioPath = `/assets/Sinhala Audio/${encodedWord}_${encodedSpeed}.mp3`;
-
-  console.log('Trying audio path:', audioPath);
-
-  if (currentSinhalaAudio) {
-    try {
-      currentSinhalaAudio.pause();
-      currentSinhalaAudio.currentTime = 0;
-    } catch (error) {
-      console.warn('Unable to reset previous Sinhala audio', error);
-    }
-  }
-
-  const audio = new Audio(audioPath);
-  currentSinhalaAudio = audio;
-
-  audio
-    .play()
-    .then(() => {
-      console.log('Playing successfully:', audioPath);
-    })
-    .catch((error) => {
-      console.error('Error playing audio:', error);
-    });
-
-  return audio;
-}
-
 function resolveLessonBaseUrl() {
   if (typeof window !== 'undefined' && window.location?.href) {
     try {
@@ -335,35 +290,7 @@ function buildLayout(config, options = {}) {
 
   const prompt = document.createElement('h2');
   prompt.className = 'translate-to-target__prompt';
-
-  const promptText = document.createElement('span');
-  promptText.className = 'translate-to-target__prompt-text';
-  promptText.textContent = config.prompt;
-  prompt.appendChild(promptText);
-
-  const sinhalaPrompt = Array.isArray(config.answers) && config.answers.length ? config.answers[0] : '';
-  if (sinhalaPrompt) {
-    const soundButton = document.createElement('button');
-    soundButton.type = 'button';
-    soundButton.className = 'translate-to-base__sound';
-    soundButton.setAttribute('aria-label', `Play pronunciation for ${sinhalaPrompt}`);
-
-    const soundIcon = document.createElement('img');
-    soundIcon.className = 'translate-to-base__sound-icon';
-    soundIcon.src = 'assets/general/Sound_out_1.svg';
-    soundIcon.alt = '';
-    soundIcon.setAttribute('aria-hidden', 'true');
-    soundButton.appendChild(soundIcon);
-
-    soundButton.addEventListener('click', () => {
-      console.log('Clicked sound button for:', sinhalaPrompt);
-      const audio = playSinhalaAudio(sinhalaPrompt, 'fast');
-      console.log('Audio element created:', audio);
-    });
-
-    prompt.appendChild(soundButton);
-  }
-
+  prompt.textContent = config.prompt;
   header.appendChild(prompt);
 
   const choicesContainer = document.createElement('div');
