@@ -13,44 +13,16 @@ const DEFAULT_CONTAINER_SELECTOR = '[data-exercise="translate-to-target"]';
 const STYLESHEET_ID = 'translate-to-target-styles';
 const LESSON_MANIFEST_URL = new URL('../../lesson.manifest.json', import.meta.url);
 
-let currentSinhalaAudio = null;
+function playSinhalaAudio(translit, speed = 'fast') {
+  if (!translit) return;
 
-function playSinhalaAudio(word, speed = 'fast') {
-  if (typeof Audio === 'undefined') {
-    return null;
-  }
+  const safeWord = translit.trim().toLowerCase();
+  const filePath = `assets/Sinhala_Audio/${safeWord}_${speed}.mp3`;
 
-  const rawWord = typeof word === 'string' ? word.trim() : '';
-  if (!rawWord) {
-    return null;
-  }
-
-  const playbackSpeed = typeof speed === 'string' && speed.trim() ? speed.trim() : 'fast';
-  const encodedWord = encodeURIComponent(rawWord);
-  const encodedSpeed = encodeURIComponent(playbackSpeed);
-  const audioPath = `assets/Sinhala%20Audio/${encodedWord}_${encodedSpeed}.mp3`;
-
-  if (currentSinhalaAudio) {
-    try {
-      currentSinhalaAudio.pause();
-      currentSinhalaAudio.currentTime = 0;
-    } catch (error) {
-      if (typeof console !== 'undefined' && console.warn) {
-        console.warn('Unable to reset previous Sinhala audio', error);
-      }
-    }
-  }
-
-  const audio = new Audio(audioPath);
-  currentSinhalaAudio = audio;
-
-  audio.play().catch((error) => {
-    if (typeof console !== 'undefined' && console.warn) {
-      console.warn('Unable to play Sinhala audio', error);
-    }
+  const audio = new Audio(filePath);
+  audio.play().catch((err) => {
+    console.error('Failed to play audio:', err, filePath);
   });
-
-  return audio;
 }
 
 function resolveLessonBaseUrl() {
@@ -328,36 +300,59 @@ function buildLayout(config, options = {}) {
   badge.textContent = formatBadge(config.badge || 'TRANSLATE');
   header.appendChild(badge);
 
+  const promptGroup = document.createElement('div');
+  promptGroup.style.display = 'flex';
+  promptGroup.style.flexDirection = 'column';
+  promptGroup.style.alignItems = 'center';
+  promptGroup.style.gap = '0.35rem';
+
+  const promptRow = document.createElement('div');
+  promptRow.style.display = 'flex';
+  promptRow.style.alignItems = 'center';
+  promptRow.style.gap = '0.5rem';
+  promptGroup.appendChild(promptRow);
+
   const prompt = document.createElement('h2');
   prompt.className = 'translate-to-target__prompt';
+  prompt.textContent = config.prompt || '';
+  promptRow.appendChild(prompt);
 
-  const promptText = document.createElement('span');
-  promptText.className = 'translate-to-target__prompt-text';
-  promptText.textContent = config.prompt;
-  prompt.appendChild(promptText);
+  const soundButton = document.createElement('button');
+  soundButton.type = 'button';
+  soundButton.className = 'translate-to-target__sound';
+  soundButton.setAttribute('aria-label', `Play pronunciation for ${config.prompt}`);
 
-  const sinhalaPrompt = Array.isArray(config.answers) && config.answers.length ? config.answers[0] : '';
-  if (sinhalaPrompt) {
-    const soundButton = document.createElement('button');
-    soundButton.type = 'button';
-    soundButton.className = 'translate-to-base__sound';
-    soundButton.setAttribute('aria-label', `Play pronunciation for ${sinhalaPrompt}`);
+  const soundIcon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  soundIcon.setAttribute('viewBox', '0 0 24 24');
+  soundIcon.setAttribute('width', '24');
+  soundIcon.setAttribute('height', '24');
+  soundIcon.setAttribute('aria-hidden', 'true');
 
-    const soundIcon = document.createElement('img');
-    soundIcon.className = 'translate-to-base__sound-icon';
-    soundIcon.src = 'assets/general/Sound_out_1.svg';
-    soundIcon.alt = '';
-    soundIcon.setAttribute('aria-hidden', 'true');
-    soundButton.appendChild(soundIcon);
+  const speakerPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  speakerPath.setAttribute('fill', 'currentColor');
+  speakerPath.setAttribute(
+    'd',
+    'M5 9v6h3.586L14 20.414V3.586L8.586 9H5zm12.5 3a3.5 3.5 0 0 0-1.75-3.03v6.06A3.5 3.5 0 0 0 17.5 12zm-1.75-6.89v1.91A5.5 5.5 0 0 1 19.5 12a5.5 5.5 0 0 1-3.75 4.98v1.91A7.5 7.5 0 0 0 21.5 12a7.5 7.5 0 0 0-5.75-6.89z'
+  );
+  soundIcon.appendChild(speakerPath);
 
-    soundButton.addEventListener('click', () => {
-      playSinhalaAudio(sinhalaPrompt, 'fast');
-    });
+  soundButton.appendChild(soundIcon);
 
-    prompt.appendChild(soundButton);
+  soundButton.addEventListener('click', () => {
+    playSinhalaAudio(config.translit, 'fast');
+  });
+
+  promptRow.appendChild(soundButton);
+
+  if (config.translit) {
+    const transliteration = document.createElement('p');
+    transliteration.className = 'translate-to-target__transliteration';
+    transliteration.textContent = config.translit;
+    transliteration.lang = 'si-Latn';
+    promptGroup.appendChild(transliteration);
   }
 
-  header.appendChild(prompt);
+  header.appendChild(promptGroup);
 
   const choicesContainer = document.createElement('div');
   choicesContainer.className = 'translate-to-target__choices';
