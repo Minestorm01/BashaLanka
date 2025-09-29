@@ -191,7 +191,7 @@ function resolveManifestEntry(manifest, context = {}) {
   return candidates[0] || null;
 }
 
-async function fetchLessonVocab() {
+export async function fetchLessonVocab() {
   if (typeof window === 'undefined') {
     throw new Error('TranslateToBase requires a browser environment.');
   }
