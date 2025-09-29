@@ -1,10 +1,10 @@
 import {
   ensureStylesheet,
-  loadConfig,
   normaliseText,
   shuffle,
   setStatusMessage,
 } from '../_shared/utils.js';
+import { fetchLessonVocab } from '../TranslateToBase/index.js';
 
 const DEFAULT_CONTAINER_SELECTOR = '[data-exercise="match-pairs"]';
 const STYLESHEET_ID = 'match-pairs-styles';
@@ -35,6 +35,14 @@ function buildLayout(config) {
   grid.className = 'match-pairs__grid';
   surface.appendChild(grid);
 
+  const targetColumn = document.createElement('div');
+  targetColumn.className = 'match-pairs__column match-pairs__column--target';
+  grid.appendChild(targetColumn);
+
+  const baseColumn = document.createElement('div');
+  baseColumn.className = 'match-pairs__column match-pairs__column--base';
+  grid.appendChild(baseColumn);
+
   const feedback = document.createElement('p');
   feedback.className = 'match-pairs__feedback';
   feedback.setAttribute('role', 'status');
@@ -44,6 +52,8 @@ function buildLayout(config) {
   return {
     wrapper,
     grid,
+    targetColumn,
+    baseColumn,
     feedback,
   };
 }
@@ -52,15 +62,64 @@ function createCard(content, matchId, type) {
   const button = document.createElement('button');
   button.type = 'button';
   button.className = 'match-pairs__card';
+  button.classList.add(`match-pairs__card--${type}`);
   button.dataset.matchId = String(matchId);
   button.dataset.cardType = type;
 
-  const label = document.createElement('span');
-  label.className = 'match-pairs__card-label';
-  label.textContent = content;
-  button.appendChild(label);
+  if (type === 'base') {
+    const script = document.createElement('span');
+    script.className = 'match-pairs__card-script';
+    script.textContent = content.label;
+    button.appendChild(script);
+
+    if (content.translit) {
+      const transliteration = document.createElement('span');
+      transliteration.className = 'match-pairs__card-translit';
+      transliteration.textContent = content.translit;
+      button.appendChild(transliteration);
+    }
+  } else {
+    const label = document.createElement('span');
+    label.className = 'match-pairs__card-label';
+    label.textContent = content.label;
+    button.appendChild(label);
+  }
 
   return button;
+}
+
+function buildMatchPairsConfig(vocabEntries) {
+  const items = Array.isArray(vocabEntries)
+    ? vocabEntries
+        .map((entry) => {
+          if (!entry || typeof entry !== 'object') return null;
+          const base = normaliseText(entry.si) || entry.si;
+          const target = normaliseText(entry.en) || entry.en;
+          const translit = normaliseText(entry.translit || entry.transliteration);
+          if (!base || !target) return null;
+          return { base, target, translit };
+        })
+        .filter(Boolean)
+    : [];
+
+  if (items.length < 5) {
+    throw new Error('MatchPairs requires at least five vocab entries.');
+  }
+
+  const selected = shuffle(items).slice(0, 5);
+
+  return {
+    prompt: 'Match the pairs',
+    instructions: 'Match the Sinhala words with their English meanings.',
+    successMessage: 'Great match!',
+    errorMessage: 'Try again.',
+    initialMessage: 'Start matching to continue.',
+    pairs: selected.map((entry) => ({
+      base: entry.base,
+      target: entry.target,
+      translit: entry.translit,
+    })),
+  };
 }
 
 function prepareConfig(rawConfig) {
@@ -68,35 +127,35 @@ function prepareConfig(rawConfig) {
     throw new Error('MatchPairs config must be an object.');
   }
 
-  const prompt = normaliseText(rawConfig.prompt);
-  if (!prompt) {
-    throw new Error('MatchPairs config requires a prompt.');
-  }
-
-  const instructions = normaliseText(rawConfig.instructions) || 'Match the pairs to continue.';
+  const prompt = normaliseText(rawConfig.prompt) || 'Match the pairs';
+  const instructions =
+    normaliseText(rawConfig.instructions) || 'Match the Sinhala words with their English meanings.';
   const pairs = Array.isArray(rawConfig.pairs) ? rawConfig.pairs : [];
   const normalisedPairs = pairs
     .map((pair) => {
       if (!pair || typeof pair !== 'object') return null;
-      const base = normaliseText(pair.base);
-      const target = normaliseText(pair.target);
+      const base = normaliseText(pair.base) || pair.base;
+      const target = normaliseText(pair.target) || pair.target;
+      const translit = normaliseText(pair.translit || pair.transliteration);
       if (!base || !target) return null;
-      return { ...pair, base, target };
+      return { ...pair, base, target, translit };
     })
     .filter(Boolean);
 
-  if (!normalisedPairs.length) {
-    throw new Error('MatchPairs config requires at least one valid pair.');
+  if (normalisedPairs.length < 5) {
+    throw new Error('MatchPairs config requires at least five valid pairs.');
   }
+
+  const pairsForExercise = shuffle(normalisedPairs).slice(0, 5);
 
   return {
     ...rawConfig,
     prompt,
     instructions,
-    pairs: normalisedPairs,
+    pairs: pairsForExercise,
     successMessage: normaliseText(rawConfig.successMessage) || 'Great match!',
     errorMessage: normaliseText(rawConfig.errorMessage) || 'Try again.',
-    initialMessage: normaliseText(rawConfig.initialMessage),
+    initialMessage: normaliseText(rawConfig.initialMessage) || 'Start matching to continue.',
   };
 }
 
@@ -107,7 +166,6 @@ export async function initMatchPairsExercise(options = {}) {
 
   const {
     target = document.querySelector(DEFAULT_CONTAINER_SELECTOR),
-    config: configOverride,
     onComplete,
   } = options;
 
@@ -116,19 +174,25 @@ export async function initMatchPairsExercise(options = {}) {
   }
 
   ensureStylesheet(STYLESHEET_ID, './styles.css', { baseUrl: import.meta.url });
-  const rawConfig = await loadConfig({ config: configOverride, baseUrl: import.meta.url });
+
+  const vocab = await fetchLessonVocab();
+  const rawConfig = buildMatchPairsConfig(vocab);
   const config = prepareConfig(rawConfig);
-  const { wrapper, grid, feedback } = buildLayout(config);
+  const { wrapper, targetColumn, baseColumn, feedback } = buildLayout(config);
   target.innerHTML = '';
   target.appendChild(wrapper);
 
-  const cards = [];
+  const targetCards = [];
+  const baseCards = [];
   config.pairs.forEach((pair, index) => {
-    cards.push(createCard(pair.base, index, 'base'));
-    cards.push(createCard(pair.target, index, 'target'));
+    baseCards.push(createCard({ label: pair.base, translit: pair.translit }, index, 'base'));
+    targetCards.push(createCard({ label: pair.target }, index, 'target'));
   });
 
-  shuffle(cards).forEach((card) => grid.appendChild(card));
+  shuffle(targetCards).forEach((card) => targetColumn.appendChild(card));
+  shuffle(baseCards).forEach((card) => baseColumn.appendChild(card));
+
+  const cards = [...targetCards, ...baseCards];
 
   let first = null;
   let locked = false;
