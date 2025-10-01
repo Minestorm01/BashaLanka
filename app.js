@@ -470,10 +470,16 @@ const LESSON_SIMULATOR_EXERCISES = [
     loader: () => loadExerciseModule('MatchPairs/index.js')
   },
   {
-    id: 'word-bank',
-    label: 'Word Bank',
-    description: 'Assemble answers from a bank of word tiles.',
-    loader: () => loadExerciseModule('WordBank/index.js')
+    id: 'word-bank-sinhala',
+    label: 'Word Bank — Sinhala',
+    description: 'Assemble Sinhala sentences from a bank of word tiles.',
+    loader: () => loadExerciseModule('WordBankSinhala/index.js')
+  },
+  {
+    id: 'word-bank-english',
+    label: 'Word Bank — English',
+    description: 'Assemble English sentences from a bank of word tiles.',
+    loader: () => loadExerciseModule('WordBankEnglish/index.js')
   },
   {
     id: 'translate-to-target',
