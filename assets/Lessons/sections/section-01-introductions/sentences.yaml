@@ -1,0 +1,168 @@
+{
+  "sentences": [
+    {
+      "id": "greetings_how_are_you",
+      "minUnit": 1,
+      "text": "How are you?",
+      "tokens": ["oya", "kohomada?"]
+    },
+    {
+      "id": "greetings_i_am_fine",
+      "minUnit": 1,
+      "text": "I am fine.",
+      "tokens": ["mama", "hondayi."]
+    },
+    {
+      "id": "greetings_he_is_fine",
+      "minUnit": 1,
+      "text": "He is fine.",
+      "tokens": ["ohu", "hondayi."]
+    },
+    {
+      "id": "greetings_she_is_fine",
+      "minUnit": 1,
+      "text": "She is fine.",
+      "tokens": ["eya", "hondayi."]
+    },
+    {
+      "id": "greetings_formal_hello",
+      "minUnit": 1,
+      "text": "Hello!",
+      "tokens": ["ayubovan"],
+      "allowShortPrompt": true
+    },
+    {
+      "id": "introduce_name_question_informal",
+      "minUnit": 2,
+      "text": "What is your name?",
+      "tokens": ["oyage", "nama", "mokakda?"]
+    },
+    {
+      "id": "introduce_name_question_formal",
+      "minUnit": 2,
+      "text": "What is your name? (formal)",
+      "tokens": ["obage", "nama", "mokakda?"]
+    },
+    {
+      "id": "introduce_thank_you",
+      "minUnit": 2,
+      "text": "Thank you.",
+      "tokens": ["sthuthi"],
+      "allowShortPrompt": true
+    },
+    {
+      "id": "introduce_im_doing_well",
+      "minUnit": 2,
+      "text": "I am doing well.",
+      "tokens": ["mama", "hondin", "innava."]
+    },
+    {
+      "id": "introduce_im_well_thank_you",
+      "minUnit": 2,
+      "text": "I am doing well, thank you.",
+      "tokens": ["mama", "hondin", "innava,", "sthuthi."]
+    },
+    {
+      "id": "nationalities_what_is_your_country",
+      "minUnit": 3,
+      "text": "What is your country?",
+      "tokens": ["oyage", "rata", "mokakda?"]
+    },
+    {
+      "id": "nationalities_is_your_country_india",
+      "minUnit": 3,
+      "text": "Is your country India?",
+      "tokens": ["oyage", "rata", "indiyavada?"]
+    },
+    {
+      "id": "nationalities_my_country_is_sri_lanka",
+      "minUnit": 3,
+      "text": "My country is Sri Lanka.",
+      "tokens": ["mage", "rata", "sri", "lankava"]
+    },
+    {
+      "id": "nationalities_i_am_from_sri_lanka",
+      "minUnit": 3,
+      "text": "I am from Sri Lanka.",
+      "tokens": ["mama", "sri", "lankaven"]
+    },
+    {
+      "id": "nationalities_are_you_from_sri_lanka",
+      "minUnit": 3,
+      "text": "Are you from Sri Lanka?",
+      "tokens": ["oya", "sri", "lankaven", "da?"]
+    },
+    {
+      "id": "age_what_is_your_age",
+      "minUnit": 4,
+      "text": "What is your age?",
+      "tokens": ["oyage", "vayasa", "kieyda?"]
+    },
+    {
+      "id": "age_what_is_your_age_plural",
+      "minUnit": 4,
+      "text": "What is your age? (plural)",
+      "tokens": ["oyalage", "vayasa", "kieyda?"]
+    },
+    {
+      "id": "age_our_country_is_sri_lanka",
+      "minUnit": 4,
+      "text": "Our country is Sri Lanka.",
+      "tokens": ["ape", "rata", "sri", "lankava"]
+    },
+    {
+      "id": "age_we_are_from_sri_lanka",
+      "minUnit": 4,
+      "text": "We are from Sri Lanka.",
+      "tokens": ["api", "sri", "lankaven"]
+    },
+    {
+      "id": "age_my_age_is_thirty",
+      "minUnit": 4,
+      "text": "My age is thirty.",
+      "tokens": ["mage", "vayasa", "tihayi."]
+    },
+    {
+      "id": "age_your_age_is_twenty_five",
+      "minUnit": 4,
+      "text": "Your age is twenty-five.",
+      "tokens": ["oyalage", "vayasa", "visipahayi."]
+    },
+    {
+      "id": "languages_i_am_doing",
+      "minUnit": 5,
+      "text": "I am doing.",
+      "tokens": ["mama", "karanava."]
+    },
+    {
+      "id": "languages_you_are_doing",
+      "minUnit": 5,
+      "text": "You are doing.",
+      "tokens": ["oya", "karanava."]
+    },
+    {
+      "id": "languages_i_speak_english",
+      "minUnit": 5,
+      "text": "I speak English.",
+      "tokens": ["mama", "ingrisi", "katha", "karanava."]
+    },
+    {
+      "id": "languages_you_speak_sinhala",
+      "minUnit": 5,
+      "text": "You speak Sinhala.",
+      "tokens": ["oya", "sinhala", "katha", "karanava."]
+    },
+    {
+      "id": "languages_do_you_speak_english",
+      "minUnit": 5,
+      "text": "Do you speak English?",
+      "tokens": ["oya", "ingrisi", "katha", "karanavada?"]
+    },
+    {
+      "id": "languages_do_you_speak_sinhala_formal",
+      "minUnit": 5,
+      "text": "Do you speak Sinhala? (formal)",
+      "tokens": ["oba", "sinhala", "katha", "karanavada?"]
+    }
+  ]
+}
