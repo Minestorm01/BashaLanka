@@ -1,0 +1,136 @@
+Section01:
+  title: "Introductions & Essentials"
+  description: "Greetings, introductions, countries, age, and languages."
+  units:
+
+    - id: 1
+      name: "Pronouns & Basic Greetings"
+      vocab:
+        - mama        # I
+        - oya         # you
+        - eya         # he/she
+        - kohomada    # how
+        - hondai      # fine/good
+        - ayubowan    # hello
+      sentences:
+        - text: "Hello, how are you?"
+          tokens: ["ayubowan", "oya", "kohomada"]
+          minUnit: 1
+        - text: "I am fine, thank you."
+          tokens: ["mama", "hondai"]
+          minUnit: 1
+        - text: "How is he?"
+          tokens: ["eya", "kohomada"]
+          minUnit: 1
+        - text: "How is she?"
+          tokens: ["eya", "kohomada"]
+          minUnit: 1
+        - text: "Are you fine?"
+          tokens: ["oya", "hondai", "kohomada"]
+          minUnit: 1
+
+    - id: 2
+      name: "Introducing Yourself"
+      vocab:
+        - mage        # my
+        - nama        # name
+        - yaluwa      # friend
+      sentences:
+        - text: "My name is {name}."
+          tokens: ["mage", "nama"]
+          minUnit: 2
+        - text: "Hello, my name is {name}."
+          tokens: ["ayubowan", "mage", "nama"]
+          minUnit: 2
+        - text: "I am {name}."
+          tokens: ["mama", "nama"]
+          minUnit: 2
+        - text: "How are you, my friend?"
+          tokens: ["oya", "kohomada", "mage", "yaluwa"]
+          minUnit: 2
+        - text: "You are my friend."
+          tokens: ["oya", "mage", "yaluwa"]
+          minUnit: 2
+
+    - id: 3
+      name: "Nationalities"
+      vocab:
+        - rata        # country
+        - gena        # from/about
+        - Australia
+        - Sri_Lanka
+        - India
+      sentences:
+        - text: "I am from {country}."
+          tokens: ["mama", "gena", "rata"]
+          minUnit: 3
+        - text: "My country is {country}."
+          tokens: ["mage", "rata"]
+          minUnit: 3
+        - text: "Are you from {country}?"
+          tokens: ["oya", "gena", "rata"]
+          minUnit: 3
+        - text: "She is from Sri Lanka."
+          tokens: ["eya", "gena", "Sri_Lanka"]
+          minUnit: 3
+        - text: "He is from Australia."
+          tokens: ["eya", "gena", "Australia"]
+          minUnit: 3
+        - text: "Is your country India?"
+          tokens: ["oya", "rata", "India", "kohomada"]
+          minUnit: 3
+
+    - id: 4
+      name: "Age & Numbers"
+      vocab:
+        - vissara     # years
+        - ganan       # number
+        - dahaya      # ten
+        - visi        # twenty
+        - tis         # thirty
+      sentences:
+        - text: "I am {age} years old."
+          tokens: ["mama", "vissara", "ganan"]
+          minUnit: 4
+        - text: "How old are you?"
+          tokens: ["oya", "kohomada", "vissara"]
+          minUnit: 4
+        - text: "He is twenty years old."
+          tokens: ["eya", "visi", "vissara"]
+          minUnit: 4
+        - text: "She is ten years old."
+          tokens: ["eya", "dahaya", "vissara"]
+          minUnit: 4
+        - text: "My friend is thirty years old."
+          tokens: ["mage", "yaluwa", "tis", "vissara"]
+          minUnit: 4
+        - text: "Are you twenty years old?"
+          tokens: ["oya", "visi", "vissara", "kohomada"]
+          minUnit: 4
+
+    - id: 5
+      name: "Languages You Speak"
+      vocab:
+        - kathaa      # speak
+        - Sinhala
+        - English
+        - Tamil
+      sentences:
+        - text: "Do you speak Sinhala?"
+          tokens: ["oya", "kathaa", "Sinhala"]
+          minUnit: 5
+        - text: "I speak English."
+          tokens: ["mama", "kathaa", "English"]
+          minUnit: 5
+        - text: "She speaks Tamil."
+          tokens: ["eya", "kathaa", "Tamil"]
+          minUnit: 5
+        - text: "I can speak Sinhala and English."
+          tokens: ["mama", "kathaa", "Sinhala", "English"]
+          minUnit: 5
+        - text: "My friend speaks Sinhala."
+          tokens: ["mage", "yaluwa", "kathaa", "Sinhala"]
+          minUnit: 5
+        - text: "Do you speak Tamil and English?"
+          tokens: ["oya", "kathaa", "Tamil", "English"]
+          minUnit: 5
