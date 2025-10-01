@@ -106,8 +106,10 @@ function stripYamlValue(value) {
 function parseWordBankEntryText(text) {
   if (!text || typeof text !== 'string') return null;
   const trimmed = text.trim();
-  const inline = parseInlineObject(trimmed);
-  if (inline) return inline;
+  if (!/\r|\n/.test(trimmed)) {
+    const inline = parseInlineObject(trimmed);
+    if (inline) return inline;
+  }
 
   const entry = {};
   let currentKey = null;
@@ -156,13 +158,9 @@ function parseWordBankEntryText(text) {
 
 function extractWordBankPrompts(markdown) {
   if (typeof markdown !== 'string') return [];
-  const match = markdown.match(
-    /^[ \t]*wordbank(?:_prompts)?\s*:\s*([\s\S]*?)(?:\n[ \t]*[A-Za-z0-9_-]+\s*:|\n{2,}(?=\S)|$)/im
-  );
-  if (!match) return [];
-  const block = match[1] || '';
-  const lines = block.split(/\r?\n/);
+  const lines = markdown.split(/\r?\n/);
   const entries = [];
+  let inBlock = false;
   let baseIndent = null;
   let buffer = [];
 
@@ -174,22 +172,43 @@ function extractWordBankPrompts(markdown) {
     buffer = [];
   };
 
-  lines.forEach((line) => {
-    if (!line.trim()) return;
-    const indent = line.match(/^\s*/)[0].length;
-    const trimmed = line.trim();
-    if (trimmed.startsWith('-')) {
+  for (const rawLine of lines) {
+    const trimmedLine = rawLine.trim();
+
+    if (!inBlock) {
+      if (/^wordbank(?:[\s_-]*prompts)?\s*:/i.test(trimmedLine)) {
+        inBlock = true;
+        baseIndent = null;
+        buffer = [];
+      }
+      continue;
+    }
+
+    if (!trimmedLine) {
+      // Ignore empty lines inside the block.
+      continue;
+    }
+
+    const indent = rawLine.match(/^\s*/)[0].length;
+
+    if (baseIndent !== null && indent < baseIndent && !trimmedLine.startsWith('-')) {
+      // A new top-level key signals the end of the word bank block.
+      break;
+    }
+
+    if (trimmedLine.startsWith('-')) {
       if (baseIndent === null) {
         baseIndent = indent;
       }
       if (indent === baseIndent) {
         flush();
-        buffer.push(trimmed.replace(/^-+\s*/, ''));
-        return;
+        buffer.push(trimmedLine.replace(/^-+\s*/, ''));
+        continue;
       }
     }
-    buffer.push(line);
-  });
+
+    buffer.push(rawLine);
+  }
 
   flush();
   return entries;
