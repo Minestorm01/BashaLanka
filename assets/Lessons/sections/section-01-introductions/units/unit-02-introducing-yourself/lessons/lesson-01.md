@@ -1,4 +1,3 @@
----
 id: lesson-01
 title: Possessives (gé) — my / your / his / her
 duration_min: 7
@@ -17,10 +16,8 @@ content_blocks:
     body: "Add **gé** to persons/animals for possessive. Exceptions for 1st person: **magē**."
   - type: MINI_EXAMPLE
     body: |
-      ```
       ඔයාගේ නම — oyāgē nama — your name
       මගේ නම — magē nama — my name
-      ```
   - type: PRACTICE
     body: "Convert pronouns to possessives with gé; read aloud pairs."
 unlock_next: lesson-02

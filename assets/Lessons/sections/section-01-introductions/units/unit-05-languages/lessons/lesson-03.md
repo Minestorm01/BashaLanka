@@ -1,4 +1,3 @@
----
 id: lesson-03
 title: I speak X (English/Sinhala/…)
 duration_min: 6

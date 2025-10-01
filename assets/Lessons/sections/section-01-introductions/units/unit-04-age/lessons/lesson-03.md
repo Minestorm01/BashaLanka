@@ -1,4 +1,3 @@
----
 id: lesson-03
 title: Ask age — “What is your age?”
 duration_min: 6

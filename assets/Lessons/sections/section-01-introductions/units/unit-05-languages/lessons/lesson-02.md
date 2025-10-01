@@ -1,4 +1,3 @@
----
 id: lesson-02
 title: Verb: කතා කරනවා — speaking
 duration_min: 6

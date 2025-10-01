@@ -1,4 +1,3 @@
----
 id: lesson-01
 title: More pronouns — we / you(pl) / they / formal you
 duration_min: 7

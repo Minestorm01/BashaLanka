@@ -1,4 +1,3 @@
----
 id: lesson-02
 title: Introduce yourself — “My name is …” / “I am …”
 duration_min: 7

@@ -7,20 +7,21 @@ Section01:
       name: "Pronouns & Basic Greetings"
       vocab:
         - mama        # I
-        - oya         # you
+        - oya         # you (informal)
         - eya         # he/she
+        - ohu         # he
+        - ayubowan    # hello
         - kohomada    # how
         - hondai      # fine/good
-        - ayubowan    # hello
       sentences:
         - text: "Hello, how are you?"
           tokens: ["ayubowan", "oya", "kohomada"]
           minUnit: 1
-        - text: "I am fine, thank you."
+        - text: "I am fine."
           tokens: ["mama", "hondai"]
           minUnit: 1
         - text: "How is he?"
-          tokens: ["eya", "kohomada"]
+          tokens: ["ohu", "kohomada"]
           minUnit: 1
         - text: "How is she?"
           tokens: ["eya", "kohomada"]
@@ -45,36 +46,36 @@ Section01:
         - text: "I am {name}."
           tokens: ["mama", "nama"]
           minUnit: 2
-        - text: "How are you, my friend?"
-          tokens: ["oya", "kohomada", "mage", "yaluwa"]
-          minUnit: 2
         - text: "You are my friend."
           tokens: ["oya", "mage", "yaluwa"]
           minUnit: 2
+        - text: "How are you, my friend?"
+          tokens: ["oya", "kohomada", "mage", "yaluwa"]
+          minUnit: 2
 
     - id: 3
-      name: "Nationalities"
+      name: "Countries & From"
       vocab:
         - rata        # country
         - gena        # from/about
-        - Australia
         - Sri_Lanka
+        - Australia
         - India
       sentences:
         - text: "I am from {country}."
-          tokens: ["mama", "gena", "rata"]
+          tokens: ["mama", "rata", "gena"]
           minUnit: 3
         - text: "My country is {country}."
           tokens: ["mage", "rata"]
           minUnit: 3
         - text: "Are you from {country}?"
-          tokens: ["oya", "gena", "rata"]
+          tokens: ["oya", "rata", "gena"]
           minUnit: 3
         - text: "She is from Sri Lanka."
-          tokens: ["eya", "gena", "Sri_Lanka"]
+          tokens: ["eya", "Sri_Lanka", "gena"]
           minUnit: 3
         - text: "He is from Australia."
-          tokens: ["eya", "gena", "Australia"]
+          tokens: ["ohu", "Australia", "gena"]
           minUnit: 3
         - text: "Is your country India?"
           tokens: ["oya", "rata", "India", "kohomada"]
@@ -96,7 +97,7 @@ Section01:
           tokens: ["oya", "kohomada", "vissara"]
           minUnit: 4
         - text: "He is twenty years old."
-          tokens: ["eya", "visi", "vissara"]
+          tokens: ["ohu", "visi", "vissara"]
           minUnit: 4
         - text: "She is ten years old."
           tokens: ["eya", "dahaya", "vissara"]
@@ -109,21 +110,24 @@ Section01:
           minUnit: 4
 
     - id: 5
-      name: "Languages You Speak"
+      name: "Languages & Speaking"
       vocab:
         - kathaa      # speak
         - Sinhala
         - English
         - Tamil
       sentences:
-        - text: "Do you speak Sinhala?"
-          tokens: ["oya", "kathaa", "Sinhala"]
-          minUnit: 5
         - text: "I speak English."
           tokens: ["mama", "kathaa", "English"]
           minUnit: 5
+        - text: "Do you speak Sinhala?"
+          tokens: ["oya", "kathaa", "Sinhala"]
+          minUnit: 5
         - text: "She speaks Tamil."
           tokens: ["eya", "kathaa", "Tamil"]
+          minUnit: 5
+        - text: "He speaks Sinhala."
+          tokens: ["ohu", "kathaa", "Sinhala"]
           minUnit: 5
         - text: "I can speak Sinhala and English."
           tokens: ["mama", "kathaa", "Sinhala", "English"]

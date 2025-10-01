@@ -1,4 +1,3 @@
----
 id: lesson-01
 title: Ask country — “What is your country?”
 duration_min: 6

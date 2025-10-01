@@ -1,4 +1,3 @@
----
 id: lesson-02
 title: Tell country — “My country is …”
 duration_min: 6

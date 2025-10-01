@@ -1,4 +1,3 @@
----
 id: lesson-01
 title: Verb: කරනවා — doing (present)
 duration_min: 6

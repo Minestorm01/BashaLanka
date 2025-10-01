@@ -1,4 +1,3 @@
----
 id: lesson-04
 title: Thank you + polite reply
 duration_min: 5

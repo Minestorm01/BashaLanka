@@ -1,4 +1,3 @@
----
 id: lesson-03
 title: Ask names — “What is your name?”
 duration_min: 6
