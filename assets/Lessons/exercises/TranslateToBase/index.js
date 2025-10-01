@@ -88,6 +88,111 @@ function extractVocabEntries(markdown) {
   return segments.map(parseInlineObject).filter((entry) => entry && (entry.si || entry.en));
 }
 
+function stripYamlValue(value) {
+  if (value === null || value === undefined) return '';
+  let trimmed = value.toString().trim();
+  if (!trimmed) return '';
+  if (trimmed.endsWith(',')) {
+    trimmed = trimmed.slice(0, -1).trim();
+  }
+  const startsWithQuote = trimmed.startsWith('"') || trimmed.startsWith("'");
+  const endsWithQuote = trimmed.endsWith('"') || trimmed.endsWith("'");
+  if (startsWithQuote && endsWithQuote) {
+    trimmed = trimmed.slice(1, -1);
+  }
+  return normaliseText(trimmed);
+}
+
+function parseWordBankEntryText(text) {
+  if (!text || typeof text !== 'string') return null;
+  const trimmed = text.trim();
+  const inline = parseInlineObject(trimmed);
+  if (inline) return inline;
+
+  const entry = {};
+  let currentKey = null;
+  const lines = text.split(/\r?\n/);
+  lines.forEach((line) => {
+    const raw = line.trim();
+    if (!raw) return;
+    const keyMatch = raw.match(/^([A-Za-z0-9_-]+)\s*:\s*(.*)$/);
+    if (keyMatch) {
+      const key = keyMatch[1];
+      let value = keyMatch[2];
+      currentKey = key;
+      if (!value) {
+        entry[key] = Array.isArray(entry[key]) ? entry[key] : [];
+        return;
+      }
+      value = value.trim();
+      if (!value) {
+        entry[key] = Array.isArray(entry[key]) ? entry[key] : [];
+        return;
+      }
+      entry[key] = Array.isArray(entry[key]) ? entry[key] : stripYamlValue(value);
+      return;
+    }
+
+    if (currentKey) {
+      if (raw.startsWith('-')) {
+        const item = stripYamlValue(raw.replace(/^-+\s*/, ''));
+        if (!item) return;
+        if (!Array.isArray(entry[currentKey])) {
+          entry[currentKey] = entry[currentKey] ? [entry[currentKey]] : [];
+        }
+        entry[currentKey].push(item);
+      } else if (Array.isArray(entry[currentKey])) {
+        const item = stripYamlValue(raw);
+        if (item) entry[currentKey].push(item);
+      } else {
+        const existing = entry[currentKey];
+        const addition = stripYamlValue(raw);
+        entry[currentKey] = existing ? `${existing} ${addition}`.trim() : addition;
+      }
+    }
+  });
+  return Object.keys(entry).length ? entry : null;
+}
+
+function extractWordBankPrompts(markdown) {
+  if (typeof markdown !== 'string') return [];
+  const match = markdown.match(/^[ \t]*wordbank(?:_prompts)?\s*:\s*([\s\S]*?)(?:\n[ A-Za-z0-9_-]+\s*:|\n{2,}(?=\S)|$)/m);
+  if (!match) return [];
+  const block = match[1] || '';
+  const lines = block.split(/\r?\n/);
+  const entries = [];
+  let baseIndent = null;
+  let buffer = [];
+
+  const flush = () => {
+    if (!buffer.length) return;
+    const text = buffer.join('\n');
+    const parsed = parseWordBankEntryText(text);
+    if (parsed) entries.push(parsed);
+    buffer = [];
+  };
+
+  lines.forEach((line) => {
+    if (!line.trim()) return;
+    const indent = line.match(/^\s*/)[0].length;
+    const trimmed = line.trim();
+    if (trimmed.startsWith('-')) {
+      if (baseIndent === null) {
+        baseIndent = indent;
+      }
+      if (indent === baseIndent) {
+        flush();
+        buffer.push(trimmed.replace(/^-+\s*/, ''));
+        return;
+      }
+    }
+    buffer.push(line);
+  });
+
+  flush();
+  return entries;
+}
+
 function parseUnitNumber(value) {
   const match = typeof value === 'string' ? value.match(/u(\d+)/i) : null;
   if (!match) return null;
@@ -129,7 +234,7 @@ function normaliseLessonPath(lessonPath) {
   return withoutLeadingDot.replace(/^\/+/, '');
 }
 
-async function loadLessonSource(lessonPath) {
+export async function loadLessonSource(lessonPath) {
   if (!lessonPath || typeof lessonPath !== 'string') {
     throw new Error('Lesson path is required to load lesson source.');
   }
@@ -142,7 +247,8 @@ async function loadLessonSource(lessonPath) {
   if (!response.ok) throw new Error(`Failed to load lesson markdown: ${lessonPath}`);
   const markdown = await response.text();
   const vocab = extractVocabEntries(markdown);
-  return { path: normalisedPath, markdown, vocab };
+  const wordBankPrompts = extractWordBankPrompts(markdown);
+  return { path: normalisedPath, markdown, vocab, wordBankPrompts };
 }
 
 function narrowCandidates(candidates, predicate) {
@@ -237,6 +343,29 @@ export async function fetchLessonVocab() {
   if (!lesson.vocab.length)
     throw new Error('Lesson markdown is missing vocab entries for TranslateToBase exercise.');
   return lesson.vocab;
+}
+
+export async function fetchAllLessonVocabsUpTo(lessonNumber) {
+  const total = Number.parseInt(lessonNumber, 10);
+  if (!Number.isFinite(total) || total <= 0) {
+    return [];
+  }
+
+  const all = [];
+  for (let i = 1; i <= total; i += 1) {
+    const path = `assets/Lessons/lesson-${String(i).padStart(2, '0')}.md`;
+    try {
+      const lesson = await loadLessonSource(path);
+      if (Array.isArray(lesson.vocab) && lesson.vocab.length) {
+        all.push(...lesson.vocab);
+      }
+    } catch (error) {
+      if (typeof console !== 'undefined' && console.warn) {
+        console.warn(`⚠️ Could not load lesson ${i}:`, error);
+      }
+    }
+  }
+  return all;
 }
 
 export function pickRandomVocab(vocabEntries) {
