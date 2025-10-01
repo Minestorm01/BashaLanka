@@ -1,14 +1,19 @@
+/* assets/Lessons/exercises/WordBank/styles.css */
+
 .word-bank {
-  --exercise-bg: #0b3f57;
-  --exercise-surface: #052b3b;
+  --exercise-bg: #15354f;
+  --exercise-surface: #0c2334;
   --exercise-text: #f5fffa;
   --exercise-muted: rgba(245, 255, 250, 0.7);
-  --exercise-accent: #4dd0e1;
+  --exercise-accent: #0bcb88;
+  --exercise-accent-soft: rgba(11, 203, 136, 0.2);
+  --exercise-accent-strong: rgba(11, 203, 136, 0.95);
+  --exercise-success: rgba(147, 255, 210, 0.95);
   --exercise-danger: #ff7a7a;
   width: 100%;
   min-height: 100%;
   padding: clamp(1.5rem, 4vw, 3rem);
-  background: radial-gradient(circle at top left, rgba(77, 208, 225, 0.15), transparent 45%),
+  background: radial-gradient(circle at bottom right, rgba(11, 203, 136, 0.16), transparent 45%),
     var(--exercise-bg);
   display: flex;
   align-items: center;
@@ -18,135 +23,128 @@
 }
 
 .word-bank__surface {
-  width: min(720px, 100%);
+  width: min(760px, 100%);
   background: var(--exercise-surface);
   color: var(--exercise-text);
   border-radius: 24px;
   border: 1px solid rgba(255, 255, 255, 0.12);
   box-shadow: 0 28px 60px rgba(0, 0, 0, 0.32);
-  padding: clamp(1.75rem, 3vw, 2.9rem);
+  padding: clamp(1.75rem, 3vw, 2.8rem);
   display: flex;
   flex-direction: column;
-  gap: clamp(1.25rem, 3vw, 2.25rem);
+  gap: clamp(1.25rem, 2.5vw, 2rem);
 }
 
 .word-bank__header {
   display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
+  align-items: center;
+  gap: clamp(1rem, 3vw, 1.5rem);
 }
 
-.word-bank__prompt {
-  margin: 0;
-  font-size: clamp(1.75rem, 4vw, 2.4rem);
-  font-weight: 700;
-  letter-spacing: 0.015em;
+.word-bank__mascot {
+  width: clamp(64px, 12vw, 80px);
+  height: clamp(64px, 12vw, 80px);
+  object-fit: contain;
+  flex-shrink: 0;
 }
 
-.word-bank__instructions {
-  margin: 0;
-  font-size: 1rem;
-  color: var(--exercise-muted);
-}
-
-.word-bank__assembled,
-.word-bank__bank {
+.word-bank__bubble {
+  position: relative;
+  flex: 1;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 18px;
+  padding: clamp(0.9rem, 2.5vw, 1.35rem) clamp(1rem, 3vw, 1.75rem);
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.18);
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.65rem;
-  min-height: 56px;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.word-bank__bubble::after {
+  content: '';
+  position: absolute;
+  left: -12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 14px;
+  height: 18px;
+  background: rgba(255, 255, 255, 0.08);
+  clip-path: polygon(0 50%, 100% 0, 100% 100%);
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.18);
 }
 
 .word-bank__assembled {
-  padding: 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  min-height: 2.5rem;
+}
+
+.word-bank__grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  justify-content: center;
+}
+
+.word-bank__tile {
   background: rgba(255, 255, 255, 0.05);
-  border-radius: 18px;
-  border: 1px dashed rgba(255, 255, 255, 0.18);
-}
-
-.word-bank__bank {
-  padding: 1rem;
-  background: rgba(255, 255, 255, 0.04);
-  border-radius: 18px;
-}
-
-.word-bank__tile,
-.word-bank__tile--assembled,
-.word-bank__tile--used {
-  border: none;
-  border-radius: 14px;
-  background: rgba(255, 255, 255, 0.1);
-  color: inherit;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 0.6rem 0.95rem;
+  font-size: 1.05rem;
   font-weight: 600;
-  padding: 0.55rem 0.95rem;
+  color: #fff;
   cursor: pointer;
-  transition: transform 0.18s ease, background 0.18s ease, opacity 0.18s ease;
+  transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
 }
 
 .word-bank__tile:hover,
-.word-bank__tile:focus-visible,
-.word-bank__tile--assembled:hover,
-.word-bank__tile--assembled:focus-visible {
-  transform: translateY(-1px);
-  background: rgba(77, 208, 225, 0.22);
+.word-bank__tile:focus-visible {
+  transform: translateY(-2px);
+  border-color: var(--exercise-accent-strong);
   outline: none;
 }
 
-.word-bank__tile--used {
-  opacity: 0.6;
-  cursor: default;
+.word-bank__tile--assembled {
+  background: rgba(11, 203, 136, 0.15);
+  border-color: var(--exercise-accent);
 }
 
-.word-bank__footer {
+.word-bank__controls {
   display: flex;
-  gap: 0.75rem;
-  justify-content: flex-end;
+  justify-content: center;
+  gap: 1rem;
 }
 
 .word-bank__check,
 .word-bank__reset {
-  border-radius: 16px;
-  border: none;
-  padding: 0.7rem 1.6rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
-}
-
-.word-bank__check {
   background: var(--exercise-accent);
-  color: #03252f;
-}
-
-.word-bank__reset {
-  background: rgba(255, 255, 255, 0.12);
-  color: var(--exercise-text);
+  border: none;
+  border-radius: 12px;
+  color: #fff;
+  padding: 0.65rem 1.25rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.18s ease;
 }
 
 .word-bank__check:hover,
-.word-bank__check:focus-visible {
-  transform: translateY(-1px);
-  box-shadow: 0 12px 18px rgba(77, 208, 225, 0.25);
-  outline: none;
-}
-
-.word-bank__reset:hover,
-.word-bank__reset:focus-visible {
-  transform: translateY(-1px);
-  background: rgba(255, 255, 255, 0.2);
-  outline: none;
+.word-bank__reset:hover {
+  transform: translateY(-2px);
+  background: var(--exercise-accent-strong);
 }
 
 .word-bank__feedback {
-  margin: 0;
-  font-size: 1rem;
+  margin: 0.5rem 0 0;
   font-weight: 600;
-  text-align: center;
+  font-size: 1rem;
   min-height: 1.5em;
+  text-align: center;
 }
 
 .word-bank__feedback[data-status='success'] {
-  color: rgba(147, 255, 210, 0.95);
+  color: var(--exercise-success);
 }
 
 .word-bank__feedback[data-status='error'] {
@@ -157,6 +155,7 @@
   color: var(--exercise-muted);
 }
 
+/* 📱 Mobile tweaks */
 @media (max-width: 640px) {
   .word-bank {
     padding: 1.5rem 1.25rem 2.25rem;
@@ -164,16 +163,11 @@
 
   .word-bank__surface {
     border-radius: 20px;
-    padding: 1.5rem;
+    padding: 1.5rem 1.25rem 2rem;
   }
 
-  .word-bank__footer {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .word-bank__check,
-  .word-bank__reset {
-    width: 100%;
+  .word-bank__tile {
+    flex: 1 1 calc(50% - 0.75rem);
+    text-align: center;
   }
 }
