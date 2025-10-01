@@ -156,7 +156,9 @@ function parseWordBankEntryText(text) {
 
 function extractWordBankPrompts(markdown) {
   if (typeof markdown !== 'string') return [];
-  const match = markdown.match(/^[ \t]*wordbank(?:_prompts)?\s*:\s*([\s\S]*?)(?:\n[ A-Za-z0-9_-]+\s*:|\n{2,}(?=\S)|$)/m);
+  const match = markdown.match(
+    /^[ \t]*wordbank(?:_prompts)?\s*:\s*([\s\S]*?)(?:\n[ \t]*[A-Za-z0-9_-]+\s*:|\n{2,}(?=\S)|$)/im
+  );
   if (!match) return [];
   const block = match[1] || '';
   const lines = block.split(/\r?\n/);
@@ -345,19 +347,78 @@ export async function fetchLessonVocab() {
   return lesson.vocab;
 }
 
+export async function resolveLessonPathFromContext(context = null) {
+  const lessonContext =
+    context || (typeof window !== 'undefined' ? window.BashaLanka?.currentLesson : null);
+  if (!lessonContext) {
+    throw new Error('Lesson context unavailable.');
+  }
+
+  const detail = lessonContext.detail || null;
+  if (detail?.lessonPath) {
+    const normalised = normaliseLessonPath(detail.lessonPath);
+    if (normalised) return normalised;
+  }
+
+  const manifest = await loadLessonManifest();
+  const entry = resolveManifestEntry(manifest, lessonContext);
+  if (!entry?.path) {
+    throw new Error('Unable to resolve lesson markdown path from context.');
+  }
+
+  const normalisedPath = normaliseLessonPath(entry.path);
+  if (!normalisedPath) {
+    throw new Error('Unable to normalise lesson markdown path from context.');
+  }
+
+  if (detail && typeof detail === 'object') {
+    detail.lessonPath = normalisedPath;
+  }
+
+  return normalisedPath;
+}
+
 export async function fetchAllLessonVocabsUpTo(lessonNumber) {
   const total = Number.parseInt(lessonNumber, 10);
   if (!Number.isFinite(total) || total <= 0) {
     return [];
   }
 
-  const all = [];
+  if (typeof window === 'undefined') {
+    throw new Error('fetchAllLessonVocabsUpTo requires a browser environment.');
+  }
+
+  const context = window.BashaLanka?.currentLesson || null;
+  if (!context) {
+    throw new Error('Lesson context unavailable.');
+  }
+
+  const detail = context.detail || {};
+  let lessonPath = detail.lessonPath;
+  if (!lessonPath) {
+    lessonPath = await resolveLessonPathFromContext(context);
+  } else {
+    lessonPath = normaliseLessonPath(lessonPath);
+  }
+
+  if (!lessonPath) {
+    throw new Error('Unable to resolve base lesson path for vocab history.');
+  }
+
+  const directoryMatch = lessonPath.match(/^(.*\/)?lesson-\d+\.md$/);
+  if (!directoryMatch) {
+    throw new Error(`Unexpected lesson path format: ${lessonPath}`);
+  }
+
+  const baseDirectory = directoryMatch[1] || '';
+  const vocabEntries = [];
+
   for (let i = 1; i <= total; i += 1) {
-    const path = `assets/Lessons/lesson-${String(i).padStart(2, '0')}.md`;
+    const candidatePath = `${baseDirectory}lesson-${String(i).padStart(2, '0')}.md`;
     try {
-      const lesson = await loadLessonSource(path);
+      const lesson = await loadLessonSource(candidatePath);
       if (Array.isArray(lesson.vocab) && lesson.vocab.length) {
-        all.push(...lesson.vocab);
+        vocabEntries.push(...lesson.vocab);
       }
     } catch (error) {
       if (typeof console !== 'undefined' && console.warn) {
@@ -365,7 +426,8 @@ export async function fetchAllLessonVocabsUpTo(lessonNumber) {
       }
     }
   }
-  return all;
+
+  return vocabEntries;
 }
 
 export function pickRandomVocab(vocabEntries) {

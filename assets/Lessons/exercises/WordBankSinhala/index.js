@@ -9,6 +9,7 @@ import {
   fetchLessonVocab,
   fetchAllLessonVocabsUpTo,
   loadLessonSource,
+  resolveLessonPathFromContext,
 } from '../TranslateToBase/index.js';
 
 const DEFAULT_CONTAINER_SELECTOR = '[data-exercise="word-bank-sinhala"]';
@@ -185,14 +186,7 @@ async function fetchWordBankPromptsByType(typeKey) {
 
   let lessonPath = detail.lessonPath;
   if (!lessonPath) {
-    const lessonNumber = resolveLessonNumber(context);
-    if (lessonNumber) {
-      lessonPath = `assets/Lessons/lesson-${String(lessonNumber).padStart(2, '0')}.md`;
-    }
-  }
-
-  if (!lessonPath) {
-    throw new Error('Lesson markdown path unavailable for WordBankSinhala exercise.');
+    lessonPath = await resolveLessonPathFromContext(context);
   }
 
   const lesson = await loadLessonSource(lessonPath);
