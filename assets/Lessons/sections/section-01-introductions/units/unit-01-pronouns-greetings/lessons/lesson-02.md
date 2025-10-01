@@ -19,3 +19,10 @@ content_blocks:
   - type: "PRACTICE"
     body: "Build & record each question..."
 unlock_next: "lesson-03"
+wordBankPrompts:
+  - type: sinhala
+    prompt: "How are you?"
+    answer: "ඔයා කොහොමද?"
+  - type: english
+    prompt: "ඔයා කොහොමද?"
+    answer: "How are you?"
