@@ -3,7 +3,9 @@ import {
   flattenSentences,
   randomItem,
   shuffleArray,
+  filterUnlockedSentences,
 } from '../_shared/wordBankUtils.js';
+import { getVocabEntry } from '../_shared/vocabMap.js';
 
 const DEFAULT_CONTAINER_SELECTOR = '[data-exercise="wordbank-english"]';
 
@@ -15,6 +17,7 @@ export default async function initWordBankEnglishExercise(options = {}) {
   const {
     target = document.querySelector(DEFAULT_CONTAINER_SELECTOR),
     onComplete,
+    unitId: providedUnitId,
   } = options;
 
   if (!target) {
@@ -25,7 +28,7 @@ export default async function initWordBankEnglishExercise(options = {}) {
 
   try {
     const units = await loadSectionSentences();
-    const sentences = flattenSentences(units);
+    const sentences = filterUnlockedSentences(flattenSentences(units), providedUnitId);
     if (!sentences.length) {
       target.innerHTML = '<p>No sentences available.</p>';
       return;
@@ -124,7 +127,7 @@ function setupExercise(container, sentences, { onComplete } = {}) {
       return;
     }
 
-    prompt.textContent = Array.isArray(sentence.tokens) ? sentence.tokens.join(' ') : '';
+    renderSinhalaPrompt(prompt, Array.isArray(sentence.tokens) ? sentence.tokens : []);
     tiles = buildEnglishTiles(sentence);
     answer = [];
     updateTiles();
@@ -233,4 +236,35 @@ function splitEnglishWords(text) {
     .split(/\s+/)
     .map((segment) => segment.trim())
     .filter(Boolean);
+}
+
+function renderSinhalaPrompt(container, tokens) {
+  container.innerHTML = '';
+  if (!Array.isArray(tokens) || !tokens.length) {
+    return;
+  }
+
+  tokens.forEach((token, index) => {
+    if (index > 0) {
+      container.appendChild(document.createTextNode(' '));
+    }
+
+    const mapping = getVocabEntry(token);
+    const wrapper = document.createElement('span');
+    wrapper.className = 'wordbank__prompt-token';
+
+    const scriptSpan = document.createElement('span');
+    scriptSpan.className = 'si';
+    scriptSpan.textContent = mapping.si;
+
+    const translit = document.createElement('small');
+    translit.className = 'translit';
+    translit.textContent = mapping.translit;
+
+    wrapper.appendChild(scriptSpan);
+    wrapper.appendChild(document.createTextNode(' '));
+    wrapper.appendChild(translit);
+
+    container.appendChild(wrapper);
+  });
 }

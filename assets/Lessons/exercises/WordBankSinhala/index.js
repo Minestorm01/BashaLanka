@@ -3,7 +3,9 @@ import {
   flattenSentences,
   randomItem,
   shuffleArray,
+  filterUnlockedSentences,
 } from '../_shared/wordBankUtils.js';
+import { getVocabEntry } from '../_shared/vocabMap.js';
 
 const DEFAULT_CONTAINER_SELECTOR = '[data-exercise="wordbank-sinhala"]';
 
@@ -15,6 +17,7 @@ export default async function initWordBankSinhalaExercise(options = {}) {
   const {
     target = document.querySelector(DEFAULT_CONTAINER_SELECTOR),
     onComplete,
+    unitId: providedUnitId,
   } = options;
 
   if (!target) {
@@ -25,7 +28,7 @@ export default async function initWordBankSinhalaExercise(options = {}) {
 
   try {
     const units = await loadSectionSentences();
-    const sentences = flattenSentences(units);
+    const sentences = filterUnlockedSentences(flattenSentences(units), providedUnitId);
     if (!sentences.length) {
       target.innerHTML = '<p>No sentences available.</p>';
       return;
@@ -132,11 +135,7 @@ function setupExercise(container, sentences, { onComplete } = {}) {
     const tileEntries = [];
     const tokens = Array.isArray(sentence.tokens) ? sentence.tokens : [];
     tokens.forEach((token, index) => {
-      tileEntries.push({
-        id: `token-${index}`,
-        text: token,
-        used: false,
-      });
+      tileEntries.push(createTileEntry(token, `token-${index}`));
     });
 
     const seenDistractors = new Set();
@@ -152,11 +151,7 @@ function setupExercise(container, sentences, { onComplete } = {}) {
         return;
       }
       seenDistractors.add(word);
-      tileEntries.push({
-        id: `extra-${word}`,
-        text: word,
-        used: false,
-      });
+      tileEntries.push(createTileEntry(word, `extra-${word}`));
     });
 
     return shuffleArray(tileEntries);
@@ -167,7 +162,15 @@ function setupExercise(container, sentences, { onComplete } = {}) {
     tiles.forEach((tile) => {
       const button = document.createElement('button');
       button.type = 'button';
-      button.textContent = tile.text;
+      const scriptSpan = document.createElement('span');
+      scriptSpan.className = 'si';
+      scriptSpan.textContent = tile.mapping.si;
+      const translit = document.createElement('small');
+      translit.className = 'translit';
+      translit.textContent = tile.mapping.translit;
+      button.appendChild(scriptSpan);
+      button.appendChild(document.createTextNode(' '));
+      button.appendChild(translit);
       button.disabled = tile.used;
       button.addEventListener('click', () => handleTileSelect(tile));
       tileContainer.appendChild(button);
@@ -186,7 +189,24 @@ function setupExercise(container, sentences, { onComplete } = {}) {
   }
 
   function updateAnswer() {
-    answerContainer.textContent = answer.map((entry) => entry.text).join(' ');
+    answerContainer.innerHTML = '';
+    answer.forEach((entry, index) => {
+      if (index > 0) {
+        answerContainer.appendChild(document.createTextNode(' '));
+      }
+      const wrapper = document.createElement('span');
+      wrapper.className = 'wordbank__answer-token';
+      const scriptSpan = document.createElement('span');
+      scriptSpan.className = 'si';
+      scriptSpan.textContent = entry.mapping.si;
+      const translit = document.createElement('small');
+      translit.className = 'translit';
+      translit.textContent = entry.mapping.translit;
+      wrapper.appendChild(scriptSpan);
+      wrapper.appendChild(document.createTextNode(' '));
+      wrapper.appendChild(translit);
+      answerContainer.appendChild(wrapper);
+    });
     checkBtn.disabled = answer.length === 0;
   }
 
@@ -207,7 +227,10 @@ function setupExercise(container, sentences, { onComplete } = {}) {
     if (success) {
       setFeedback('✅ Correct!');
     } else {
-      setFeedback(`❌ Correct order: ${correct.join(' ')}`);
+      const correctSinhala = correct
+        .map((token) => getVocabEntry(token).si)
+        .join(' ');
+      setFeedback(`❌ Correct order: ${correctSinhala}`);
     }
   }
 
@@ -242,4 +265,14 @@ function setupExercise(container, sentences, { onComplete } = {}) {
   nextBtn.addEventListener('click', handleNext);
 
   setSentence(randomItem(sentences));
+}
+
+function createTileEntry(word, id) {
+  const mapping = getVocabEntry(word);
+  return {
+    id,
+    text: word,
+    mapping,
+    used: false,
+  };
 }

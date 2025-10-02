@@ -462,6 +462,22 @@ async function loadExerciseModule(path) {
   return Promise.reject(lastError || new Error(`Failed to load exercise module "${path}".`));
 }
 
+function loadExerciseModuleWithDefaults(path, defaultOptions) {
+  return loadExerciseModule(path).then((mod) => {
+    if (!defaultOptions || typeof mod?.default !== 'function') {
+      return mod;
+    }
+
+    const init = mod.default.bind(mod);
+    return Object.assign({}, mod, {
+      default(options = {}) {
+        const merged = { ...defaultOptions, ...options };
+        return init(merged);
+      }
+    });
+  });
+}
+
 const LESSON_SIMULATOR_EXERCISES = [
   {
     id: 'match-pairs',
@@ -485,13 +501,13 @@ const LESSON_SIMULATOR_EXERCISES = [
     id: 'wordbank-sinhala',
     label: 'WordBank (Sinhala)',
     description: 'Assemble Sinhala sentence from English prompt.',
-    loader: () => loadExerciseModule('WordBankSinhala/index.js')
+    loader: () => loadExerciseModuleWithDefaults('WordBankSinhala/index.js', { unitId: 1 })
   },
   {
     id: 'wordbank-english',
     label: 'WordBank (English)',
     description: 'Assemble English sentence from Sinhala prompt.',
-    loader: () => loadExerciseModule('WordBankEnglish/index.js')
+    loader: () => loadExerciseModuleWithDefaults('WordBankEnglish/index.js', { unitId: 1 })
   },
   {
     id: 'picture-choice',
@@ -772,7 +788,14 @@ const LessonSimulator = (() => {
         }
       };
 
-      await init({ target: host, onComplete: handleComplete });
+      const exerciseOptions = { target: host, onComplete: handleComplete };
+      const lessonUnitIdValue = existingLesson?.detail?.unitId ?? existingLesson?.meta?.unitId;
+      const numericUnitId = Number(lessonUnitIdValue);
+      if (!Number.isNaN(numericUnitId) && numericUnitId > 0) {
+        exerciseOptions.unitId = numericUnitId;
+      }
+
+      await init(exerciseOptions);
       if(contentEl){
         contentEl.scrollTop = 0;
       }

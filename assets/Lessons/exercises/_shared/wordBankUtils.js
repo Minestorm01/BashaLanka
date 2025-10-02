@@ -71,6 +71,51 @@ export function flattenSentences(units) {
   return sentences;
 }
 
+export function determineUnitId(candidate) {
+  if (candidate == null) {
+    if (typeof window !== 'undefined') {
+      const lesson = window.BashaLanka && window.BashaLanka.currentLesson;
+      const detailUnit = lesson?.detail?.unitId ?? lesson?.meta?.unitId;
+      const numericDetail = Number(detailUnit);
+      if (!Number.isNaN(numericDetail) && numericDetail > 0) {
+        return numericDetail;
+      }
+    }
+    return 1;
+  }
+
+  const numeric = Number(candidate);
+  if (Number.isNaN(numeric) || numeric <= 0) {
+    return 1;
+  }
+  return numeric;
+}
+
+export function filterUnlockedSentences(sentences, unitId) {
+  if (!Array.isArray(sentences)) {
+    return [];
+  }
+
+  const resolvedUnitId = determineUnitId(unitId);
+  return sentences.filter((sentence) => {
+    if (!sentence) {
+      return false;
+    }
+
+    const { minUnit } = sentence;
+    if (minUnit == null || minUnit === '') {
+      return true;
+    }
+
+    const numeric = Number(minUnit);
+    if (Number.isNaN(numeric)) {
+      return true;
+    }
+
+    return numeric <= resolvedUnitId;
+  });
+}
+
 function parseSectionYaml(text) {
   if (typeof text !== 'string' || !text.trim()) {
     return [];
@@ -235,4 +280,6 @@ export default {
   flattenSentences,
   shuffleArray,
   randomItem,
+  filterUnlockedSentences,
+  determineUnitId,
 };
