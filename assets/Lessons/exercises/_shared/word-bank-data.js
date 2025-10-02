@@ -146,6 +146,12 @@ function registerWord({ map, unique }, siValue, translitValue, englishValue, sou
   if (cleanedTranslit) forms.add(cleanedTranslit);
   const ascii = stripDiacritics(cleanedTranslit);
   if (ascii && ascii !== cleanedTranslit) forms.add(ascii);
+  if (ascii) {
+    const nasalised = ascii.replace(/mh/g, 'nh');
+    if (nasalised && nasalised !== ascii) forms.add(nasalised);
+    const velarised = ascii.replace(/mh/g, 'ngh');
+    if (velarised && velarised !== ascii && velarised !== nasalised) forms.add(velarised);
+  }
   const scriptNoPunct = cleanedScript.replace(/[“”"'.,!?؛،၊།·…]/g, '');
   if (scriptNoPunct && scriptNoPunct !== cleanedScript) forms.add(scriptNoPunct);
   const translitNoPunct = cleanedTranslit.replace(/[“”"'.,!?·…]/g, '');
@@ -178,6 +184,30 @@ function buildVocabWordIndex(vocabEntries) {
   const words = Array.from(unique.values());
   const singleWordEntries = words.filter((word) => !(word.tokenCount > 1));
   return { map, words: singleWordEntries };
+}
+
+function dedupeVocabEntries(vocabEntries) {
+  const unique = new Map();
+  const entries = Array.isArray(vocabEntries) ? vocabEntries : [];
+  entries.forEach((entry) => {
+    if (!entry || typeof entry !== 'object') return;
+    const si = normaliseText(entry.si || entry.sinhala || '');
+    const translit = normaliseText(entry.translit || entry.transliteration || '');
+    const english = normaliseText(entry.en || entry.english || '');
+    if (!si && !translit) return;
+    const key = `${si.toLowerCase()}|${translit.toLowerCase()}|${english.toLowerCase()}`;
+    if (!unique.has(key)) {
+      unique.set(key, {
+        ...entry,
+        si: si || entry.si,
+        translit: translit || entry.translit || entry.transliteration,
+        en: english || entry.en,
+        english: english || entry.english,
+        transliteration: translit || entry.transliteration,
+      });
+    }
+  });
+  return Array.from(unique.values());
 }
 
 function joinWordSequence(words, key = 'si') {
@@ -394,6 +424,9 @@ async function gatherAvailableVocab(meta) {
   const manifest = await loadLessonManifest();
   const lessons = Array.isArray(manifest?.lessons) ? manifest.lessons : [];
   const normalisedTarget = normaliseLessonPath(meta.lessonPath);
+  if (!normalisedTarget) {
+    throw new Error('Unable to resolve lesson path for vocab gathering.');
+  }
   const uptoIndex = lessons.findIndex((entry) => {
     const entryPath = normaliseLessonPath(entry.path);
     return entryPath === normalisedTarget;
@@ -401,25 +434,47 @@ async function gatherAvailableVocab(meta) {
   if (uptoIndex === -1) {
     throw new Error('Current lesson not found in manifest.');
   }
+
   const relevantEntries = lessons.slice(0, uptoIndex + 1);
   const currentUnitEntries = relevantEntries.filter((entry) => entry.unitId === meta.unitId);
   const priorUnitEntries = relevantEntries.filter((entry) => entry.unitId !== meta.unitId);
   const vocab = [];
-  if (currentUnitEntries.length) {
-    const currentUnitVocab = await fetchAllLessonVocabsUpTo(meta.lessonNumber);
-    vocab.push(...currentUnitVocab);
-  }
-  for (const entry of priorUnitEntries) {
+  const seenLessons = new Set();
+
+  const addLessonVocab = async (lessonPath) => {
+    const normalised = normaliseLessonPath(lessonPath);
+    if (!normalised || seenLessons.has(normalised)) return;
+    seenLessons.add(normalised);
     try {
-      const lesson = await loadLessonSource(entry.path);
-      if (Array.isArray(lesson.vocab)) {
+      const lesson = await loadLessonSource(normalised);
+      if (Array.isArray(lesson.vocab) && lesson.vocab.length) {
         vocab.push(...lesson.vocab);
       }
     } catch (error) {
-      console.warn('⚠️ Failed to load vocab for previous lesson', entry.path, error);
+      console.warn('⚠️ Failed to load vocab for lesson', lessonPath, error);
+    }
+  };
+
+  for (const entry of currentUnitEntries) {
+    await addLessonVocab(entry.path);
+  }
+
+  for (const entry of priorUnitEntries) {
+    await addLessonVocab(entry.path);
+  }
+
+  if (meta.lessonNumber && meta.lessonNumber > 0) {
+    try {
+      const currentUnitVocab = await fetchAllLessonVocabsUpTo(meta.lessonNumber);
+      if (Array.isArray(currentUnitVocab) && currentUnitVocab.length) {
+        vocab.push(...currentUnitVocab);
+      }
+    } catch (error) {
+      console.warn('⚠️ Failed to load current unit vocab history', error);
     }
   }
-  return vocab;
+
+  return dedupeVocabEntries(vocab);
 }
 
 export async function loadWordBankLessonData() {
