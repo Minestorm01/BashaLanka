@@ -53,6 +53,7 @@ function buildDistractorTiles(vocabWords, answerTiles) {
     const key = normaliseTokenKey(word.si || word.translit || '');
     if (!key || requiredKeys.has(key)) return false;
     if (!word.si || /[\[\]{}]/.test(word.si)) return false;
+    if (word.isMultiWord || (word.tokenCount && word.tokenCount > 1)) return false;
     return true;
   });
   const selection = shuffle(pool).slice(0, MAX_DISTRACTOR_WORDS);

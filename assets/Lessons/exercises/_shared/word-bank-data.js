@@ -118,6 +118,12 @@ function registerWord({ map, unique }, siValue, translitValue, englishValue, sou
 
   const cleanedTranslit = translit.replace(/^[–—-]+/, '');
   const english = englishValue ? normaliseText(englishValue) : '';
+  const tokenParts = cleanedScript.split(/\s+/).filter(Boolean);
+  if (!tokenParts.length) return;
+  const tokenCount = tokenParts.length;
+  const isMultiWord = tokenCount > 1;
+  const hasPunctuation = /[“”"'.,!?؛،၊།·…]/.test(cleanedScript);
+  const baseSi = cleanedScript.replace(/[“”"'.,!?؛،၊།·…]/g, '').trim() || cleanedScript;
   const uniqueKey = `${cleanedScript}|${cleanedTranslit}`.toLowerCase();
   if (!unique.has(uniqueKey)) {
     unique.set(uniqueKey, {
@@ -125,9 +131,16 @@ function registerWord({ map, unique }, siValue, translitValue, englishValue, sou
       translit: cleanedTranslit,
       english,
       source,
+      tokenCount,
+      isMultiWord,
+      hasPunctuation,
+      baseSi,
     });
   }
   const word = unique.get(uniqueKey);
+  if (!word.translit && cleanedTranslit) {
+    word.translit = cleanedTranslit;
+  }
   const forms = new Set();
   forms.add(cleanedScript);
   if (cleanedTranslit) forms.add(cleanedTranslit);
@@ -163,7 +176,8 @@ function buildVocabWordIndex(vocabEntries) {
     });
   });
   const words = Array.from(unique.values());
-  return { map, words };
+  const singleWordEntries = words.filter((word) => !(word.tokenCount > 1));
+  return { map, words: singleWordEntries };
 }
 
 function joinWordSequence(words, key = 'si') {
