@@ -88,132 +88,6 @@ function extractVocabEntries(markdown) {
   return segments.map(parseInlineObject).filter((entry) => entry && (entry.si || entry.en));
 }
 
-function stripYamlValue(value) {
-  if (value === null || value === undefined) return '';
-  let trimmed = value.toString().trim();
-  if (!trimmed) return '';
-  if (trimmed.endsWith(',')) {
-    trimmed = trimmed.slice(0, -1).trim();
-  }
-  const startsWithQuote = trimmed.startsWith('"') || trimmed.startsWith("'");
-  const endsWithQuote = trimmed.endsWith('"') || trimmed.endsWith("'");
-  if (startsWithQuote && endsWithQuote) {
-    trimmed = trimmed.slice(1, -1);
-  }
-  return normaliseText(trimmed);
-}
-
-function parseWordBankEntryText(text) {
-  if (!text || typeof text !== 'string') return null;
-  const trimmed = text.trim();
-  if (!/\r|\n/.test(trimmed)) {
-    const inline = parseInlineObject(trimmed);
-    if (inline) return inline;
-  }
-
-  const entry = {};
-  let currentKey = null;
-  const lines = text.split(/\r?\n/);
-  lines.forEach((line) => {
-    const raw = line.trim();
-    if (!raw) return;
-    const keyMatch = raw.match(/^([A-Za-z0-9_-]+)\s*:\s*(.*)$/);
-    if (keyMatch) {
-      const key = keyMatch[1];
-      let value = keyMatch[2];
-      currentKey = key;
-      if (!value) {
-        entry[key] = Array.isArray(entry[key]) ? entry[key] : [];
-        return;
-      }
-      value = value.trim();
-      if (!value) {
-        entry[key] = Array.isArray(entry[key]) ? entry[key] : [];
-        return;
-      }
-      entry[key] = Array.isArray(entry[key]) ? entry[key] : stripYamlValue(value);
-      return;
-    }
-
-    if (currentKey) {
-      if (raw.startsWith('-')) {
-        const item = stripYamlValue(raw.replace(/^-+\s*/, ''));
-        if (!item) return;
-        if (!Array.isArray(entry[currentKey])) {
-          entry[currentKey] = entry[currentKey] ? [entry[currentKey]] : [];
-        }
-        entry[currentKey].push(item);
-      } else if (Array.isArray(entry[currentKey])) {
-        const item = stripYamlValue(raw);
-        if (item) entry[currentKey].push(item);
-      } else {
-        const existing = entry[currentKey];
-        const addition = stripYamlValue(raw);
-        entry[currentKey] = existing ? `${existing} ${addition}`.trim() : addition;
-      }
-    }
-  });
-  return Object.keys(entry).length ? entry : null;
-}
-
-function extractWordBankPrompts(markdown) {
-  if (typeof markdown !== 'string') return [];
-  const lines = markdown.split(/\r?\n/);
-  const entries = [];
-  let inBlock = false;
-  let baseIndent = null;
-  let buffer = [];
-
-  const flush = () => {
-    if (!buffer.length) return;
-    const text = buffer.join('\n');
-    const parsed = parseWordBankEntryText(text);
-    if (parsed) entries.push(parsed);
-    buffer = [];
-  };
-
-  for (const rawLine of lines) {
-    const trimmedLine = rawLine.trim();
-
-    if (!inBlock) {
-      if (/^wordbank(?:[\s_-]*prompts)?\s*:/i.test(trimmedLine)) {
-        inBlock = true;
-        baseIndent = null;
-        buffer = [];
-      }
-      continue;
-    }
-
-    if (!trimmedLine) {
-      // Ignore empty lines inside the block.
-      continue;
-    }
-
-    const indent = rawLine.match(/^\s*/)[0].length;
-
-    if (baseIndent !== null && indent < baseIndent && !trimmedLine.startsWith('-')) {
-      // A new top-level key signals the end of the word bank block.
-      break;
-    }
-
-    if (trimmedLine.startsWith('-')) {
-      if (baseIndent === null) {
-        baseIndent = indent;
-      }
-      if (indent === baseIndent) {
-        flush();
-        buffer.push(trimmedLine.replace(/^-+\s*/, ''));
-        continue;
-      }
-    }
-
-    buffer.push(rawLine);
-  }
-
-  flush();
-  return entries;
-}
-
 function parseUnitNumber(value) {
   const match = typeof value === 'string' ? value.match(/u(\d+)/i) : null;
   if (!match) return null;
@@ -268,8 +142,7 @@ export async function loadLessonSource(lessonPath) {
   if (!response.ok) throw new Error(`Failed to load lesson markdown: ${lessonPath}`);
   const markdown = await response.text();
   const vocab = extractVocabEntries(markdown);
-  const wordBankPrompts = extractWordBankPrompts(markdown);
-  return { path: normalisedPath, markdown, vocab, wordBankPrompts };
+  return { path: normalisedPath, markdown, vocab };
 }
 
 function narrowCandidates(candidates, predicate) {
