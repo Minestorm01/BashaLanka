@@ -1,3 +1,5 @@
+import { getVocabEntry as getFallbackVocabEntry } from './vocabMap.js';
+
 const COURSE_MAP_URL = new URL('../../course.map.json', import.meta.url);
 
 let cachedUnitsPromise = null;
@@ -361,12 +363,13 @@ export function getWordEntryFromUnit(unit, token) {
   }
 
   if (!entry) {
-    const fallback = token.toString().replace(/_/g, ' ');
-    return {
-      si: fallback,
-      en: fallback,
-      translit: fallback,
-    };
+    const fallback = getFallbackVocabEntry(token) || {};
+    const fallbackLabel = token.toString().replace(/_/g, ' ');
+    const si = fallback.si || fallbackLabel;
+    const translit = fallback.translit || fallback.transliteration || fallbackLabel;
+    const en = fallback.en || fallbackLabel;
+
+    return { si, en, translit };
   }
 
   const si = entry.si || token;
@@ -927,33 +930,59 @@ function parseWordBankWords(text) {
 }
 
 function parseWordEntry(line) {
-  const match = line.match(/^-\s*\{(.+)\}\s*$/);
-  if (!match) {
+  if (typeof line !== 'string') {
     return null;
   }
 
-  const content = match[1];
-  const parts = content.split(',').map((part) => part.trim());
-  const entry = {};
+  const trimmed = line.trim();
+  if (!trimmed.startsWith('-')) {
+    return null;
+  }
 
-  parts.forEach((part) => {
-    const [rawKey, ...rest] = part.split(':');
-    if (!rawKey || rest.length === 0) {
-      return;
+  const commentIndex = trimmed.indexOf('#');
+  const comment = commentIndex >= 0 ? trimmed.slice(commentIndex + 1).trim() : '';
+  const rawContent = commentIndex >= 0 ? trimmed.slice(0, commentIndex) : trimmed;
+  const content = rawContent.replace(/^-+\s*/, '').trim();
+
+  if (!content) {
+    return null;
+  }
+
+  if (content.startsWith('{') && content.endsWith('}')) {
+    const inner = content.slice(1, -1);
+    const parts = inner.split(',').map((part) => part.trim());
+    const entry = {};
+
+    parts.forEach((part) => {
+      const [rawKey, ...rest] = part.split(':');
+      if (!rawKey || rest.length === 0) {
+        return;
+      }
+      const key = rawKey.trim();
+      const value = rest.join(':').trim();
+      entry[key] = stripQuotes(value.replace(/^\{\s*|\s*\}$/g, ''));
+    });
+
+    if (!entry.si && !entry.en) {
+      return null;
     }
-    const key = rawKey.trim();
-    const value = rest.join(':').trim();
-    entry[key] = stripQuotes(value.replace(/^\{\s*|\s*\}$/g, ''));
-  });
 
-  if (!entry.si && !entry.en) {
-    return null;
+    return {
+      si: entry.si || '',
+      translit: entry.translit || entry.transliteration || '',
+      en: entry.en || '',
+    };
   }
+
+  const fallback = getFallbackVocabEntry(content) || {};
+  const fallbackSi = fallback.si || content.replace(/_/g, ' ');
+  const fallbackTranslit = fallback.translit || fallback.transliteration || content.replace(/_/g, ' ');
+  const fallbackEn = comment || fallback.en || fallbackTranslit || fallbackSi;
 
   return {
-    si: entry.si || '',
-    translit: entry.translit || entry.transliteration || '',
-    en: entry.en || '',
+    si: fallbackSi,
+    translit: fallbackTranslit,
+    en: fallbackEn,
   };
 }
 
