@@ -140,8 +140,8 @@ function resolveUnitMascotCandidates(unit, lessonContext) {
     parseSectionNumberFromUnitId(meta.unitId),
   );
 
-  const sectionId = detail.sectionId || meta.sectionId || null;
-  const unitId = detail.unitId || meta.unitId || null;
+  const sectionId = detail.sectionId || meta.sectionId || unit?.sectionId || null;
+  const unitId = detail.unitId || meta.unitId || unit?.id || null;
 
   const directAssets = [
     unit.mascotAsset,

@@ -133,6 +133,9 @@ export async function loadSectionSentences() {
   return units.map((unit) => ({
     id: unit.id,
     name: unit.name,
+    sectionId: unit.sectionId ?? null,
+    sectionKey: unit.sectionKey ?? null,
+    sectionNumber: unit.sectionNumber ?? null,
     vocab: Array.isArray(unit.vocab) ? unit.vocab.slice() : [],
     sentences: Array.isArray(unit.sentences)
       ? unit.sentences.map((sentence) => ({ ...sentence }))
@@ -232,6 +235,9 @@ function parseSectionYaml(text) {
   let currentUnit = null;
   let currentSentence = null;
   let mode = null;
+  let currentSectionKey = null;
+  let currentSectionId = null;
+  let currentSectionNumber = null;
 
   lines.forEach((line) => {
     if (!line) {
@@ -243,6 +249,27 @@ function parseSectionYaml(text) {
       return;
     }
 
+    const indent = line.match(/^\s*/)?.[0]?.length ?? 0;
+
+    if (
+      indent === 0 &&
+      !trimmed.startsWith('-') &&
+      trimmed.endsWith(':') &&
+      !/^title:/i.test(trimmed) &&
+      !/^description:/i.test(trimmed)
+    ) {
+      const rawKey = trimmed.replace(/:$/, '').trim();
+      currentSectionKey = rawKey || null;
+      currentSectionId = normaliseSectionId(rawKey);
+      currentSectionNumber =
+        parseSectionNumberFromString(rawKey) ??
+        parseSectionNumberFromString(currentSectionId);
+      mode = null;
+      currentUnit = null;
+      currentSentence = null;
+      return;
+    }
+
     if (trimmed.startsWith('- id:')) {
       const idValue = trimmed.replace(/^- id:\s*/, '').trim();
       const parsedId = Number(idValue) || idValue;
@@ -251,6 +278,9 @@ function parseSectionYaml(text) {
         name: '',
         vocab: [],
         sentences: [],
+        sectionKey: currentSectionKey,
+        sectionId: currentSectionId,
+        sectionNumber: currentSectionNumber,
       };
       units.push(currentUnit);
       mode = null;
@@ -322,6 +352,55 @@ function parseSectionYaml(text) {
   });
 
   return units;
+}
+
+function normaliseSectionId(value) {
+  if (value == null) {
+    return null;
+  }
+
+  const trimmed = String(value).trim();
+  if (!trimmed) {
+    return null;
+  }
+
+  const sectionMatch = trimmed.match(/section[-_ ]?(\d+)/i);
+  if (sectionMatch) {
+    return `section-${sectionMatch[1].padStart(2, '0')}`;
+  }
+
+  const sectionPrefixMatch = trimmed.match(/Section(\d+)/i);
+  if (sectionPrefixMatch) {
+    return `section-${sectionPrefixMatch[1].padStart(2, '0')}`;
+  }
+
+  return trimmed
+    .replace(/[\s_]+/g, '-')
+    .replace(/-+/g, '-')
+    .toLowerCase();
+}
+
+function parseSectionNumberFromString(value) {
+  if (!value) {
+    return null;
+  }
+
+  const match = String(value).match(/section[-_ ]?(\d+)/i);
+  if (match) {
+    return Number(match[1]);
+  }
+
+  const prefixed = String(value).match(/Section(\d+)/i);
+  if (prefixed) {
+    return Number(prefixed[1]);
+  }
+
+  const compact = String(value).match(/s(?:ection)?[-_ ]?0*(\d+)/i);
+  if (compact) {
+    return Number(compact[1]);
+  }
+
+  return null;
 }
 
 function parseQuotedValue(value) {
@@ -408,6 +487,9 @@ async function fetchWordBankUnits() {
       slug,
       number,
       name,
+      sectionId: sentenceUnit?.sectionId ?? null,
+      sectionKey: sentenceUnit?.sectionKey ?? null,
+      sectionNumber: sentenceUnit?.sectionNumber ?? null,
       sentences: Array.isArray(sentenceUnit?.sentences)
         ? sentenceUnit.sentences.map((sentence) => ({
             text: sentence.text || '',
@@ -429,6 +511,9 @@ async function fetchWordBankUnits() {
         slug: String(sentenceUnit.id),
         number,
         name: sentenceUnit.name || String(sentenceUnit.id),
+        sectionId: sentenceUnit.sectionId ?? null,
+        sectionKey: sentenceUnit.sectionKey ?? null,
+        sectionNumber: sentenceUnit.sectionNumber ?? null,
         sentences: Array.isArray(sentenceUnit.sentences)
           ? sentenceUnit.sentences.map((sentence) => ({
               text: sentence.text || '',
