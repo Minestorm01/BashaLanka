@@ -564,23 +564,29 @@ function deriveCandidateKeys(entry) {
   const translit = entry.translit || entry.transliteration || '';
   const english = entry.en || '';
 
+  const registerKey = (value) => {
+    if (!value) {
+      return;
+    }
+    const key = String(value);
+    if (!key) {
+      return;
+    }
+    keys.add(key);
+    if (key.includes('v')) {
+      keys.add(key.replace(/v/g, 'w'));
+    }
+  };
+
   const translitKey = normaliseTokenKey(translit);
   if (translitKey) {
-    keys.add(translitKey);
-    if (translitKey.includes('v')) {
-      keys.add(translitKey.replace(/v/g, 'w'));
-    }
+    registerKey(translitKey);
+    registerKey(translitKey.replace(/yi\b/g, 'i'));
+    registerKey(translitKey.replace(/ayi\b/g, 'ai'));
   }
 
-  const englishKey = normaliseTokenKey(english);
-  if (englishKey) {
-    keys.add(englishKey);
-  }
-
-  const sinhalaKey = normaliseTokenKey(entry.si);
-  if (sinhalaKey) {
-    keys.add(sinhalaKey);
-  }
+  registerKey(normaliseTokenKey(english));
+  registerKey(normaliseTokenKey(entry.si));
 
   return Array.from(keys).filter(Boolean);
 }

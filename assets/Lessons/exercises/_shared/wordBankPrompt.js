@@ -57,28 +57,50 @@ function createMascotAvatar(unit, lessonContext) {
   const avatar = document.createElement('div');
   avatar.className = 'wordbank__mascot-avatar';
 
-  const src = resolveUnitMascotSrc(unit, lessonContext);
-  if (src) {
-    const img = document.createElement('img');
-    img.alt = unit?.name ? `${unit.name} mascot` : 'Mascot';
-    img.src = src;
-    img.addEventListener('error', () => {
-      avatar.innerHTML = '';
-      avatar.classList.add('wordbank__mascot-avatar--fallback');
-      avatar.textContent = getUnitMascotEmoji(unit);
-    });
-    avatar.appendChild(img);
-  } else {
+  const candidates = resolveUnitMascotCandidates(unit, lessonContext);
+  if (!candidates.length) {
     avatar.classList.add('wordbank__mascot-avatar--fallback');
     avatar.textContent = getUnitMascotEmoji(unit);
+    return avatar;
   }
+
+  const img = document.createElement('img');
+  img.alt = unit?.name ? `${unit.name} mascot` : 'Mascot';
+
+  let index = 0;
+  const showFallback = () => {
+    avatar.innerHTML = '';
+    avatar.classList.add('wordbank__mascot-avatar--fallback');
+    avatar.textContent = getUnitMascotEmoji(unit);
+  };
+
+  const tryNext = () => {
+    if (index >= candidates.length) {
+      showFallback();
+      return;
+    }
+    img.src = candidates[index];
+  };
+
+  img.addEventListener('error', () => {
+    index += 1;
+    tryNext();
+  });
+
+  img.addEventListener('load', () => {
+    avatar.classList.remove('wordbank__mascot-avatar--fallback');
+    avatar.textContent = '';
+  });
+
+  avatar.appendChild(img);
+  tryNext();
 
   return avatar;
 }
 
-function resolveUnitMascotSrc(unit, lessonContext) {
+function resolveUnitMascotCandidates(unit, lessonContext) {
   if (!unit) {
-    return null;
+    return [];
   }
 
   const candidates = [];
@@ -88,19 +110,17 @@ function resolveUnitMascotSrc(unit, lessonContext) {
     if (!stringValue) return;
     const cleaned = stringValue.replace(/^\.?\/+/, '');
     if (!cleaned) return;
-    if (!candidates.includes(cleaned)) {
-      candidates.push(cleaned);
+    const resolved = resolveLessonAssetPath(cleaned);
+    if (resolved && !candidates.includes(resolved)) {
+      candidates.push(resolved);
     }
   };
-
-  const slug = typeof unit.slug === 'string' ? unit.slug : null;
-  const id = typeof unit.id === 'string' ? unit.id : null;
 
   const context = lessonContext || getLessonContext();
   const meta = context?.meta || {};
   const detail = context?.detail || {};
 
-  const unitNumber = coercePositiveNumber(
+  const resolvedUnitNumber = coercePositiveNumber(
     unit?.number,
     detail.unitNumber,
     meta.unitNumber,
@@ -110,7 +130,7 @@ function resolveUnitMascotSrc(unit, lessonContext) {
     parseUnitNumberFromString(unit?.slug),
   );
 
-  const sectionNumber = coercePositiveNumber(
+  const resolvedSectionNumber = coercePositiveNumber(
     unit?.sectionNumber,
     detail.sectionNumber,
     meta.sectionNumber,
@@ -120,12 +140,40 @@ function resolveUnitMascotSrc(unit, lessonContext) {
     parseSectionNumberFromUnitId(meta.unitId),
   );
 
-  if (typeof unit.mascotAsset === 'string') {
-    pushCandidate(unit.mascotAsset);
+  const sectionId = detail.sectionId || meta.sectionId || null;
+  const unitId = detail.unitId || meta.unitId || null;
+
+  const directAssets = [
+    unit.mascotAsset,
+    unit.mascot,
+    detail.mascotAsset,
+    detail.mascot,
+    meta.mascotAsset,
+    meta.mascot,
+  ];
+  directAssets.forEach((asset) => pushCandidate(asset));
+
+  if (sectionId && unitId) {
+    pushCandidate(`assets/general/${sectionId}_${unitId}.svg`);
+    pushCandidate(`assets/general/${sectionId}_${unitId}.png`);
   }
 
-  if (typeof unit.mascot === 'string') {
-    pushCandidate(`assets/mascots/${unit.mascot}`);
+  const slug = typeof unit.slug === 'string' ? unit.slug : null;
+  const id = typeof unit.id === 'string' ? unit.id : null;
+
+  if (Number.isFinite(resolvedSectionNumber) && Number.isFinite(resolvedUnitNumber)) {
+    const sectionValue = String(resolvedSectionNumber);
+    const unitValue = String(resolvedUnitNumber);
+    pushCandidate(`assets/general/section${sectionValue}_unit_${unitValue}.svg`);
+    pushCandidate(`assets/general/section${sectionValue}_unit_${unitValue}.png`);
+    pushCandidate(`assets/sections/section-${sectionValue}/unit-${unitValue}.svg`);
+    pushCandidate(`assets/sections/section-${sectionValue}/unit-${unitValue}.png`);
+  }
+
+  if (Number.isFinite(resolvedSectionNumber)) {
+    const sectionValue = String(resolvedSectionNumber);
+    pushCandidate(`assets/sections/section-${sectionValue}/mascot.svg`);
+    pushCandidate(`assets/general/section${sectionValue}_mascot.svg`);
   }
 
   if (slug) {
@@ -142,34 +190,15 @@ function resolveUnitMascotSrc(unit, lessonContext) {
     pushCandidate(`assets/general/${id}.svg`);
   }
 
-  if (Number.isFinite(unitNumber) && unitNumber > 0) {
-    const padded = String(unitNumber).padStart(2, '0');
+  if (Number.isFinite(resolvedUnitNumber) && resolvedUnitNumber > 0) {
+    const padded = String(resolvedUnitNumber).padStart(2, '0');
     pushCandidate(`assets/mascots/unit-${padded}.png`);
     pushCandidate(`assets/mascots/unit-${padded}.svg`);
     pushCandidate(`assets/general/unit-${padded}.png`);
     pushCandidate(`assets/general/unit-${padded}.svg`);
   }
 
-  if (Number.isFinite(sectionNumber) && sectionNumber > 0 && Number.isFinite(unitNumber) && unitNumber > 0) {
-    pushCandidate(`assets/general/section${sectionNumber}_unit_${unitNumber}.svg`);
-    pushCandidate(`assets/general/section${sectionNumber}_unit_${unitNumber}.png`);
-    pushCandidate(`assets/sections/section-${sectionNumber}/unit-${unitNumber}.svg`);
-    pushCandidate(`assets/sections/section-${sectionNumber}/unit-${unitNumber}.png`);
-  }
-
-  if (Number.isFinite(sectionNumber) && sectionNumber > 0) {
-    pushCandidate(`assets/sections/section-${sectionNumber}/mascot.svg`);
-    pushCandidate(`assets/general/section${sectionNumber}_mascot.svg`);
-  }
-
-  for (const candidate of candidates) {
-    const resolved = resolveLessonAssetPath(candidate);
-    if (resolved) {
-      return resolved;
-    }
-  }
-
-  return null;
+  return candidates;
 }
 
 function getUnitMascotEmoji(unit) {
