@@ -592,6 +592,8 @@ function normaliseTokenKey(value) {
 
   const stringValue = value
     .toString()
+    .replace(/[æÆ]/g, 'ae')
+    .replace(/[œŒ]/g, 'oe')
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
     .replace(/[^a-zA-Z0-9]+/g, '_')

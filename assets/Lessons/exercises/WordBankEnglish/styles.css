@@ -40,6 +40,7 @@
   max-width: min(460px, 100%);
   text-align: center;
   position: relative;
+  margin-bottom: 1.25rem;
 }
 
 .wordbank__bubble::after {
@@ -55,7 +56,7 @@
 }
 
 .wordbank__bubble--no-translit {
-  padding-bottom: var(--space-sm, 0.75rem);
+  margin-bottom: var(--space-sm, 0.75rem);
 }
 
 .wordbank__si {
@@ -65,9 +66,10 @@
 }
 
 .wordbank__translit {
-  margin-top: var(--space-2xs, 0.25rem);
+  margin-top: calc(var(--space-sm, 0.75rem) + 0.75rem);
   font-size: clamp(0.9rem, 0.85rem + 0.25vw, 1rem);
   color: var(--color-muted, #a9b6c6);
+  text-align: center;
 }
 
 .wordbank__mascot-avatar {

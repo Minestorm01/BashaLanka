@@ -3,7 +3,7 @@ import { resolveLessonAssetPath } from './utils.js';
 
 const FALLBACK_MASCOTS = ['🦁', '🐯', '🦊', '🐼', '🐸', '🦉', '🐨', '🐧'];
 
-export function renderWordBankPrompt(container, sentence, unit) {
+export function renderWordBankPrompt(container, sentence, unit, options = {}) {
   if (!container) {
     return;
   }
@@ -25,6 +25,7 @@ export function renderWordBankPrompt(container, sentence, unit) {
   const siParts = sentence.tokens.map((token) => getWordEntryFromUnit(unit, token)?.si || token);
   const siLine = document.createElement('div');
   siLine.className = 'wordbank__si';
+  siLine.setAttribute('lang', 'si');
   siLine.textContent = siParts.join(' ');
   bubble.appendChild(siLine);
 
@@ -32,27 +33,31 @@ export function renderWordBankPrompt(container, sentence, unit) {
     (token) => getWordEntryFromUnit(unit, token)?.translit || '',
   );
   const translitText = translitParts.join(' ').trim();
-  if (translitText) {
-    const translitLine = document.createElement('div');
-    translitLine.className = 'wordbank__translit';
-    translitLine.textContent = translitText;
-    bubble.appendChild(translitLine);
-  } else {
+  if (!translitText) {
     bubble.classList.add('wordbank__bubble--no-translit');
   }
 
   mascotWrapper.appendChild(bubble);
-  mascotWrapper.appendChild(createMascotAvatar(unit));
+
+  if (translitText) {
+    const translitLine = document.createElement('div');
+    translitLine.className = 'wordbank__translit';
+    translitLine.setAttribute('lang', 'en');
+    translitLine.textContent = translitText;
+    mascotWrapper.appendChild(translitLine);
+  }
+
+  mascotWrapper.appendChild(createMascotAvatar(unit, options.lessonContext));
 
   promptWrapper.appendChild(mascotWrapper);
   container.appendChild(promptWrapper);
 }
 
-function createMascotAvatar(unit) {
+function createMascotAvatar(unit, lessonContext) {
   const avatar = document.createElement('div');
   avatar.className = 'wordbank__mascot-avatar';
 
-  const src = resolveUnitMascotSrc(unit);
+  const src = resolveUnitMascotSrc(unit, lessonContext);
   if (src) {
     const img = document.createElement('img');
     img.alt = unit?.name ? `${unit.name} mascot` : 'Mascot';
@@ -71,7 +76,7 @@ function createMascotAvatar(unit) {
   return avatar;
 }
 
-function resolveUnitMascotSrc(unit) {
+function resolveUnitMascotSrc(unit, lessonContext) {
   if (!unit) {
     return null;
   }
@@ -90,9 +95,30 @@ function resolveUnitMascotSrc(unit) {
 
   const slug = typeof unit.slug === 'string' ? unit.slug : null;
   const id = typeof unit.id === 'string' ? unit.id : null;
-  const numericId = typeof unit.number === 'number' && Number.isFinite(unit.number)
-    ? unit.number
-    : Number(unit.id);
+
+  const context = lessonContext || getLessonContext();
+  const meta = context?.meta || {};
+  const detail = context?.detail || {};
+
+  const unitNumber = coercePositiveNumber(
+    unit?.number,
+    detail.unitNumber,
+    meta.unitNumber,
+    parseUnitNumberFromString(detail.unitId),
+    parseUnitNumberFromString(meta.unitId),
+    parseUnitNumberFromString(unit?.id),
+    parseUnitNumberFromString(unit?.slug),
+  );
+
+  const sectionNumber = coercePositiveNumber(
+    unit?.sectionNumber,
+    detail.sectionNumber,
+    meta.sectionNumber,
+    parseSectionNumberFromString(detail.sectionId),
+    parseSectionNumberFromString(meta.sectionId),
+    parseSectionNumberFromUnitId(detail.unitId),
+    parseSectionNumberFromUnitId(meta.unitId),
+  );
 
   if (typeof unit.mascotAsset === 'string') {
     pushCandidate(unit.mascotAsset);
@@ -116,13 +142,24 @@ function resolveUnitMascotSrc(unit) {
     pushCandidate(`assets/general/${id}.svg`);
   }
 
-  if (!Number.isNaN(numericId) && numericId > 0) {
-    const padded = String(numericId).padStart(2, '0');
+  if (Number.isFinite(unitNumber) && unitNumber > 0) {
+    const padded = String(unitNumber).padStart(2, '0');
     pushCandidate(`assets/mascots/unit-${padded}.png`);
     pushCandidate(`assets/mascots/unit-${padded}.svg`);
     pushCandidate(`assets/general/unit-${padded}.png`);
     pushCandidate(`assets/general/unit-${padded}.svg`);
-    pushCandidate(`assets/general/section1_unit_${numericId}.svg`);
+  }
+
+  if (Number.isFinite(sectionNumber) && sectionNumber > 0 && Number.isFinite(unitNumber) && unitNumber > 0) {
+    pushCandidate(`assets/general/section${sectionNumber}_unit_${unitNumber}.svg`);
+    pushCandidate(`assets/general/section${sectionNumber}_unit_${unitNumber}.png`);
+    pushCandidate(`assets/sections/section-${sectionNumber}/unit-${unitNumber}.svg`);
+    pushCandidate(`assets/sections/section-${sectionNumber}/unit-${unitNumber}.png`);
+  }
+
+  if (Number.isFinite(sectionNumber) && sectionNumber > 0) {
+    pushCandidate(`assets/sections/section-${sectionNumber}/mascot.svg`);
+    pushCandidate(`assets/general/section${sectionNumber}_mascot.svg`);
   }
 
   for (const candidate of candidates) {
@@ -146,6 +183,64 @@ function getUnitMascotEmoji(unit) {
   }
 
   return FALLBACK_MASCOTS[0];
+}
+
+function getLessonContext() {
+  if (typeof window === 'undefined') {
+    return null;
+  }
+  return window.BashaLanka?.currentLesson || null;
+}
+
+function coercePositiveNumber(...values) {
+  for (const value of values) {
+    const number = Number(value);
+    if (!Number.isNaN(number) && number > 0) {
+      return number;
+    }
+  }
+  return null;
+}
+
+function parseUnitNumberFromString(value) {
+  if (!value) {
+    return null;
+  }
+  const match = String(value).match(/unit[-_]?0*(\d+)/i);
+  if (match) {
+    return Number(match[1]);
+  }
+  const sectionMatch = String(value).match(/s\d+u(\d+)/i);
+  if (sectionMatch) {
+    return Number(sectionMatch[1]);
+  }
+  return null;
+}
+
+function parseSectionNumberFromString(value) {
+  if (!value) {
+    return null;
+  }
+  const match = String(value).match(/section[-_]?0*(\d+)/i);
+  if (match) {
+    return Number(match[1]);
+  }
+  const secMatch = String(value).match(/sec(?:tion)?[-_]?0*(\d+)/i);
+  if (secMatch) {
+    return Number(secMatch[1]);
+  }
+  return null;
+}
+
+function parseSectionNumberFromUnitId(value) {
+  if (!value) {
+    return null;
+  }
+  const match = String(value).match(/s(\d+)u\d+/i);
+  if (!match) {
+    return null;
+  }
+  return Number(match[1]);
 }
 
 export { resolveUnitMascotSrc };
