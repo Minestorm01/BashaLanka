@@ -5,6 +5,7 @@ import {
   getUnitSentences,
   getWordEntryFromUnit,
 } from '../_shared/wordBankUtils.js';
+import { renderWordBankPrompt } from '../_shared/wordBankPrompt.js';
 
 const DEFAULT_CONTAINER_SELECTOR = '[data-exercise="wordbank-english"]';
 const STYLESHEET_ID = 'wordbank-english-styles';
@@ -53,32 +54,23 @@ function setupExercise(container, unit, sentences, { onComplete } = {}) {
   const wrapper = document.createElement('section');
   wrapper.className = 'wordbank wordbank--english';
 
-  const mascotWrap = document.createElement('div');
-  mascotWrap.className = 'mascot-wrap';
-
-  const mascot = document.createElement('div');
-  mascot.className = 'mascot';
-  mascot.textContent = '🦁';
-  mascotWrap.appendChild(mascot);
-
-  const bubble = document.createElement('div');
-  bubble.className = 'speech-bubble';
-  mascotWrap.appendChild(bubble);
-
-  const prompt = document.createElement('p');
-  prompt.className = 'wordbank__prompt';
-  bubble.appendChild(prompt);
-
-  wrapper.appendChild(mascotWrap);
+  const promptContainer = document.createElement('div');
+  promptContainer.className = 'wordbank__prompt';
+  wrapper.appendChild(promptContainer);
 
   const instruction = document.createElement('p');
   instruction.className = 'wordbank__instruction';
-  instruction.textContent = 'Arrange the English tiles to match the Sinhala sentence:';
+  instruction.textContent = 'Arrange the English tiles to match the Sinhala sentence.';
   wrapper.appendChild(instruction);
 
   const tileContainer = document.createElement('div');
   tileContainer.className = 'wordbank__tiles';
   wrapper.appendChild(tileContainer);
+
+  const answerLabel = document.createElement('p');
+  answerLabel.className = 'wordbank__answer-label';
+  answerLabel.textContent = 'Your answer';
+  wrapper.appendChild(answerLabel);
 
   const answerContainer = document.createElement('div');
   answerContainer.className = 'wordbank__answer';
@@ -94,15 +86,18 @@ function setupExercise(container, unit, sentences, { onComplete } = {}) {
 
   const checkBtn = document.createElement('button');
   checkBtn.textContent = 'Check';
+  checkBtn.dataset.variant = 'primary';
   actions.appendChild(checkBtn);
 
   const nextBtn = document.createElement('button');
   nextBtn.textContent = 'Next';
+  nextBtn.dataset.variant = 'secondary';
   actions.appendChild(nextBtn);
 
   if (typeof onComplete === 'function') {
     const finishBtn = document.createElement('button');
     finishBtn.textContent = 'Finish';
+    finishBtn.dataset.variant = 'ghost';
     finishBtn.addEventListener('click', () => onComplete());
     actions.appendChild(finishBtn);
   }
@@ -117,8 +112,7 @@ function setupExercise(container, unit, sentences, { onComplete } = {}) {
     currentSentence = sentence;
     if (!sentence) return;
 
-    const siParts = sentence.tokens.map((t) => getWordEntryFromUnit(unit, t)?.si || t);
-    prompt.textContent = siParts.join(' ');
+    renderWordBankPrompt(promptContainer, sentence, unit);
 
     const enWords = sentence.tokens.map((t) => getWordEntryFromUnit(unit, t)?.en || t);
     tiles = shuffle(enWords.map((text, i) => ({ id: `tile-${i}`, text, used: false })));
@@ -126,7 +120,7 @@ function setupExercise(container, unit, sentences, { onComplete } = {}) {
     answer = [];
     updateTiles();
     updateAnswer();
-    feedback.textContent = '';
+    setFeedback('');
   }
 
   function updateTiles() {
@@ -134,6 +128,7 @@ function setupExercise(container, unit, sentences, { onComplete } = {}) {
     tiles.forEach((tile) => {
       const btn = document.createElement('button');
       btn.type = 'button';
+      btn.className = 'wordbank__tile';
       btn.textContent = tile.text;
       btn.disabled = tile.used;
       btn.addEventListener('click', () => handleTile(tile));
@@ -142,7 +137,24 @@ function setupExercise(container, unit, sentences, { onComplete } = {}) {
   }
 
   function updateAnswer() {
-    answerContainer.textContent = answer.map((a) => a.text).join(' ');
+    answerContainer.innerHTML = '';
+
+    if (!answer.length) {
+      const placeholder = document.createElement('span');
+      placeholder.className = 'wordbank__answer-placeholder';
+      placeholder.textContent = 'Tap tiles to build your translation';
+      answerContainer.appendChild(placeholder);
+      return;
+    }
+
+    answer.forEach((tile, index) => {
+      const tokenBtn = document.createElement('button');
+      tokenBtn.type = 'button';
+      tokenBtn.className = 'wordbank__answer-tile';
+      tokenBtn.textContent = tile.text;
+      tokenBtn.addEventListener('click', () => removeTile(index));
+      answerContainer.appendChild(tokenBtn);
+    });
   }
 
   function handleTile(tile) {
@@ -151,6 +163,20 @@ function setupExercise(container, unit, sentences, { onComplete } = {}) {
     answer.push(tile);
     updateTiles();
     updateAnswer();
+    setFeedback('');
+  }
+
+  function removeTile(index) {
+    const [removed] = answer.splice(index, 1);
+    if (removed) {
+      const tile = tiles.find((item) => item.id === removed.id);
+      if (tile) {
+        tile.used = false;
+      }
+    }
+    updateTiles();
+    updateAnswer();
+    setFeedback('');
   }
 
   function handleCheck() {
@@ -159,9 +185,11 @@ function setupExercise(container, unit, sentences, { onComplete } = {}) {
     const correct = currentSentence.tokens.map(
       (t) => getWordEntryFromUnit(unit, t)?.en || t,
     );
-    feedback.textContent = arraysEqual(attempt, correct)
-      ? '✅ Correct!'
-      : `❌ Correct: ${correct.join(' ')}`;
+    if (arraysEqual(attempt, correct)) {
+      setFeedback('✅ Correct!', 'correct');
+    } else {
+      setFeedback(`❌ Correct: ${correct.join(' ')}`, 'incorrect');
+    }
   }
 
   function handleNext() {
@@ -173,8 +201,16 @@ function setupExercise(container, unit, sentences, { onComplete } = {}) {
   nextBtn.addEventListener('click', handleNext);
 
   setSentence(randomItem(sentences));
-}
 
+  function setFeedback(message, state) {
+    feedback.textContent = message;
+    if (state) {
+      feedback.setAttribute('data-state', state);
+    } else {
+      feedback.removeAttribute('data-state');
+    }
+  }
+}
 function shuffle(arr) {
   return arr
     .map((v) => ({ v, sort: Math.random() }))
