@@ -16,9 +16,17 @@
 .wordbank__prompt {
   display: flex;
   justify-content: center;
+  text-align: center;
 }
 
-.wordbank__prompt-lines {
+.wordbank__prompt-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-sm, 0.75rem);
+}
+
+.wordbank__prompt-bubble {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -29,6 +37,11 @@
   border: 1px solid rgba(108, 125, 197, 0.65);
   box-shadow: 0 10px 28px rgba(8, 12, 34, 0.45);
   max-width: min(480px, 100%);
+}
+
+.wordbank__unit-illustration {
+  width: clamp(72px, 64px + 6vw, 128px);
+  height: auto;
 }
 
 .wordbank__prompt-si {
@@ -192,7 +205,7 @@
     padding: var(--space-md, 1rem);
   }
 
-  .wordbank__prompt-lines {
+  .wordbank__prompt-bubble {
     padding: var(--space-sm, 0.75rem) var(--space-md, 1rem);
   }
 

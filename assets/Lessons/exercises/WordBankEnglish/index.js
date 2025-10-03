@@ -170,7 +170,10 @@ function setupExercise(container, unit, sentences, { onComplete } = {}) {
     }
 
     const wrapperEl = document.createElement('div');
-    wrapperEl.className = 'wordbank__prompt-lines';
+    wrapperEl.className = 'wordbank__prompt-wrapper';
+
+    const bubbleEl = document.createElement('div');
+    bubbleEl.className = 'wordbank__prompt-bubble';
 
     const siParts = sentence.tokens.map(
       (token) => getWordEntryFromUnit(activeUnit, token)?.si || token,
@@ -179,7 +182,7 @@ function setupExercise(container, unit, sentences, { onComplete } = {}) {
     siLine.className = 'wordbank__prompt-si';
     siLine.setAttribute('lang', 'si');
     siLine.textContent = siParts.join(' ');
-    wrapperEl.appendChild(siLine);
+    bubbleEl.appendChild(siLine);
 
     const translitParts = sentence.tokens.map(
       (token) => getWordEntryFromUnit(activeUnit, token)?.translit || '',
@@ -190,7 +193,19 @@ function setupExercise(container, unit, sentences, { onComplete } = {}) {
       translitLine.className = 'wordbank__prompt-translit';
       translitLine.setAttribute('lang', 'en');
       translitLine.textContent = translitText;
-      wrapperEl.appendChild(translitLine);
+      bubbleEl.appendChild(translitLine);
+    }
+
+    wrapperEl.appendChild(bubbleEl);
+
+    const illustrationSrc = resolveUnitIllustrationSrc(activeUnit);
+    if (illustrationSrc) {
+      const illustration = document.createElement('img');
+      illustration.className = 'wordbank__unit-illustration';
+      illustration.src = illustrationSrc;
+      illustration.alt = '';
+      illustration.setAttribute('role', 'presentation');
+      wrapperEl.appendChild(illustration);
     }
 
     containerEl.appendChild(wrapperEl);
@@ -324,6 +339,98 @@ function randomItem(arr) {
 
 function arraysEqual(a, b) {
   return a.length === b.length && a.every((val, i) => val === b[i]);
+}
+
+function resolveUnitIllustrationSrc(unit) {
+  const sectionNumber = deriveSectionNumber(unit);
+  const unitNumber = deriveUnitNumber(unit);
+  if (!sectionNumber || !unitNumber) {
+    return null;
+  }
+
+  const sectionPart = `section${sectionNumber}`;
+  const unitPart = `unit_${unitNumber}`;
+  return `/assets/general/${sectionPart}_${unitPart}.svg`;
+}
+
+function deriveSectionNumber(unit) {
+  if (!unit) {
+    return null;
+  }
+
+  const direct = toPositiveInteger(unit.sectionNumber);
+  if (direct) {
+    return direct;
+  }
+
+  const candidates = [unit.sectionId, unit.sectionKey];
+  for (let index = 0; index < candidates.length; index += 1) {
+    const parsed = parseSectionNumberFromString(candidates[index]);
+    if (parsed) {
+      return parsed;
+    }
+  }
+
+  return null;
+}
+
+function deriveUnitNumber(unit) {
+  if (!unit) {
+    return null;
+  }
+
+  const direct = toPositiveInteger(unit.number);
+  if (direct) {
+    return direct;
+  }
+
+  const candidates = [unit.slug, unit.id];
+  for (let index = 0; index < candidates.length; index += 1) {
+    const parsed = parseUnitNumberFromString(candidates[index]);
+    if (parsed) {
+      return parsed;
+    }
+  }
+
+  return null;
+}
+
+function toPositiveInteger(value) {
+  if (value == null || value === '') {
+    return null;
+  }
+  const number = typeof value === 'number' ? value : Number(value);
+  if (!Number.isFinite(number)) {
+    return null;
+  }
+  const rounded = Math.floor(number);
+  return rounded > 0 ? rounded : null;
+}
+
+function parseSectionNumberFromString(value) {
+  if (!value) {
+    return null;
+  }
+  const match = String(value).match(/section[-_ ]?0*(\d+)/i);
+  if (match) {
+    return toPositiveInteger(match[1]);
+  }
+  return null;
+}
+
+function parseUnitNumberFromString(value) {
+  if (!value) {
+    return null;
+  }
+  const first = String(value).match(/unit[-_ ]?0*(\d+)/i);
+  if (first) {
+    return toPositiveInteger(first[1]);
+  }
+  const compact = String(value).match(/u(\d+)/i);
+  if (compact) {
+    return toPositiveInteger(compact[1]);
+  }
+  return null;
 }
 
 function deriveTargetWords(sentence) {
