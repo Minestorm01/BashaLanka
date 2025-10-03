@@ -153,21 +153,36 @@ function resolveUnitMascotCandidates(unit, lessonContext) {
   ];
   directAssets.forEach((asset) => pushCandidate(asset));
 
-  if (sectionId && unitId) {
-    pushCandidate(`assets/general/${sectionId}_${unitId}.svg`);
-    pushCandidate(`assets/general/${sectionId}_${unitId}.png`);
-  }
-
   const slug = typeof unit.slug === 'string' ? unit.slug : null;
   const id = typeof unit.id === 'string' ? unit.id : null;
 
   if (Number.isFinite(resolvedSectionNumber) && Number.isFinite(resolvedUnitNumber)) {
     const sectionValue = String(resolvedSectionNumber);
     const unitValue = String(resolvedUnitNumber);
+    const paddedUnitValue = unitValue.padStart(2, '0');
+
+    // Core general asset naming that mirrors the Learn experience cards.
     pushCandidate(`assets/general/section${sectionValue}_unit_${unitValue}.svg`);
     pushCandidate(`assets/general/section${sectionValue}_unit_${unitValue}.png`);
+
+    // Some exported mascots omit the underscore between the unit identifier pieces.
+    pushCandidate(`assets/general/section${sectionValue}unit${unitValue}.svg`);
+    pushCandidate(`assets/general/section${sectionValue}unit${unitValue}.png`);
+
+    // Zero-padded variants (e.g. unit-01) are also present for certain drops.
+    pushCandidate(`assets/general/section${sectionValue}_unit_${paddedUnitValue}.svg`);
+    pushCandidate(`assets/general/section${sectionValue}_unit_${paddedUnitValue}.png`);
+
+    // Section-specific directories occasionally house the mascot assets as well.
     pushCandidate(`assets/sections/section-${sectionValue}/unit-${unitValue}.svg`);
     pushCandidate(`assets/sections/section-${sectionValue}/unit-${unitValue}.png`);
+    pushCandidate(`assets/sections/section-${sectionValue}/unit-${paddedUnitValue}.svg`);
+    pushCandidate(`assets/sections/section-${sectionValue}/unit-${paddedUnitValue}.png`);
+  }
+
+  if (sectionId && unitId) {
+    pushCandidate(`assets/general/${sectionId}_${unitId}.svg`);
+    pushCandidate(`assets/general/${sectionId}_${unitId}.png`);
   }
 
   if (Number.isFinite(resolvedSectionNumber)) {
