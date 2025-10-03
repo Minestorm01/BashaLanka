@@ -135,9 +135,10 @@ function setupExercise(container, unit, sentences, { onComplete } = {}) {
     if (!sentence) return;
 
     tileIdCounter = 0;
-    renderPrompt(promptContainer, sentence, unit);
+    const profileName = getProfileName();
+    renderPrompt(promptContainer, sentence, unit, { profileName });
 
-    const correctTokens = deriveCorrectTokens(sentence, unit);
+    const correctTokens = deriveCorrectTokens(sentence, unit, { profileName });
     currentCorrectWords = correctTokens.map((token) => token.text);
     currentCorrectNormalised = correctTokens.map((token) => token.normalised);
 
@@ -157,7 +158,7 @@ function setupExercise(container, unit, sentences, { onComplete } = {}) {
     setFeedback('');
   }
 
-  function renderPrompt(containerEl, sentence, activeUnit) {
+  function renderPrompt(containerEl, sentence, activeUnit, { profileName } = {}) {
     if (!containerEl) {
       return;
     }
@@ -176,7 +177,7 @@ function setupExercise(container, unit, sentences, { onComplete } = {}) {
     const englishLine = document.createElement('p');
     englishLine.className = 'wordbank__prompt-en';
     englishLine.setAttribute('lang', 'en');
-    englishLine.textContent = sentence.text || '';
+    englishLine.textContent = fillNamePlaceholder(sentence.text || '', profileName);
     bubbleEl.appendChild(englishLine);
 
     wrapperEl.appendChild(bubbleEl);
@@ -245,14 +246,14 @@ function setupExercise(container, unit, sentences, { onComplete } = {}) {
     const label = document.createElement('span');
     label.className = 'wordbank__tile-text';
     label.textContent = tile.text;
-    label.setAttribute('lang', 'si');
+    label.setAttribute('lang', detectLangTag(tile.text));
     buttonEl.appendChild(label);
 
     if (tile.translit) {
       const translit = document.createElement('span');
       translit.className = 'wordbank__tile-translit';
       translit.textContent = tile.translit;
-      translit.setAttribute('lang', 'si-Latn');
+      translit.setAttribute('lang', detectLangTag(tile.translit, 'si-Latn'));
       buttonEl.appendChild(translit);
     }
   }
@@ -342,12 +343,12 @@ function setupExercise(container, unit, sentences, { onComplete } = {}) {
   }
 }
 
-function deriveCorrectTokens(sentence, unit) {
+function deriveCorrectTokens(sentence, unit, { profileName } = {}) {
   if (!sentence || !Array.isArray(sentence.tokens)) {
     return [];
   }
 
-  return sentence.tokens
+  const derived = sentence.tokens
     .map((token) => {
       const entry = getWordEntryFromUnit(unit, token);
       const text = extractSinhala(entry) || cleanWord(token);
@@ -356,12 +357,33 @@ function deriveCorrectTokens(sentence, unit) {
       }
       const translit = entry?.translit || entry?.transliteration || '';
       return {
+        token,
         text,
         translit,
         normalised: normaliseWord(text),
       };
     })
     .filter(Boolean);
+
+  if (!profileName || !hasNamePlaceholder(sentence)) {
+    return derived.map(stripTokenMeta);
+  }
+
+  const normalisedProfile = normaliseWord(profileName);
+  if (!normalisedProfile) {
+    return derived.map(stripTokenMeta);
+  }
+
+  const insertionIndex = determineNameInsertionIndex(derived);
+  const profileToken = {
+    token: '__profile_name__',
+    text: profileName,
+    translit: profileName,
+    normalised: normalisedProfile,
+  };
+  derived.splice(insertionIndex, 0, profileToken);
+
+  return derived.map(stripTokenMeta);
 }
 
 function gatherFillerWords(unit, targetSet) {
@@ -381,7 +403,7 @@ function gatherFillerWords(unit, targetSet) {
   const entries = Array.isArray(unit?.vocab) ? unit.vocab : [];
   entries.forEach((entry) => {
     const text = extractSinhala(entry);
-    if (!text) {
+    if (!text || containsNamePlaceholder(text) || containsNamePlaceholder(entry?.translit) || containsNamePlaceholder(entry?.en)) {
       return;
     }
     const translit = entry?.translit || entry?.transliteration || '';
@@ -393,10 +415,14 @@ function gatherFillerWords(unit, targetSet) {
       return;
     }
     if (typeof entry === 'string') {
-      addWord(entry);
+      if (!containsNamePlaceholder(entry)) {
+        addWord(entry);
+      }
       return;
     }
-    addWord(entry.text, entry.translit || entry.transliteration || '');
+    if (!containsNamePlaceholder(entry.text) && !containsNamePlaceholder(entry.translit) && !containsNamePlaceholder(entry.transliteration)) {
+      addWord(entry.text, entry.translit || entry.transliteration || '');
+    }
   });
 
   return Array.from(seen.values());
@@ -428,6 +454,78 @@ function extractSinhala(entry) {
     return entry.wordBankSi;
   }
   return entry.wordbankSi || '';
+}
+
+function hasNamePlaceholder(sentence) {
+  if (!sentence) {
+    return false;
+  }
+  const haystacks = [];
+  if (typeof sentence.text === 'string') {
+    haystacks.push(sentence.text);
+  }
+  if (Array.isArray(sentence.tokens)) {
+    haystacks.push(sentence.tokens.join(' '));
+  }
+  return haystacks.some((value) => containsNamePlaceholder(value));
+}
+
+function containsNamePlaceholder(value) {
+  if (!value) {
+    return false;
+  }
+  return /\{\s*name\s*\}/i.test(value) || /\[\s*name\s*\]/i.test(value);
+}
+
+function determineNameInsertionIndex(tokens) {
+  if (!Array.isArray(tokens) || !tokens.length) {
+    return 0;
+  }
+
+  const nameLikeIndex = tokens.findIndex((token) => /name/i.test(token.token || ''));
+  if (nameLikeIndex >= 0) {
+    return nameLikeIndex + 1;
+  }
+
+  const possessiveIndex = tokens.findIndex((token) => /mage/i.test(token.token || ''));
+  if (possessiveIndex >= 0) {
+    return possessiveIndex + 1;
+  }
+
+  return tokens.length;
+}
+
+function stripTokenMeta({ text, translit, normalised }) {
+  return { text, translit, normalised };
+}
+
+function getProfileName() {
+  const profile = typeof window !== 'undefined' ? window.__APP__?.AppState?.user : null;
+  const username = profile?.username;
+  if (typeof username !== 'string') {
+    return '';
+  }
+  return username.trim();
+}
+
+function fillNamePlaceholder(text, profileName) {
+  if (!text || !profileName) {
+    return text;
+  }
+  return text.replace(/\{\s*name\s*\}/gi, profileName);
+}
+
+function detectLangTag(value, fallback = 'si') {
+  if (!value) {
+    return fallback;
+  }
+  if (/[\u0D80-\u0DFF]/.test(value)) {
+    return 'si';
+  }
+  if (/^[\p{L}\p{M}\p{N}\s'.-]+$/u.test(value)) {
+    return 'si-Latn';
+  }
+  return fallback;
 }
 
 function cleanWord(value) {
