@@ -913,11 +913,189 @@ const DebugTools = (() => {
     startButton: null,
     selectedExercises: new Set()
   };
-  const fallbackLessonsCache = {
+  const courseLessonsCache = {
     promise: null,
     sections: []
   };
   let documentClickHandler = null;
+
+  function isReadyStatus(value) {
+    if (value === null || value === undefined) return true;
+    const normalized = String(value).trim().toLowerCase();
+    if (!normalized) return true;
+    return normalized === 'ready' || normalized === 'published';
+  }
+
+  function stripQuotes(value = '') {
+    return value.replace(/^['"]+|['"]+$/g, '');
+  }
+
+  function parseUnitOverview(text = '') {
+    const result = {
+      lessonIds: [],
+      lessonDetails: []
+    };
+
+    if (!text) {
+      return result;
+    }
+
+    const frontMatterMatch = text.match(/^---\s*([\s\S]*?)\n---\s*/);
+    let body = text;
+
+    if (frontMatterMatch) {
+      const frontMatter = frontMatterMatch[1] || '';
+      body = text.slice(frontMatterMatch[0].length);
+      frontMatter.split(/\r?\n/).forEach(line => {
+        const trimmed = line.trim();
+        if (!trimmed) return;
+        if (/^lessons:/i.test(trimmed)) {
+          const listMatch = trimmed.match(/lessons:\s*\[([^\]]*)\]/i);
+          if (listMatch) {
+            const items = listMatch[1]
+              .split(',')
+              .map(entry => stripQuotes(entry.trim()))
+              .filter(Boolean);
+            result.lessonIds = items;
+          }
+        }
+      });
+    }
+
+    body.split(/\r?\n/).forEach(line => {
+      if (!line) return;
+      const plain = line.replace(/\*\*/g, '').trim();
+      if (!plain.startsWith('-')) return;
+      const withoutBullet = plain.replace(/^-+\s*/, '');
+      const lessonMatch = withoutBullet.match(/^Lesson\s+(\d+)(.*)$/i);
+      if (!lessonMatch) return;
+      const number = parseInt(lessonMatch[1], 10);
+      let remainder = (lessonMatch[2] || '').trim();
+      remainder = remainder.replace(/^[:—–-]+\s*/, '').trim();
+      result.lessonDetails.push({
+        number: Number.isFinite(number) ? number : result.lessonDetails.length + 1,
+        title: remainder
+      });
+    });
+
+    return result;
+  }
+
+  function ensureCourseLessons() {
+    if (courseLessonsCache.sections.length) {
+      return Promise.resolve(courseLessonsCache.sections);
+    }
+
+    if (courseLessonsCache.promise) {
+      return courseLessonsCache.promise;
+    }
+
+    const load = (async () => {
+      try {
+        const mapPath = resolveAssetPath('assets/Lessons/course.map.json');
+        const res = await fetch(mapPath, { cache: 'no-cache' });
+        if (!res.ok) {
+          throw new Error('Failed to load course map');
+        }
+        const map = await res.json();
+        const sections = Array.isArray(map && map.sections) ? map.sections : [];
+        const readySections = [];
+
+        for (let sectionIndex = 0; sectionIndex < sections.length; sectionIndex += 1) {
+          const section = sections[sectionIndex] || {};
+          if (!isReadyStatus(section.status)) {
+            continue;
+          }
+          const sectionId = section.id || `section-${sectionIndex + 1}`;
+          const sectionNumber = typeof section.number === 'number'
+            ? section.number
+            : sectionIndex + 1;
+          const rawSectionTitle = typeof section.title === 'string' ? section.title.trim() : '';
+          const sectionTitle = rawSectionTitle || `Section ${sectionNumber}`;
+          const units = Array.isArray(section.units) ? section.units : [];
+          const readyUnits = [];
+
+          for (let unitIndex = 0; unitIndex < units.length; unitIndex += 1) {
+            const unit = units[unitIndex] || {};
+            if (!isReadyStatus(unit.status)) {
+              continue;
+            }
+            const unitId = unit.id || `unit-${unitIndex + 1}`;
+            const unitNumber = typeof unit.number === 'number'
+              ? unit.number
+              : unitIndex + 1;
+            const rawUnitTitle = typeof unit.title === 'string' ? unit.title.trim() : '';
+            const unitTitle = rawUnitTitle || `Unit ${unitNumber}`;
+            const pathRef = normaliseRelativeAssetPath((unit.path_ref || `sections/${sectionId}/units/${unitId}`).trim());
+            const overviewPath = resolveAssetPath(`assets/Lessons/${pathRef}/overview.md`);
+            let overviewText = '';
+
+            try {
+              const overviewRes = await fetch(overviewPath, { cache: 'no-cache' });
+              if (!overviewRes.ok) {
+                continue;
+              }
+              overviewText = await overviewRes.text();
+            } catch (err) {
+              console.warn('Failed to load unit overview', unitId, err);
+              continue;
+            }
+
+            const overviewData = parseUnitOverview(overviewText);
+            const lessonCount = Math.max(overviewData.lessonIds.length, overviewData.lessonDetails.length);
+            if (!lessonCount) {
+              continue;
+            }
+
+            const lessons = [];
+            for (let lessonIndex = 0; lessonIndex < lessonCount; lessonIndex += 1) {
+              const rawId = overviewData.lessonIds[lessonIndex] || `lesson-${String(lessonIndex + 1).padStart(2, '0')}`;
+              const lessonId = stripQuotes(rawId);
+              if (!lessonId) {
+                continue;
+              }
+              const detail = overviewData.lessonDetails[lessonIndex] || {};
+              const lessonNumber = Number.isFinite(detail.number) ? detail.number : lessonIndex + 1;
+              const title = (detail.title || '').trim();
+              lessons.push({
+                id: lessonId,
+                number: lessonNumber,
+                title
+              });
+            }
+
+            if (!lessons.length) {
+              continue;
+            }
+
+            readyUnits.push({
+              id: unitId,
+              number: unitNumber,
+              title: unitTitle,
+              lessons
+            });
+          }
+
+          if (readyUnits.length) {
+            readySections.push({
+              id: sectionId,
+              number: sectionNumber,
+              title: sectionTitle,
+              units: readyUnits
+            });
+          }
+        }
+
+        courseLessonsCache.sections = readySections;
+        return readySections;
+      } finally {
+        courseLessonsCache.promise = null;
+      }
+    })();
+
+    courseLessonsCache.promise = load;
+    return load;
+  }
 
   function appendControl(entry){
     if(!controlsContainer) return;
@@ -1030,74 +1208,60 @@ const DebugTools = (() => {
     closeExerciseMenu();
   }
 
-  function ensureFallbackLessons(){
-    if(fallbackLessonsCache.sections.length) return Promise.resolve(fallbackLessonsCache.sections);
-    if(fallbackLessonsCache.promise) return fallbackLessonsCache.promise;
-    const load = (async () => {
-      const collected = [];
-      for(let index = 1; index <= 50; index += 1){
-        const slug = `section-${index}`;
-        const path = resolveAssetPath(`assets/sections/${slug}/units.json`);
-        try{
-          const res = await fetch(path, { cache: 'no-cache' });
-          if(!res.ok){
-            break;
-          }
-          const data = await res.json();
-          if(data){
-            collected.push(data);
-          }
-        }catch(err){
-          console.warn('debug: failed to load lesson data for simulator', err);
-          break;
-        }
-      }
-      fallbackLessonsCache.sections = collected;
-      fallbackLessonsCache.promise = null;
-      return collected;
-    })();
-    fallbackLessonsCache.promise = load;
-    return load;
-  }
-
   function populateLessons(){
     if(!simulatorState.lessonSelect) return;
     const select = simulatorState.lessonSelect;
-    const learn = window.__LEARN__;
     select.disabled = true;
     select.innerHTML = '<option value="">Loading…</option>';
     lessonOptionMap.clear();
     updateStartButtonState();
     const buildOptions = sections => {
       const options = [];
-      sections.forEach((section, sectionIndex) => {
-        const sectionNumber = section.number || sectionIndex + 1;
+      sections.forEach(section => {
+        const sectionNumber = section.number || 0;
         const sectionTitle = section.title || (sectionNumber ? `Section ${sectionNumber}` : 'Section');
         const units = Array.isArray(section.units) ? section.units : [];
-        units.forEach((unit, unitIndex) => {
+        units.forEach(unit => {
           const unitId = unit.id || '';
-          const unitTitle = unit.title || `Unit ${unitIndex + 1}`;
-          const unitNumber = unit.number || unitIndex + 1;
+          if(!unitId) return;
+          const unitNumber = unit.number || 0;
+          const unitTitle = unit.title || (unitNumber ? `Unit ${unitNumber}` : 'Unit');
           const lessons = Array.isArray(unit.lessons) ? unit.lessons : [];
           lessons.forEach((lesson, index) => {
             const lessonId = lesson && lesson.id ? lesson.id : '';
             if(!lessonId) return;
-            const key = [sectionNumber, unitId, lessonId, lesson.skillId || '', lesson.levelId || ''].join('|');
-            const lessonTitle = lesson.title || `Lesson ${index + 1}`;
-            const textParts = [
-              sectionNumber ? `Section ${sectionNumber}` : sectionTitle,
-              unitTitle,
-              lessonTitle
-            ].filter(Boolean);
+            const lessonNumber = lesson.number || index + 1;
+            const lessonTitleRaw = typeof lesson.title === 'string' ? lesson.title.trim() : '';
+            const hasTitle = lessonTitleRaw.length > 0;
+            const lessonTitleText = hasTitle
+              ? `Lesson ${lessonNumber}: ${lessonTitleRaw}`
+              : `Lesson ${lessonNumber}`;
+            const textParts = [];
+            if(sectionNumber){
+              textParts.push(`Section ${sectionNumber}`);
+              if(sectionTitle && sectionTitle !== `Section ${sectionNumber}`){
+                textParts.push(sectionTitle);
+              }
+            }else if(sectionTitle){
+              textParts.push(sectionTitle);
+            }
+            if(unitNumber){
+              textParts.push(`Unit ${unitNumber}: ${unitTitle}`);
+            }else if(unitTitle){
+              textParts.push(unitTitle);
+            }
+            textParts.push(lessonTitleText);
+            const key = [section.id || sectionNumber, unitId, lessonId].join('|');
             lessonOptionMap.set(key, {
+              sectionId: section.id || '',
               sectionNumber,
               sectionTitle,
               unitId,
               unitNumber,
               unitTitle,
               lessonId,
-              lessonTitle,
-              lessonIndex: index + 1,
+              lessonTitle: lessonTitleText,
+              lessonIndex: lessonNumber,
               totalLessons: lessons.length || 0,
               skillId: lesson.skillId || '',
               levelId: lesson.levelId || ''
@@ -1116,21 +1280,7 @@ const DebugTools = (() => {
       updateStartButtonState();
     };
 
-    if(learn && typeof learn.ensureSections === 'function'){
-      learn.ensureSections().then(() => {
-        const snapshot = typeof learn.getSectionsSnapshot === 'function' ? learn.getSectionsSnapshot() : [];
-        buildOptions(snapshot);
-      }).catch(() => {
-        ensureFallbackLessons().then(buildOptions).catch(() => {
-          select.innerHTML = '<option value="">Failed to load lessons</option>';
-          select.disabled = true;
-          updateStartButtonState();
-        });
-      });
-      return;
-    }
-
-    ensureFallbackLessons().then(buildOptions).catch(() => {
+    ensureCourseLessons().then(buildOptions).catch(() => {
       select.innerHTML = '<option value="">Failed to load lessons</option>';
       select.disabled = true;
       updateStartButtonState();
