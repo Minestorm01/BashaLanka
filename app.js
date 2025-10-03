@@ -498,18 +498,6 @@ const LESSON_SIMULATOR_EXERCISES = [
     loader: () => loadExerciseModule('TranslateToBase/index.js')
   },
   {
-    id: 'wordbank-sinhala',
-    label: 'WordBank (Sinhala)',
-    description: 'Assemble Sinhala sentence from English prompt.',
-    loader: () => loadExerciseModuleWithDefaults('WordBankSinhala/index.js', { unitId: 1 })
-  },
-  {
-    id: 'wordbank-english',
-    label: 'WordBank (English)',
-    description: 'Assemble English sentence from Sinhala prompt.',
-    loader: () => loadExerciseModuleWithDefaults('WordBankEnglish/index.js', { unitId: 1 })
-  },
-  {
     id: 'picture-choice',
     label: 'Picture Choice',
     description: 'Choose the image that best matches the cue.',
