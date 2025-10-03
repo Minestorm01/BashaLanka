@@ -201,6 +201,11 @@ function resolveUnitMascotCandidates(unit, lessonContext) {
   return candidates;
 }
 
+function resolveUnitMascotSrc(unit, lessonContext) {
+  const candidates = resolveUnitMascotCandidates(unit, lessonContext);
+  return candidates.length > 0 ? candidates[0] : null;
+}
+
 function getUnitMascotEmoji(unit) {
   if (unit && typeof unit.mascotEmoji === 'string' && unit.mascotEmoji.trim()) {
     return unit.mascotEmoji.trim();
