@@ -1,4 +1,4 @@
-import { ensureStylesheet } from '../_shared/utils.js';
+import { ensureStylesheet, resolveLessonAssetPath } from '../_shared/utils.js';
 import {
   loadWordBankUnits,
   resolveActiveUnit,
@@ -350,7 +350,8 @@ function resolveUnitIllustrationSrc(unit) {
 
   const sectionPart = `section${sectionNumber}`;
   const unitPart = `unit_${unitNumber}`;
-  return `/assets/general/${sectionPart}_${unitPart}.svg`;
+  const relativePath = `assets/general/${sectionPart}_${unitPart}.svg`;
+  return resolveLessonAssetPath(relativePath);
 }
 
 function deriveSectionNumber(unit) {
