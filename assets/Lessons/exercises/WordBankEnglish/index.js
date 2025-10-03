@@ -1,9 +1,10 @@
 import {
-  loadSectionSentences,
-  flattenSentences,
+  loadWordBankUnits,
+  resolveActiveUnit,
+  getUnitSentences,
   randomItem,
   shuffleArray,
-  filterUnlockedSentences,
+  getWordEntryFromUnit,
 } from '../_shared/wordBankUtils.js';
 import { getVocabEntry } from '../_shared/vocabMap.js';
 
@@ -27,21 +28,27 @@ export default async function initWordBankEnglishExercise(options = {}) {
   target.innerHTML = '<p>Loading sentences…</p>';
 
   try {
-    const units = await loadSectionSentences();
-    const sentences = filterUnlockedSentences(flattenSentences(units), providedUnitId);
+    const units = await loadWordBankUnits();
+    const activeUnit = resolveActiveUnit(units, providedUnitId);
+    if (!activeUnit) {
+      target.innerHTML = '<p>No unit data available.</p>';
+      return;
+    }
+
+    const sentences = getUnitSentences(activeUnit);
     if (!sentences.length) {
       target.innerHTML = '<p>No sentences available.</p>';
       return;
     }
 
-    setupExercise(target, sentences, { onComplete });
+    setupExercise(target, activeUnit, sentences, { onComplete });
   } catch (error) {
     console.error('Failed to initialise WordBankEnglish exercise', error);
     target.innerHTML = '<p>Unable to load sentences.</p>';
   }
 }
 
-function setupExercise(container, sentences, { onComplete } = {}) {
+function setupExercise(container, unit, sentences, { onComplete } = {}) {
   const wrapper = document.createElement('section');
   wrapper.className = 'wordbank wordbank--english';
 
@@ -127,7 +134,7 @@ function setupExercise(container, sentences, { onComplete } = {}) {
       return;
     }
 
-    renderSinhalaPrompt(prompt, Array.isArray(sentence.tokens) ? sentence.tokens : []);
+    renderSinhalaPrompt(prompt, Array.isArray(sentence.tokens) ? sentence.tokens : [], unit);
     tiles = buildEnglishTiles(sentence);
     answer = [];
     updateTiles();
@@ -238,7 +245,7 @@ function splitEnglishWords(text) {
     .filter(Boolean);
 }
 
-function renderSinhalaPrompt(container, tokens) {
+function renderSinhalaPrompt(container, tokens, unit) {
   container.innerHTML = '';
   if (!Array.isArray(tokens) || !tokens.length) {
     return;
@@ -249,7 +256,7 @@ function renderSinhalaPrompt(container, tokens) {
       container.appendChild(document.createTextNode(' '));
     }
 
-    const mapping = getVocabEntry(token);
+    const mapping = getWordEntryFromUnit(unit, token) || getVocabEntry(token);
     const wrapper = document.createElement('span');
     wrapper.className = 'wordbank__prompt-token';
 
