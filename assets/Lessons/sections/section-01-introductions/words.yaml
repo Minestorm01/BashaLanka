@@ -1,56 +1,78 @@
-Section01-Words:
+# Section 01 — Introductions & Essentials
+# Complete CEFR A1 baseline word list
+
+section-01-words:
+
   unit-01-pronouns-greetings:
-    - { si: "මම", translit: "mama", en: "I" }
-    - { si: "ඔයා", translit: "oyā", en: "you (casual)" }
-    - { si: "ඔහු", translit: "ohu", en: "he" }
-    - { si: "ඇය", translit: "eya", en: "she" }
-    - { si: "ඔබ", translit: "oba", en: "you (formal)" }
-    - { si: "කොහොමද?", translit: "kohomada?", en: "how?" }
-    - { si: "හොඳයි", translit: "hondayi", en: "fine / good" }
-    - { si: "ආයුබෝවන්", translit: "āyubōvan", en: "formal greeting (hello)" }
+    - {si: "මම", translit: "mama", en: "I"}
+    - {si: "ඔයා", translit: "oyā", en: "you (casual)"}
+    - {si: "ඔහු", translit: "ohu", en: "he"}
+    - {si: "ඇය", translit: "eya", en: "she"}
+    - {si: "ඔව්", translit: "owu", en: "yes"}
+    - {si: "නෑ", translit: "næ", en: "no"}
+    - {si: "කොහොමද?", translit: "kohomada?", en: "how?"}
+    - {si: "හොඳයි", translit: "hondayi", en: "fine / good"}
+    - {si: "ආයුබෝවන්", translit: "āyubōvan", en: "formal hello / greeting"}
 
   unit-02-introducing-yourself:
-    - { si: "ගේ", translit: "gé", en: "possessive marker ('s)" }
-    - { si: "මගේ", translit: "magē", en: "my" }
-    - { si: "ඔයාගේ", translit: "oyāgē", en: "your (informal)" }
-    - { si: "ඔබගේ", translit: "obagē", en: "your (formal)" }
-    - { si: "ඒයාගේ", translit: "eyāgē", en: "her" }
-    - { si: "ඔහුගේ", translit: "ohugē", en: "his" }
-    - { si: "නම", translit: "nama", en: "name" }
-    - { si: "මොකක්ද?", translit: "mokakda?", en: "what?" }
-    - { si: "ස්තුතියි", translit: "stūthiyi", en: "thank you" }
-    - { si: "ස්තුති", translit: "sthuthi", en: "thank you" }
-    - { si: "හොඳින්", translit: "hondin", en: "well" }
-    - { si: "ඉන්නවා", translit: "innavā", en: "to be / to stay" }
+    - {si: "ගේ", translit: "gé", en: "possessive marker (of)"}
+    - {si: "මගේ", translit: "magē", en: "my"}
+    - {si: "ඔයාගේ", translit: "oyāgē", en: "your (casual)"}
+    - {si: "ඔබගේ", translit: "obagē", en: "your (formal)"}
+    - {si: "ඒයාගේ / ඔහුගේ", translit: "eyāgē / ohugē", en: "her / his"}
+    - {si: "නම", translit: "nama", en: "name"}
+    - {si: "මම [name]", translit: "mama [name]", en: "I am [name]"}
+    - {si: "මගේ නම [name]", translit: "magē nama [name]", en: "My name is [name]"}
+    - {si: "මොකක්ද?", translit: "mokakda?", en: "what?"}
+    - {si: "ස්තුතියි", translit: "stūthiyi", en: "thank you"}
+    - {si: "ස්තුති", translit: "sthuthi", en: "thanks"}
+    - {si: "සමාවෙන්න", translit: "samāvenna", en: "sorry / excuse me"}
+    - {si: "කරුණාකර", translit: "karuṇākara", en: "please"}
 
   unit-03-nationalities:
-    - { si: "රට", translit: "raṭa", en: "country" }
-    - { si: "ශ්‍රී ලංකාව", translit: "Sri Lankāva", en: "Sri Lanka" }
-    - { si: "ඉන්දියාව", translit: "Indiyāva", en: "India" }
-    - { si: "ශ්‍රී ලංකාවෙන්", translit: "Sri Lankāven", en: "from Sri Lanka" }
-    - { si: "ඕස්ට්‍රේලියාව", translit: "Ōstrēliyāva", en: "Australia" }
-    - { si: "ඕස්ට්‍රේලියාවෙන්", translit: "Ōstrēliyāven", en: "from Australia" }
-    - { si: "ඉංග්‍රැන්ඩුවෙන්", translit: "Inglanduven", en: "from England" }
-    - { si: "වෙන්", translit: "ven", en: "from (suffix -en)" }
-    - { si: "වෙන්නේ", translit: "venne", en: "to be / to become (from)" }
-    - { si: "ද?", translit: "da?", en: "yes/no question marker" }
+    - {si: "රට", translit: "raṭa", en: "country"}
+    - {si: "…වෙන්", translit: "…ven", en: "from (suffix)"}
+    - {si: "ශ්‍රී ලංකාව", translit: "Sri Lankāva", en: "Sri Lanka"}
+    - {si: "ඉන්දියාව", translit: "Indiyāva", en: "India"}
+    - {si: "ඉංග්ලන්තය", translit: "Inglandaya", en: "England"}
+    - {si: "ඕස්ට්‍රේලියාව", translit: "Ōstrēliyāva", en: "Australia"}
+    - {si: "මම …වෙන්", translit: "mama …ven", en: "I am from …"}
+    - {si: "ද?", translit: "da?", en: "yes/no question marker"}
 
-  unit-04-age:
-    - { si: "අපි", translit: "api", en: "we" }
-    - { si: "ඔයාල", translit: "oyāla", en: "you (plural, informal)" }
-    - { si: "ඔබලා", translit: "obalā", en: "you (plural, formal)" }
-    - { si: "ඒයාල", translit: "eyāla", en: "they" }
-    - { si: "අපේ", translit: "apē", en: "our" }
-    - { si: "ඔයාලගේ", translit: "oyālagē", en: "your (plural, informal)" }
-    - { si: "ඔබලාගේ", translit: "obalāgē", en: "your (plural, formal)" }
-    - { si: "ඒයාලගේ", translit: "eyālagē", en: "their" }
-    - { si: "වයස", translit: "vayasa", en: "age" }
-    - { si: "කීයද?", translit: "kieyda?", en: "how much? / how many?" }
-    - { si: "තිහයි", translit: "tihayi", en: "thirty" }
-    - { si: "විසිපහයි", translit: "visipahayi", en: "twenty-five" }
+  unit-04-age-numbers:
+    - {si: "අපි", translit: "api", en: "we"}
+    - {si: "ඔයාල", translit: "oyāla", en: "you (plural, informal)"}
+    - {si: "ඔබලා", translit: "obalā", en: "you (plural, formal)"}
+    - {si: "ඒයාල", translit: "eyāla", en: "they"}
+    - {si: "අපේ", translit: "apē", en: "our"}
+    - {si: "වයස", translit: "vayasa", en: "age"}
+    - {si: "කීයද?", translit: "kieyda?", en: "how much? / how many?"}
+    # Numbers 1–20
+    - {si: "එක", translit: "eka", en: "one"}
+    - {si: "දෙක", translit: "deka", en: "two"}
+    - {si: "තුන", translit: "thuna", en: "three"}
+    - {si: "හතර", translit: "hathara", en: "four"}
+    - {si: "පහ", translit: "paha", en: "five"}
+    - {si: "හය", translit: "haya", en: "six"}
+    - {si: "හත", translit: "hatha", en: "seven"}
+    - {si: "අට", translit: "ata", en: "eight"}
+    - {si: "නවය", translit: "navaya", en: "nine"}
+    - {si: "දහය", translit: "dahaya", en: "ten"}
+    - {si: "එකොළහ", translit: "ekolaha", en: "eleven"}
+    - {si: "දොළහ", translit: "dolaha", en: "twelve"}
+    - {si: "දහතුන", translit: "dahathuna", en: "thirteen"}
+    - {si: "දහහතර", translit: "dahahathara", en: "fourteen"}
+    - {si: "පහළොස්", translit: "pahalos", en: "fifteen"}
+    - {si: "දහසය", translit: "dahasaya", en: "sixteen"}
+    - {si: "දහහත", translit: "dahahatha", en: "seventeen"}
+    - {si: "දහඅට", translit: "dahaata", en: "eighteen"}
+    - {si: "දහනවය", translit: "dahanavaya", en: "nineteen"}
+    - {si: "විස්සි", translit: "visi", en: "twenty"}
 
   unit-05-languages:
-    - { si: "කරනවා", translit: "karanavā", en: "do / doing" }
-    - { si: "කතා", translit: "kathā", en: "speech / talk" }
-    - { si: "ඉංග්‍රීසි", translit: "ingrīsi", en: "English" }
-    - { si: "සිංහල", translit: "siṁhala", en: "Sinhala" }
+    - {si: "කරනවා", translit: "karanavā", en: "do / doing"}
+    - {si: "කතා", translit: "kathā", en: "speech / talk"}
+    - {si: "කතා කරනවා", translit: "kathā karanavā", en: "speak / speaking"}
+    - {si: "සිංහල", translit: "siṁhala", en: "Sinhala"}
+    - {si: "ඉංග්‍රීසි", translit: "ingrīsi", en: "English"}
+    - {si: "දෙමළ", translit: "demala", en: "Tamil"}
