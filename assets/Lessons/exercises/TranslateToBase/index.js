@@ -62,29 +62,47 @@ function parseInlineObject(text) {
 
 function extractVocabEntries(markdown) {
   if (typeof markdown !== 'string') return [];
-  const match = markdown.match(/^\s*vocab:\s*([\s\S]*?)(?:\n[A-Za-z0-9_-]+\s*:|\n{2,}(?=\S)|$)/m);
-  if (!match) return [];
-  const block = match[1] || '';
-  const lines = block.split(/\r?\n/);
+
+  const lines = markdown.split(/\r?\n/);
+  const startIndex = lines.findIndex((line) => /^\s*vocab\s*:/i.test(line));
+  if (startIndex === -1) return [];
+
   const segments = [];
   let buffer = '';
-  lines.forEach((line) => {
-    const trimmed = line.trim();
+
+  for (let i = startIndex + 1; i < lines.length; i += 1) {
+    const rawLine = lines[i];
+    const trimmed = rawLine.trim();
+
     if (!trimmed) {
       if (buffer) {
         segments.push(buffer);
         buffer = '';
       }
-      return;
+      continue;
     }
-    if (/^-\s+/.test(trimmed)) {
-      if (buffer) segments.push(buffer);
-      buffer = trimmed.replace(/^-\s+/, '');
-    } else if (buffer) {
+
+    if (/^[A-Za-z0-9_-]+\s*:/.test(trimmed) && !trimmed.startsWith('-')) {
+      break;
+    }
+
+    if (/^-/.test(trimmed)) {
+      if (buffer) {
+        segments.push(buffer);
+      }
+      buffer = trimmed.replace(/^-+\s*/, '');
+      continue;
+    }
+
+    if (buffer) {
       buffer += ` ${trimmed}`;
     }
-  });
-  if (buffer) segments.push(buffer);
+  }
+
+  if (buffer) {
+    segments.push(buffer);
+  }
+
   return segments.map(parseInlineObject).filter((entry) => entry && (entry.si || entry.en));
 }
 
