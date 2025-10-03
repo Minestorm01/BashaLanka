@@ -1,0 +1,58 @@
+Section01-Words:
+  unit-01-pronouns-greetings:
+    - { si: "මම", translit: "mama", en: "I" }
+    - { si: "ඔයා", translit: "oyā", en: "you (casual)" }
+    - { si: "ඔහු", translit: "ohu", en: "he" }
+    - { si: "ඇය", translit: "eya", en: "she" }
+    - { si: "ඔබ", translit: "oba", en: "you (formal)" }
+    - { si: "කොහොමද?", translit: "kohomada?", en: "how?" }
+    - { si: "හොඳයි", translit: "hondayi", en: "fine / good" }
+    - { si: "ආයුබෝවන්", translit: "āyubōvan", en: "formal greeting (hello)" }
+
+  unit-02-introducing-yourself:
+    - { si: "ගේ", translit: "gé", en: "possessive marker ('s)" }
+    - { si: "මගේ", translit: "magē", en: "my" }
+    - { si: "ඔයාගේ", translit: "oyāgē", en: "your (informal)" }
+    - { si: "ඔබගේ", translit: "obagē", en: "your (formal)" }
+    - { si: "ඒයාගේ", translit: "eyāgē", en: "her" }
+    - { si: "ඔහුගේ", translit: "ohugē", en: "his" }
+    - { si: "නම", translit: "nama", en: "name" }
+    - { si: "මොකක්ද?", translit: "mokakda?", en: "what?" }
+    - { si: "ස්තුතියි", translit: "stūthiyi", en: "thank you" }
+    - { si: "ස්තුති", translit: "sthuthi", en: "thanks" }
+    - { si: "හොඳින්", translit: "hondin", en: "well" }
+    - { si: "ඉන්නවා", translit: "innavā", en: "to be / to stay" }
+
+  unit-03-nationalities:
+    - { si: "රට", translit: "raṭa", en: "country" }
+    - { si: "ශ්‍රී ලංකාව", translit: "Sri Lankāva", en: "Sri Lanka" }
+    - { si: "ශ්‍රී ලංකාවෙන්", translit: "Sri Lankāven", en: "from Sri Lanka" }
+    - { si: "ඉන්දියාව", translit: "Indiyāva", en: "India" }
+    - { si: "ඕස්ට්‍රේලියාව", translit: "Ōstrēliyāva", en: "Australia" }
+    - { si: "ඕස්ට්‍රේලියාවෙන්", translit: "Ōstrēliyāven", en: "from Australia" }
+    - { si: "ඉංග්‍රැන්ඩුවෙන්", translit: "Inglanduven", en: "from England" }
+    - { si: "වෙන්", translit: "ven", en: "from (suffix -en)" }
+    - { si: "වෙන්නේ", translit: "venne", en: "to be / to become (from)" }
+    - { si: "ද?", translit: "da?", en: "yes/no question marker" }
+
+  unit-04-age:
+    - { si: "අපි", translit: "api", en: "we" }
+    - { si: "ඔයාල", translit: "oyāla", en: "you (plural, informal)" }
+    - { si: "ඔබලා", translit: "obalā", en: "you (plural, formal)" }
+    - { si: "ඒයාල", translit: "eyāla", en: "they" }
+    - { si: "අපේ", translit: "apē", en: "our" }
+    - { si: "ඔයාලගේ", translit: "oyālagē", en: "your (plural, informal)" }
+    - { si: "ඔබලාගේ", translit: "obalāgē", en: "your (plural, formal)" }
+    - { si: "ඒයාලගේ", translit: "eyālagē", en: "their" }
+    - { si: "වයස", translit: "vayasa", en: "age" }
+    - { si: "කීයද?", translit: "kieyda?", en: "how much? / how many?" }
+    - { si: "තිහයි", translit: "tihayi", en: "is thirty" }
+    - { si: "විසිපහයි", translit: "visipahayi", en: "is twenty-five" }
+
+  unit-05-languages:
+    - { si: "කරනවා", translit: "karanavā", en: "do / doing" }
+    - { si: "කතා", translit: "kathā", en: "speech / talk" }
+    - { si: "කතා කරනවා", translit: "kathā karanavā", en: "speak / to speak" }
+    - { si: "කරනවාද?", translit: "karanavāda?", en: "do you (do)?" }
+    - { si: "ඉංග්‍රීසි", translit: "ingrīsi", en: "English" }
+    - { si: "සිංහල", translit: "siṁhala", en: "Sinhala" }
