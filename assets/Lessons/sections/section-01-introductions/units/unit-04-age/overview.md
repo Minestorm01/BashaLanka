@@ -1,20 +1,21 @@
 ---
-id: unit-04
-title: Age & Numbers
-overview: Learn plural/formal pronouns, their possessives, ask/tell age, and reuse **කීයද? (how much?)**.
+id: unit-05
+title: Languages You Speak
+overview: Use the verb **කරනවා (karanavā = doing)** to build activities, combine with **කතා** to say “speaking”, then slot in languages to say what you speak and ask others.
 goals:
-  - Learn plurals: **oyāla** (you pl.), **eyāla** (they), **obalā** (formal pl.), and **api** (we)
-  - Possessives: **oyālagē / eyālagē / obalāgē / apē**
-  - Ask “What is your age?” → **… වයස කීයද?**
-  - Tell “My age is …”
-prerequisites: [unit-03]
+  - Use **කරනවා (karanavā)** ‘do/doing’ with pronouns
+  - Use compound **කතා කරනවා (kathā karanavā)** ‘speak/speaking’
+  - Say “I speak …” (Sinhala, English, Tamil…)
+  - Ask “Do you speak … ?” with **ද? (da?)**
+  - Confirm with yes/no
+prerequisites: [unit-04]
 lessons: [lesson-01, lesson-02, lesson-03, lesson-04]
-assessment: Ask and tell age; use plural forms correctly.
+assessment: Roleplay: “Do you speak Sinhala?” → “Yes/No. I speak English.”
 ---
 
-# Unit 04 Overview
+# Unit 05 Overview
 
-- Lesson 01 — More pronouns: we/you(pl)/they/formal you
-- Lesson 02 — Possessives of new pronouns (gé + exceptions)
-- Lesson 03 — Ask age: **va·yasa kieyda?**
-- Lesson 04 — Tell age: **magē va·yasa [number]**
+- **Lesson 01** — Verb: **කරනවා (doing)** → present  
+- **Lesson 02** — Verb: **කතා කරනවා (speaking)**; present vs habit  
+- **Lesson 03** — “I speak …” (English/Sinhala/Tamil/…)  
+- **Lesson 04** — “Do you speak … ?” (add **ද?**)  
