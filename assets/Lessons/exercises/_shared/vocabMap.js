@@ -4,6 +4,8 @@ export const vocabMap = {
   kohomada: { si: 'කොහොමද', translit: 'kohomada' },
   mama: { si: 'මම', translit: 'mama' },
   hondai: { si: 'හොඳයි', translit: 'hondai' },
+  owu: { si: 'ඔව්', translit: 'owu' },
+  nae: { si: 'නෑ', translit: 'nae' },
   ohu: { si: 'ඔහු', translit: 'ohu' },
   eya: { si: 'ඇය', translit: 'eya' },
   mage: { si: 'මගේ', translit: 'mage' },
