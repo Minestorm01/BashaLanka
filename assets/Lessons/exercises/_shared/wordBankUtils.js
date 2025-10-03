@@ -1,6 +1,9 @@
 const SENTENCES_URL = new URL('../../sections/section-01-introductions/sentences.yaml', import.meta.url);
+const WORDS_URL = new URL('../../sections/section-01-introductions/words.yaml', import.meta.url);
 
 let cachedUnitsPromise = null;
+let cachedWordBankUnitsPromise = null;
+let cachedWordEntriesPromise = null;
 
 export function shuffleArray(input) {
   const array = Array.isArray(input) ? input.slice() : [];
@@ -17,6 +20,109 @@ export function randomItem(array) {
   }
   const index = Math.floor(Math.random() * array.length);
   return array[index] ?? null;
+}
+
+export async function loadWordBankUnits() {
+  if (!cachedWordBankUnitsPromise) {
+    cachedWordBankUnitsPromise = fetchWordBankUnits();
+  }
+
+  const units = await cachedWordBankUnitsPromise;
+  return units.map((unit) => ({
+    ...unit,
+    sentences: unit.sentences.map((sentence) => ({
+      ...sentence,
+      tokens: Array.isArray(sentence.tokens) ? sentence.tokens.slice() : [],
+    })),
+    vocab: unit.vocab.map((entry) => ({ ...entry })),
+  }));
+}
+
+export function resolveActiveUnit(units, providedUnitId) {
+  if (!Array.isArray(units) || units.length === 0) {
+    return null;
+  }
+
+  const candidate = normaliseUnitId(providedUnitId);
+  if (candidate) {
+    const match = units.find((unit) => {
+      const identifiers = [unit.id, unit.slug, unit.number != null ? String(unit.number) : null]
+        .filter(Boolean)
+        .map((value) => normaliseUnitId(value));
+      return identifiers.includes(candidate);
+    });
+    if (match) {
+      return match;
+    }
+  }
+
+  if (typeof window !== 'undefined') {
+    const currentUnit = window?.BashaLanka?.currentLesson?.detail?.unitId
+      ?? window?.BashaLanka?.currentLesson?.meta?.unitId;
+    const normalisedCurrent = normaliseUnitId(currentUnit);
+    if (normalisedCurrent) {
+      const match = units.find((unit) => {
+        const identifiers = [unit.id, unit.slug, unit.number != null ? String(unit.number) : null]
+          .filter(Boolean)
+          .map((value) => normaliseUnitId(value));
+        return identifiers.includes(normalisedCurrent);
+      });
+      if (match) {
+        return match;
+      }
+    }
+  }
+
+  return units[0] ?? null;
+}
+
+export function getUnitSentences(unit) {
+  if (!unit || !Array.isArray(unit.sentences)) {
+    return [];
+  }
+
+  return unit.sentences.map((sentence) => ({
+    ...sentence,
+    tokens: Array.isArray(sentence.tokens) ? sentence.tokens.slice() : [],
+  }));
+}
+
+export function getWordEntryFromUnit(unit, token) {
+  if (!unit || !token) {
+    return null;
+  }
+
+  const normalisedToken = normaliseTokenKey(token);
+  if (!normalisedToken) {
+    return null;
+  }
+
+  let entry = null;
+  if (unit.tokenMap instanceof Map && unit.tokenMap.has(normalisedToken)) {
+    entry = unit.tokenMap.get(normalisedToken);
+  }
+
+  if (!entry && Array.isArray(unit.vocab)) {
+    entry = unit.vocab.find((candidate) => {
+      const keys = deriveCandidateKeys(candidate);
+      return keys.includes(normalisedToken);
+    }) || null;
+  }
+
+  if (!entry) {
+    const fallback = token.toString().replace(/_/g, ' ');
+    return {
+      si: fallback,
+      en: fallback,
+      translit: fallback,
+    };
+  }
+
+  const si = entry.si || token;
+  const en = entry.en || si;
+  const translit = entry.translit || entry.transliteration || token;
+
+  return { si, en, translit };
 }
 
 export async function loadSectionSentences() {
@@ -275,6 +381,236 @@ function stripQuotes(value) {
   return trimmed;
 }
 
+async function fetchWordBankUnits() {
+  const [sentences, wordEntries] = await Promise.all([
+    loadSectionSentences(),
+    loadWordEntries(),
+  ]);
+
+  const sentencesByNumber = new Map();
+  sentences.forEach((unit) => {
+    const number = Number(unit.id);
+    if (!Number.isNaN(number)) {
+      sentencesByNumber.set(number, unit);
+    }
+  });
+
+  const units = [];
+
+  Object.entries(wordEntries).forEach(([slug, vocab]) => {
+    const numberMatch = /unit-(\d+)/i.exec(slug);
+    const number = numberMatch ? Number(numberMatch[1]) : null;
+    const sentenceUnit = number != null ? sentencesByNumber.get(number) : null;
+    const name = sentenceUnit?.name || slug;
+
+    units.push({
+      id: slug,
+      slug,
+      number,
+      name,
+      sentences: Array.isArray(sentenceUnit?.sentences)
+        ? sentenceUnit.sentences.map((sentence) => ({
+            text: sentence.text || '',
+            tokens: Array.isArray(sentence.tokens) ? sentence.tokens.slice() : [],
+            minUnit: sentence.minUnit ?? null,
+          }))
+        : [],
+      vocab: Array.isArray(vocab) ? vocab.map((entry) => ({ ...entry })) : [],
+      tokenMap: buildTokenMap(vocab),
+    });
+  });
+
+  sentences.forEach((sentenceUnit) => {
+    const number = Number(sentenceUnit.id);
+    const exists = units.some((unit) => unit.number === number || unit.slug === sentenceUnit.id);
+    if (!exists) {
+      units.push({
+        id: sentenceUnit.id,
+        slug: String(sentenceUnit.id),
+        number,
+        name: sentenceUnit.name || String(sentenceUnit.id),
+        sentences: Array.isArray(sentenceUnit.sentences)
+          ? sentenceUnit.sentences.map((sentence) => ({
+              text: sentence.text || '',
+              tokens: Array.isArray(sentence.tokens) ? sentence.tokens.slice() : [],
+              minUnit: sentence.minUnit ?? null,
+            }))
+          : [],
+        vocab: [],
+        tokenMap: new Map(),
+      });
+    }
+  });
+
+  return units;
+}
+
+async function loadWordEntries() {
+  if (!cachedWordEntriesPromise) {
+    cachedWordEntriesPromise = fetchWordEntries();
+  }
+  return cachedWordEntriesPromise;
+}
+
+async function fetchWordEntries() {
+  if (typeof fetch !== 'function') {
+    throw new Error('Fetching word bank entries requires a browser environment.');
+  }
+
+  const response = await fetch(WORDS_URL, { cache: 'no-cache' });
+  if (!response.ok) {
+    throw new Error('Failed to load word bank entries.');
+  }
+
+  const text = await response.text();
+  return parseWordBankWords(text);
+}
+
+function parseWordBankWords(text) {
+  if (typeof text !== 'string' || !text.trim()) {
+    return {};
+  }
+
+  const lines = text.split(/\r?\n/);
+  const units = {};
+  let currentUnit = null;
+
+  lines.forEach((line) => {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith('#')) {
+      return;
+    }
+
+    if (!line.startsWith(' ')) {
+      currentUnit = null;
+      return;
+    }
+
+    if (!trimmed.startsWith('-') && trimmed.endsWith(':')) {
+      const unitId = stripQuotes(trimmed.slice(0, -1));
+      currentUnit = unitId;
+      if (!units[currentUnit]) {
+        units[currentUnit] = [];
+      }
+      return;
+    }
+
+    if (trimmed.startsWith('-') && currentUnit) {
+      const entry = parseWordEntry(trimmed);
+      if (entry) {
+        units[currentUnit].push(entry);
+      }
+    }
+  });
+
+  return units;
+}
+
+function parseWordEntry(line) {
+  const match = line.match(/^-\s*\{(.+)\}\s*$/);
+  if (!match) {
+    return null;
+  }
+
+  const content = match[1];
+  const parts = content.split(',').map((part) => part.trim());
+  const entry = {};
+
+  parts.forEach((part) => {
+    const [rawKey, ...rest] = part.split(':');
+    if (!rawKey || rest.length === 0) {
+      return;
+    }
+    const key = rawKey.trim();
+    const value = rest.join(':').trim();
+    entry[key] = stripQuotes(value.replace(/^\{\s*|\s*\}$/g, ''));
+  });
+
+  if (!entry.si && !entry.en) {
+    return null;
+  }
+
+  return {
+    si: entry.si || '',
+    translit: entry.translit || entry.transliteration || '',
+    en: entry.en || '',
+  };
+}
+
+function buildTokenMap(entries) {
+  const map = new Map();
+  if (!Array.isArray(entries)) {
+    return map;
+  }
+
+  entries.forEach((entry) => {
+    const keys = deriveCandidateKeys(entry);
+    keys.forEach((key) => {
+      if (key && !map.has(key)) {
+        map.set(key, entry);
+      }
+    });
+  });
+
+  return map;
+}
+
+function deriveCandidateKeys(entry) {
+  const keys = new Set();
+  if (!entry) {
+    return Array.from(keys);
+  }
+
+  const translit = entry.translit || entry.transliteration || '';
+  const english = entry.en || '';
+
+  const translitKey = normaliseTokenKey(translit);
+  if (translitKey) {
+    keys.add(translitKey);
+    if (translitKey.includes('v')) {
+      keys.add(translitKey.replace(/v/g, 'w'));
+    }
+  }
+
+  const englishKey = normaliseTokenKey(english);
+  if (englishKey) {
+    keys.add(englishKey);
+  }
+
+  const sinhalaKey = normaliseTokenKey(entry.si);
+  if (sinhalaKey) {
+    keys.add(sinhalaKey);
+  }
+
+  return Array.from(keys).filter(Boolean);
+}
+
+function normaliseTokenKey(value) {
+  if (value == null) {
+    return '';
+  }
+
+  const stringValue = value
+    .toString()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-zA-Z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '')
+    .toLowerCase();
+
+  return stringValue;
+}
+
+function normaliseUnitId(value) {
+  if (value == null) {
+    return '';
+  }
+  return value
+    .toString()
+    .trim()
+    .toLowerCase();
+}
+
 export default {
   loadSectionSentences,
   flattenSentences,
@@ -282,4 +618,8 @@ export default {
   randomItem,
   filterUnlockedSentences,
   determineUnitId,
+  loadWordBankUnits,
+  resolveActiveUnit,
+  getUnitSentences,
+  getWordEntryFromUnit,
 };

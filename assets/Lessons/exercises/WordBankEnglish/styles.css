@@ -1,0 +1,81 @@
+.wordbank {
+  max-width: 600px;
+  margin: auto;
+  text-align: center;
+  font-family: system-ui, sans-serif;
+}
+
+.mascot-wrap {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+
+.mascot {
+  font-size: 3rem;
+  margin-right: 0.5rem;
+}
+
+.speech-bubble {
+  background: #f0f4ff;
+  border: 2px solid #c3d1ff;
+  padding: 0.5rem 1rem;
+  border-radius: 1rem;
+  position: relative;
+  max-width: 70%;
+}
+
+.speech-bubble::after {
+  content: '';
+  position: absolute;
+  bottom: -10px;
+  left: 20px;
+  border-width: 10px;
+  border-style: solid;
+  border-color: #f0f4ff transparent transparent transparent;
+}
+
+.wordbank__instruction {
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+
+.wordbank__tiles button {
+  margin: 0.25rem;
+  padding: 0.5rem 1rem;
+  border: 1px solid #ccc;
+  border-radius: 0.5rem;
+  background: #fff;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.wordbank__tiles button:hover {
+  background: #eef;
+}
+
+.wordbank__answer {
+  margin: 1rem 0;
+  min-height: 2rem;
+  font-weight: bold;
+}
+
+.wordbank__feedback {
+  margin: 0.5rem 0;
+  font-style: italic;
+}
+
+.wordbank__actions button {
+  margin: 0.25rem;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 0.5rem;
+  background: #5a67d8;
+  color: #fff;
+  cursor: pointer;
+}
+
+.wordbank__actions button:hover {
+  background: #434190;
+}
