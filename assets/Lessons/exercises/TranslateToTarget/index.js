@@ -6,146 +6,11 @@ import {
   createChoiceButton,
   shuffle,
   formatBadge,
-  resolveLessonAssetPath,
 } from '../_shared/utils.js';
+import { fetchLessonVocab as fetchLessonVocabFromMarkdown } from '../TranslateToBase/index.js';
 
 const DEFAULT_CONTAINER_SELECTOR = '[data-exercise="translate-to-target"]';
 const STYLESHEET_ID = 'translate-to-target-styles';
-const LESSON_MANIFEST_URL = new URL('../../lesson.manifest.json', import.meta.url);
-
-function resolveLessonBaseUrl() {
-  if (typeof window !== 'undefined' && window.location?.href) {
-    try {
-      return new URL('.', window.location.href);
-    } catch (error) {
-      if (typeof console !== 'undefined' && console.warn) {
-        console.warn('Unable to resolve base URL from window.location.href', error);
-      }
-    }
-  }
-
-  return new URL('.', LESSON_MANIFEST_URL);
-}
-
-function normaliseLessonPath(lessonPath) {
-  if (typeof lessonPath !== 'string') {
-    return '';
-  }
-
-  const trimmed = lessonPath.trim();
-  if (!trimmed) {
-    return '';
-  }
-
-  if (/^https?:/i.test(trimmed) || trimmed.startsWith('//')) {
-    return trimmed;
-  }
-
-  const withoutLeadingDot = trimmed.replace(/^\.\/+/, '');
-  if (!withoutLeadingDot) {
-    return '';
-  }
-
-  return withoutLeadingDot.replace(/^\/+/, '');
-}
-
-function parseInlineObject(text) {
-  if (!text) {
-    return null;
-  }
-
-  let content = text.trim();
-
-  if (content.startsWith('{') && content.endsWith('}')) {
-    content = content.slice(1, -1);
-  }
-
-  const normalised = content.replace(/\s*\n\s*/g, ' ');
-  const entry = {};
-  const pattern = /([A-Za-z0-9_-]+)\s*:\s*(?:"([^"]*)"|'([^']*)'|([^,}]+))/g;
-  let match = pattern.exec(normalised);
-  while (match) {
-    const key = match[1];
-    const value = match[2] ?? match[3] ?? match[4] ?? '';
-    entry[key] = normaliseText(value);
-    match = pattern.exec(normalised);
-  }
-
-  return Object.keys(entry).length ? entry : null;
-}
-
-function extractVocabEntries(markdown) {
-  if (typeof markdown !== 'string') {
-    return [];
-  }
-
-  const match = markdown.match(/^\s*vocab:\s*([\s\S]*?)(?:\n[A-Za-z0-9_-]+\s*:|\n{2,}(?=\S)|$)/m);
-  if (!match) {
-    return [];
-  }
-
-  const block = match[1] || '';
-  const lines = block.split(/\r?\n/);
-  const segments = [];
-  let buffer = '';
-
-  lines.forEach((line) => {
-    const trimmed = line.trim();
-    if (!trimmed) {
-      if (buffer) {
-        segments.push(buffer);
-        buffer = '';
-      }
-      return;
-    }
-
-    if (/^-\s+/.test(trimmed)) {
-      if (buffer) {
-        segments.push(buffer);
-      }
-      buffer = trimmed.replace(/^-\s+/, '');
-    } else if (buffer) {
-      buffer += ` ${trimmed}`;
-    }
-  });
-
-  if (buffer) {
-    segments.push(buffer);
-  }
-
-  return segments
-    .map(parseInlineObject)
-    .filter((entry) => entry && (entry.si || entry.en));
-}
-
-async function loadLessonSource(lessonPath) {
-  if (!lessonPath || typeof lessonPath !== 'string') {
-    throw new Error('Lesson path is required to load lesson source.');
-  }
-
-  const normalisedPath = normaliseLessonPath(lessonPath);
-  if (!normalisedPath) {
-    throw new Error(`Invalid lesson path provided: ${lessonPath}`);
-  }
-
-  const baseUrl = resolveLessonBaseUrl();
-  const lessonAssetPath = resolveLessonAssetPath(normalisedPath);
-  const url = new URL(lessonAssetPath, baseUrl);
-
-  const response = await fetch(url, { cache: 'no-cache' });
-  if (!response.ok) {
-    throw new Error(`Failed to load lesson markdown: ${lessonPath}`);
-  }
-
-  const markdown = await response.text();
-  const vocab = extractVocabEntries(markdown);
-
-  return {
-    path: normalisedPath,
-    markdown,
-    vocab,
-  };
-}
 
 function normaliseVocabEntry(entry) {
   if (!entry || typeof entry !== 'object') {
@@ -353,15 +218,12 @@ async function fetchLessonVocab() {
     }
   }
 
-  if (detail.lessonPath) {
-    const lesson = await loadLessonSource(detail.lessonPath);
-    if (!Array.isArray(lesson.vocab) || !lesson.vocab.length) {
-      throw new Error('Lesson markdown is missing vocab entries for TranslateToTarget exercise.');
-    }
-    return lesson.vocab.map(normaliseVocabEntry).filter(Boolean);
+  const vocab = await fetchLessonVocabFromMarkdown();
+  if (!Array.isArray(vocab) || !vocab.length) {
+    throw new Error('Lesson vocab unavailable for TranslateToTarget exercise.');
   }
 
-  throw new Error('Lesson vocab unavailable for TranslateToTarget exercise.');
+  return vocab.map(normaliseVocabEntry).filter(Boolean);
 }
 
 export async function initTranslateToTargetExercise(options = {}) {

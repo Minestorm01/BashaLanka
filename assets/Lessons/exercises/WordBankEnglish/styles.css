@@ -1,0 +1,179 @@
+.wordbank {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 1.5rem;
+  border-radius: 1.25rem;
+  background: rgba(7, 16, 32, 0.92);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+  color: #f5f8ff;
+  font-family: 'Inter', system-ui, sans-serif;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.wordbank__title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.wordbank__prompt {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.wordbank__prompt-token {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 64px;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.85rem;
+  background: rgba(19, 35, 70, 0.9);
+  border: 1px solid rgba(80, 112, 192, 0.4);
+}
+
+.wordbank__prompt-si {
+  font-size: 1.4rem;
+  font-weight: 600;
+}
+
+.wordbank__prompt-translit {
+  margin-top: 0.2rem;
+  font-size: 0.85rem;
+  color: #b7c4dd;
+}
+
+.wordbank__instructions {
+  margin: 0 auto;
+  max-width: 460px;
+  text-align: center;
+  font-size: 0.95rem;
+  color: #b7c4dd;
+}
+
+.wordbank__tiles {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+.wordbank__tile {
+  padding: 0.55rem 1.1rem;
+  border-radius: 999px;
+  border: 1px solid rgba(92, 125, 210, 0.45);
+  background: rgba(18, 31, 64, 0.95);
+  color: inherit;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease;
+}
+
+.wordbank__tile:not(:disabled):hover,
+.wordbank__tile:not(:disabled):focus-visible {
+  transform: translateY(-2px);
+  border-color: #66d9ff;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.25);
+}
+
+.wordbank__tile:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.wordbank__answer-label {
+  margin: 0;
+  text-align: center;
+  font-size: 0.9rem;
+  color: #9fafc8;
+}
+
+.wordbank__answer {
+  min-height: 3rem;
+  padding: 0.75rem;
+  border-radius: 0.9rem;
+  border: 1px dashed rgba(92, 125, 210, 0.4);
+  background: rgba(12, 21, 44, 0.85);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  justify-content: center;
+  align-items: center;
+}
+
+.wordbank__answer-placeholder {
+  font-style: italic;
+  color: #9fafc8;
+}
+
+.wordbank__answer-tile {
+  padding: 0.5rem 1rem;
+  border-radius: 999px;
+  border: none;
+  background: #66d9ff;
+  color: #052044;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+  transition: transform 0.16s ease, background 0.16s ease, box-shadow 0.16s ease;
+}
+
+.wordbank__answer-tile:hover,
+.wordbank__answer-tile:focus-visible {
+  transform: translateY(-1px);
+  background: #48c4f0;
+  color: #f5f8ff;
+}
+
+.wordbank__feedback {
+  min-height: 1.5rem;
+  text-align: center;
+  font-size: 0.95rem;
+  color: #b7c4dd;
+}
+
+.wordbank__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+.wordbank__actions button {
+  padding: 0.6rem 1.5rem;
+  border-radius: 999px;
+  border: 1px solid rgba(92, 125, 210, 0.45);
+  background: rgba(17, 30, 58, 0.95);
+  color: #f5f8ff;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  transition: transform 0.16s ease, border-color 0.16s ease, box-shadow 0.16s ease;
+}
+
+.wordbank__actions button:hover,
+.wordbank__actions button:focus-visible {
+  transform: translateY(-1px);
+  border-color: #66d9ff;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.25);
+}
+
+@media (max-width: 540px) {
+  .wordbank {
+    padding: 1.25rem;
+    border-radius: 1rem;
+  }
+
+  .wordbank__prompt-token {
+    min-width: 56px;
+    padding: 0.45rem 0.6rem;
+  }
+
+  .wordbank__prompt-si {
+    font-size: 1.2rem;
+  }
+}
