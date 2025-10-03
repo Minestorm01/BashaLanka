@@ -19,15 +19,15 @@ Section01-Words:
     - { si: "නම", translit: "nama", en: "name" }
     - { si: "මොකක්ද?", translit: "mokakda?", en: "what?" }
     - { si: "ස්තුතියි", translit: "stūthiyi", en: "thank you" }
-    - { si: "ස්තුති", translit: "sthuthi", en: "thanks" }
+    - { si: "ස්තුති", translit: "sthuthi", en: "thank you" }
     - { si: "හොඳින්", translit: "hondin", en: "well" }
     - { si: "ඉන්නවා", translit: "innavā", en: "to be / to stay" }
 
   unit-03-nationalities:
     - { si: "රට", translit: "raṭa", en: "country" }
     - { si: "ශ්‍රී ලංකාව", translit: "Sri Lankāva", en: "Sri Lanka" }
-    - { si: "ශ්‍රී ලංකාවෙන්", translit: "Sri Lankāven", en: "from Sri Lanka" }
     - { si: "ඉන්දියාව", translit: "Indiyāva", en: "India" }
+    - { si: "ශ්‍රී ලංකාවෙන්", translit: "Sri Lankāven", en: "from Sri Lanka" }
     - { si: "ඕස්ට්‍රේලියාව", translit: "Ōstrēliyāva", en: "Australia" }
     - { si: "ඕස්ට්‍රේලියාවෙන්", translit: "Ōstrēliyāven", en: "from Australia" }
     - { si: "ඉංග්‍රැන්ඩුවෙන්", translit: "Inglanduven", en: "from England" }
@@ -46,13 +46,11 @@ Section01-Words:
     - { si: "ඒයාලගේ", translit: "eyālagē", en: "their" }
     - { si: "වයස", translit: "vayasa", en: "age" }
     - { si: "කීයද?", translit: "kieyda?", en: "how much? / how many?" }
-    - { si: "තිහයි", translit: "tihayi", en: "is thirty" }
-    - { si: "විසිපහයි", translit: "visipahayi", en: "is twenty-five" }
+    - { si: "තිහයි", translit: "tihayi", en: "thirty" }
+    - { si: "විසිපහයි", translit: "visipahayi", en: "twenty-five" }
 
   unit-05-languages:
     - { si: "කරනවා", translit: "karanavā", en: "do / doing" }
     - { si: "කතා", translit: "kathā", en: "speech / talk" }
-    - { si: "කතා කරනවා", translit: "kathā karanavā", en: "speak / to speak" }
-    - { si: "කරනවාද?", translit: "karanavāda?", en: "do you (do)?" }
     - { si: "ඉංග්‍රීසි", translit: "ingrīsi", en: "English" }
     - { si: "සිංහල", translit: "siṁhala", en: "Sinhala" }
