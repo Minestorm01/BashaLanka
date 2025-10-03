@@ -35,17 +35,15 @@ export function renderWordBankPrompt(container, sentence, unit, options = {}) {
   const translitText = translitParts.join(' ').trim();
   if (!translitText) {
     bubble.classList.add('wordbank__bubble--no-translit');
-  }
-
-  mascotWrapper.appendChild(bubble);
-
-  if (translitText) {
+  } else {
     const translitLine = document.createElement('div');
     translitLine.className = 'wordbank__translit';
     translitLine.setAttribute('lang', 'en');
     translitLine.textContent = translitText;
-    mascotWrapper.appendChild(translitLine);
+    bubble.appendChild(translitLine);
   }
+
+  mascotWrapper.appendChild(bubble);
 
   mascotWrapper.appendChild(createMascotAvatar(unit, options.lessonContext));
 
