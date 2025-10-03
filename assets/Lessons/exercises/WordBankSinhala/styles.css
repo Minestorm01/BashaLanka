@@ -1,0 +1,210 @@
+.wordbank.lesson-card {
+  background: var(--color-elev);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-2);
+  padding: clamp(1.25rem, 4vw, 2rem);
+  display: flex;
+  flex-direction: column;
+  gap: clamp(1rem, 3vw, 1.5rem);
+  position: relative;
+  overflow: hidden;
+}
+
+.wordbank.lesson-card .lesson-mascot {
+  display: flex;
+  align-items: flex-start;
+  gap: clamp(0.75rem, 2vw, 1.25rem);
+}
+
+.wordbank.lesson-card .mascot-img {
+  width: clamp(56px, 12vw, 88px);
+  flex-shrink: 0;
+  filter: drop-shadow(0 6px 12px rgba(15, 23, 42, 0.25));
+}
+
+.wordbank.lesson-card .speech-bubble {
+  position: relative;
+  background: color-mix(in oklab, var(--color-surface) 92%, transparent);
+  border: 2px solid color-mix(in oklab, var(--color-accent), white 30%);
+  border-radius: 18px;
+  padding: clamp(0.75rem, 2vw, 1rem) clamp(1rem, 3vw, 1.5rem);
+  box-shadow: 0 14px 26px rgba(15, 23, 42, 0.15);
+}
+
+.wordbank.lesson-card .speech-bubble::after {
+  content: '';
+  position: absolute;
+  inset-inline-start: -12px;
+  inset-block-start: 35%;
+  width: 18px;
+  height: 18px;
+  background: inherit;
+  border: inherit;
+  border-top: 0;
+  border-inline-end: 0;
+  transform: rotate(45deg);
+  box-shadow: inherit;
+}
+
+.wordbank.lesson-card .speech-bubble p {
+  margin: 0;
+  font-weight: var(--ui-weight);
+  color: color-mix(in oklab, var(--color-accent) 80%, white 20%);
+}
+
+.wordbank .flashcard {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 0.75rem;
+  text-align: center;
+  font-size: clamp(1.5rem, 4vw, 2.25rem);
+  font-weight: var(--heading-weight);
+  color: color-mix(in oklab, var(--color-accent) 65%, white 35%);
+  background: color-mix(in oklab, var(--color-surface) 85%, transparent);
+  border-radius: var(--radius-lg);
+  padding: clamp(1rem, 4vw, 1.75rem);
+  min-height: 3.5rem;
+}
+
+.wordbank__prompt-token {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: clamp(1.2rem, 3vw, 1.6rem);
+}
+
+.wordbank__prompt-token .si {
+  font-size: 1em;
+}
+
+.wordbank__prompt-token .translit {
+  font-size: 0.75rem;
+  color: color-mix(in oklab, currentColor 40%, var(--color-accent));
+}
+
+.tile-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+.tile-grid button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  border: 2px solid color-mix(in oklab, var(--color-accent) 55%, transparent);
+  border-radius: 12px;
+  padding: 0.6rem 1rem;
+  background: var(--color-elev);
+  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.16);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.tile-grid button .si {
+  font-size: 1.05rem;
+}
+
+.tile-grid button .translit {
+  font-size: 0.75rem;
+  opacity: 0.85;
+}
+
+.tile-grid button:hover:not(:disabled) {
+  transform: translateY(-2px) scale(1.03);
+  box-shadow: 0 10px 20px rgba(15, 23, 42, 0.18);
+}
+
+.tile-grid button:disabled {
+  opacity: 0.55;
+  transform: none;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.12);
+}
+
+.wordbank__answer-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.wordbank__answer-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: color-mix(in oklab, var(--color-accent) 80%, white 20%);
+}
+
+.wordbank__answer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 3rem;
+  padding: 0.75rem 1rem;
+  border-radius: 14px;
+  background: color-mix(in oklab, var(--color-surface) 92%, transparent);
+  border: 1px dashed color-mix(in oklab, var(--color-accent) 45%, transparent);
+}
+
+.wordbank__answer-chip,
+.wordbank__answer-token {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.4rem 0.75rem;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--color-accent) 12%, transparent);
+  color: inherit;
+  font-size: 0.95rem;
+}
+
+.wordbank__answer-token .si {
+  font-size: 1.05rem;
+}
+
+.wordbank__answer-token .translit {
+  font-size: 0.7rem;
+  opacity: 0.8;
+}
+
+.wordbank__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+.wordbank__actions .btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.btn--pill {
+  border-radius: 999px;
+  padding: 0.65rem 1.2rem;
+}
+
+.btn--pill span[aria-hidden='true'] {
+  font-size: 1.1em;
+  line-height: 1;
+}
+
+@media (max-width: 640px) {
+  .wordbank.lesson-card {
+    padding: 1rem 1.25rem;
+  }
+
+  .wordbank.lesson-card .speech-bubble {
+    font-size: 0.95rem;
+  }
+
+  .wordbank__actions {
+    justify-content: center;
+  }
+}

@@ -1,13 +1,17 @@
 import {
-  loadSectionSentences,
-  flattenSentences,
+  loadWordBankUnits,
+  resolveActiveUnit,
+  getUnitSentences,
   randomItem,
   shuffleArray,
-  filterUnlockedSentences,
+  getWordEntryFromUnit,
+  normaliseWordBankToken,
 } from '../_shared/wordBankUtils.js';
 import { getVocabEntry } from '../_shared/vocabMap.js';
+import { ensureStylesheet } from '../_shared/utils.js';
 
 const DEFAULT_CONTAINER_SELECTOR = '[data-exercise="wordbank-sinhala"]';
+const STYLESHEET_ID = 'wordbank-sinhala-styles';
 
 export default async function initWordBankSinhalaExercise(options = {}) {
   if (typeof document === 'undefined') {
@@ -24,82 +28,91 @@ export default async function initWordBankSinhalaExercise(options = {}) {
     throw new Error('WordBankSinhala target element not found.');
   }
 
+  ensureStylesheet(STYLESHEET_ID, './styles.css', { baseUrl: import.meta.url });
+
   target.innerHTML = '<p>Loading sentences…</p>';
 
   try {
-    const units = await loadSectionSentences();
-    const sentences = filterUnlockedSentences(flattenSentences(units), providedUnitId);
+    const units = await loadWordBankUnits();
+    const activeUnit = resolveActiveUnit(units, providedUnitId);
+    if (!activeUnit) {
+      target.innerHTML = '<p>No unit data available.</p>';
+      return;
+    }
+
+    const sentences = getUnitSentences(activeUnit);
     if (!sentences.length) {
       target.innerHTML = '<p>No sentences available.</p>';
       return;
     }
 
-    setupExercise(target, sentences, { onComplete });
+    setupExercise(target, activeUnit, sentences, { onComplete });
   } catch (error) {
     console.error('Failed to initialise WordBankSinhala exercise', error);
     target.innerHTML = '<p>Unable to load sentences.</p>';
   }
 }
 
-function setupExercise(container, sentences, { onComplete } = {}) {
-  const wrapper = document.createElement('section');
-  wrapper.className = 'wordbank wordbank--sinhala';
+function setupExercise(container, unit, sentences, { onComplete } = {}) {
+  const defaultMessage = 'Arrange the Sinhala tiles to match the English sentence!';
 
-  const title = document.createElement('h2');
-  title.textContent = 'Word Bank (Sinhala)';
-  wrapper.appendChild(title);
+  const wrapper = document.createElement('section');
+  wrapper.className = 'wordbank wordbank--sinhala lesson-card';
+
+  const mascot = document.createElement('div');
+  mascot.className = 'lesson-mascot';
+  mascot.innerHTML = `
+    <img src="/assets/general/mascot.svg" alt="Mascot" class="mascot-img" />
+    <div class="speech-bubble">
+      <p>${defaultMessage}</p>
+    </div>
+  `;
+  wrapper.appendChild(mascot);
+
+  const bubbleText = mascot.querySelector('.speech-bubble p');
+  if (bubbleText) {
+    bubbleText.setAttribute('role', 'status');
+    bubbleText.setAttribute('aria-live', 'polite');
+  }
 
   const prompt = document.createElement('p');
-  prompt.className = 'wordbank__prompt';
+  prompt.className = 'wordbank__prompt flashcard';
   wrapper.appendChild(prompt);
 
-  const instructions = document.createElement('p');
-  instructions.className = 'wordbank__instructions';
-  instructions.textContent = 'Arrange the Sinhala tiles to match the English sentence.';
-  wrapper.appendChild(instructions);
-
   const tileContainer = document.createElement('div');
-  tileContainer.className = 'wordbank__tiles';
+  tileContainer.className = 'wordbank__tiles tile-grid';
   wrapper.appendChild(tileContainer);
 
-  const answerLabel = document.createElement('p');
-  answerLabel.textContent = 'Your answer:';
-  wrapper.appendChild(answerLabel);
+  const answerGroup = document.createElement('div');
+  answerGroup.className = 'wordbank__answer-row';
+
+  const answerLabel = document.createElement('span');
+  answerLabel.className = 'wordbank__answer-label';
+  answerLabel.textContent = 'Your answer';
+  answerGroup.appendChild(answerLabel);
 
   const answerContainer = document.createElement('div');
   answerContainer.className = 'wordbank__answer';
-  wrapper.appendChild(answerContainer);
+  answerGroup.appendChild(answerContainer);
 
-  const feedback = document.createElement('div');
-  feedback.className = 'wordbank__feedback';
-  feedback.setAttribute('role', 'status');
-  feedback.setAttribute('aria-live', 'polite');
-  wrapper.appendChild(feedback);
+  wrapper.appendChild(answerGroup);
 
   const actions = document.createElement('div');
-  actions.className = 'wordbank__actions';
+  actions.className = 'wordbank__actions flex gap-2';
   wrapper.appendChild(actions);
 
-  const checkBtn = document.createElement('button');
-  checkBtn.type = 'button';
-  checkBtn.textContent = 'Check';
+  const checkBtn = createActionButton('✅', 'Check');
   checkBtn.disabled = true;
   actions.appendChild(checkBtn);
 
-  const clearBtn = document.createElement('button');
-  clearBtn.type = 'button';
-  clearBtn.textContent = 'Clear';
+  const clearBtn = createActionButton('🧹', 'Clear');
   actions.appendChild(clearBtn);
 
-  const nextBtn = document.createElement('button');
-  nextBtn.type = 'button';
-  nextBtn.textContent = 'Next';
+  const nextBtn = createActionButton('⏭️', 'Next');
   actions.appendChild(nextBtn);
 
   if (typeof onComplete === 'function') {
-    const finishBtn = document.createElement('button');
-    finishBtn.type = 'button';
-    finishBtn.textContent = 'Finish';
+    const finishBtn = createActionButton('🎉', 'Finish');
     finishBtn.addEventListener('click', () => {
       onComplete();
     });
@@ -109,16 +122,25 @@ function setupExercise(container, sentences, { onComplete } = {}) {
   container.innerHTML = '';
   container.appendChild(wrapper);
 
+  const unitWords = Array.isArray(unit?.words) ? unit.words : [];
   let currentSentence = null;
   let tiles = [];
   let answer = [];
+
+  function createActionButton(icon, label) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'btn btn--pill';
+    button.innerHTML = `<span aria-hidden="true">${icon}</span><span>${label}</span>`;
+    return button;
+  }
 
   function setSentence(sentence) {
     currentSentence = sentence;
     if (!sentence) {
       prompt.textContent = '';
       tileContainer.innerHTML = '';
-      answerContainer.textContent = '';
+      answerContainer.innerHTML = '';
       setFeedback('');
       return;
     }
@@ -134,24 +156,37 @@ function setupExercise(container, sentences, { onComplete } = {}) {
   function buildSinhalaTiles(sentence) {
     const tileEntries = [];
     const tokens = Array.isArray(sentence.tokens) ? sentence.tokens : [];
+    const seenKeys = new Set();
+
     tokens.forEach((token, index) => {
-      tileEntries.push(createTileEntry(token, `token-${index}`));
+      tileEntries.push(createTileEntry(unit, token, `token-${index}`));
+      const normalised = normaliseWordBankToken(token);
+      if (normalised) {
+        seenKeys.add(normalised);
+        if (normalised.includes('_')) {
+          seenKeys.add(normalised.replace(/_/g, ''));
+        }
+      }
     });
 
-    const seenDistractors = new Set();
-    const unitVocab = Array.isArray(sentence.unitVocab) ? sentence.unitVocab : [];
-    unitVocab.forEach((word) => {
-      if (!word || typeof word !== 'string') {
+    unitWords.forEach((word, index) => {
+      if (!word) {
         return;
       }
-      if (tokens.includes(word)) {
+      const keys = Array.isArray(word.normalizedKeys) ? word.normalizedKeys : [];
+      const overlaps = keys.some((key) => key && seenKeys.has(key));
+      if (overlaps) {
         return;
       }
-      if (seenDistractors.has(word)) {
-        return;
-      }
-      seenDistractors.add(word);
-      tileEntries.push(createTileEntry(word, `extra-${word}`));
+      keys.forEach((key) => {
+        if (key) {
+          seenKeys.add(key);
+        }
+      });
+
+      const baseToken = word.token || word.canonicalToken || word.translit || word.si || word.en;
+      const tileToken = baseToken && typeof baseToken === 'string' ? baseToken : `word-${index}`;
+      tileEntries.push(createTileEntry(unit, tileToken, `extra-${index}`, word));
     });
 
     return shuffleArray(tileEntries);
@@ -169,7 +204,6 @@ function setupExercise(container, sentences, { onComplete } = {}) {
       translit.className = 'translit';
       translit.textContent = tile.mapping.translit;
       button.appendChild(scriptSpan);
-      button.appendChild(document.createTextNode(' '));
       button.appendChild(translit);
       button.disabled = tile.used;
       button.addEventListener('click', () => handleTileSelect(tile));
@@ -190,10 +224,7 @@ function setupExercise(container, sentences, { onComplete } = {}) {
 
   function updateAnswer() {
     answerContainer.innerHTML = '';
-    answer.forEach((entry, index) => {
-      if (index > 0) {
-        answerContainer.appendChild(document.createTextNode(' '));
-      }
+    answer.forEach((entry) => {
       const wrapper = document.createElement('span');
       wrapper.className = 'wordbank__answer-token';
       const scriptSpan = document.createElement('span');
@@ -203,7 +234,6 @@ function setupExercise(container, sentences, { onComplete } = {}) {
       translit.className = 'translit';
       translit.textContent = entry.mapping.translit;
       wrapper.appendChild(scriptSpan);
-      wrapper.appendChild(document.createTextNode(' '));
       wrapper.appendChild(translit);
       answerContainer.appendChild(wrapper);
     });
@@ -211,7 +241,9 @@ function setupExercise(container, sentences, { onComplete } = {}) {
   }
 
   function setFeedback(message) {
-    feedback.textContent = message || '';
+    if (bubbleText) {
+      bubbleText.textContent = message || defaultMessage;
+    }
   }
 
   function handleCheck() {
@@ -228,7 +260,7 @@ function setupExercise(container, sentences, { onComplete } = {}) {
       setFeedback('✅ Correct!');
     } else {
       const correctSinhala = correct
-        .map((token) => getVocabEntry(token).si)
+        .map((token) => getMappingForToken(unit, token).si)
         .join(' ');
       setFeedback(`❌ Correct order: ${correctSinhala}`);
     }
@@ -267,12 +299,27 @@ function setupExercise(container, sentences, { onComplete } = {}) {
   setSentence(randomItem(sentences));
 }
 
-function createTileEntry(word, id) {
-  const mapping = getVocabEntry(word);
+function createTileEntry(unit, token, id, explicitWord = null) {
+  const mapping = getMappingForToken(unit, token, explicitWord);
+  const text = typeof token === 'string' && token ? token : mapping.translit || mapping.si || token || id;
   return {
     id,
-    text: word,
+    text,
     mapping,
     used: false,
+  };
+}
+
+function getMappingForToken(unit, token, explicitWord = null) {
+  const fallback = getVocabEntry(token);
+  const wordEntry = explicitWord || getWordEntryFromUnit(unit, token);
+  if (!wordEntry) {
+    return fallback;
+  }
+  const script = wordEntry.si || fallback.si || fallback.translit || token || '';
+  const transliteration = wordEntry.translit || wordEntry.token || fallback.translit || fallback.si || token || '';
+  return {
+    si: script,
+    translit: transliteration,
   };
 }
