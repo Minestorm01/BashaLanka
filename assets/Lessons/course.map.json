@@ -3,13 +3,13 @@
   "sections": [
     {
       "id": "section-01-introductions",
-      "title": "Introductions & Essentials",
+      "title": "Introductions & Essentials (Revised)",
       "cefr": "A1",
       "unit_count": 5,
       "units": [
         {
           "id": "unit-01-pronouns-greetings",
-          "title": "Pronouns & Basic Greetings",
+          "title": "Greetings & Basics",
           "path_ref": "sections/section-01-introductions/units/unit-01-pronouns-greetings",
           "status": "ready"
         },
@@ -21,19 +21,19 @@
         },
         {
           "id": "unit-03-nationalities",
-          "title": "Nationalities",
+          "title": "Where You're From",
           "path_ref": "sections/section-01-introductions/units/unit-03-nationalities",
           "status": "ready"
         },
         {
           "id": "unit-04-age",
-          "title": "Age & Numbers",
+          "title": "Feelings & Health",
           "path_ref": "sections/section-01-introductions/units/unit-04-age",
           "status": "ready"
         },
         {
           "id": "unit-05-languages",
-          "title": "Languages You Speak",
+          "title": "Politeness & Farewells",
           "path_ref": "sections/section-01-introductions/units/unit-05-languages",
           "status": "ready"
         }

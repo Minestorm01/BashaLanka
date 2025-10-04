@@ -1,21 +1,21 @@
 ---
 id: unit-03
-title: Nationalities & Origin
-overview: Ask/tell country, say where you’re from, and convert statements into yes/no questions.
+title: Where You're From
+overview: Talk about countries, say where you’re from, and ask others politely about their origin.
 goals:
-  - Ask “What is your country?” → **raṭa mokakda?**
-  - Tell “My country is …” / “Your country is …”
-  - Say origin with **…වෙන් (en)** → “from [country]”
-  - Convert statements to questions with **ද? (da?)**
-  - Confirm with yes/no answers
+  - Use රට (raṭa) and ගෙන් (gen) to describe where you come from
+  - Say “I am from …” and “My country is …” with country words
+  - Ask “Where are you from?” using කොහෙන්ද? (kohenda?)
+  - Swap in learner profile or lesson countries with {country}
+  - Recycle yes/no replies to confirm places politely
 prerequisites: [unit-02]
 lessons: [lesson-01, lesson-02, lesson-03, lesson-04]
-assessment: Short dialogue: state country → ask if from X → yes/no confirm.
+assessment: Mini dialogue: “I am from Sri Lanka” → “Where are you from?” → reply with your country.
 ---
 
 # Unit 03 Overview
 
-- **Lesson 01** — Ask country: **oyāgē raṭa mokakda?**  
-- **Lesson 02** — Tell country: **magē raṭa …**  
-- **Lesson 03** — From X: add **ෙන් (en)** → **Sri Lankāven**  
-- **Lesson 04** — Statement → question with **ද?**  
+- **Lesson 01** — Country words and “My country is …”.
+- **Lesson 02** — “I am from …” using ගෙන් constructions.
+- **Lesson 03** — Ask “Where are you from?” and understand answers.
+- **Lesson 04** — Practice with {country} swaps and polite confirmations.

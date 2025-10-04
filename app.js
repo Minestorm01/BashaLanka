@@ -522,6 +522,12 @@ const LESSON_SIMULATOR_EXERCISES = [
     loader: () => loadExerciseModule('Dialogue/index.js')
   },
   {
+    id: 'wordbank-sinhala',
+    label: 'Word Bank (English → Sinhala)',
+    description: 'Rebuild the Sinhala sentence from English prompts.',
+    loader: () => loadExerciseModule('WordBankSinhala/index.js')
+  },
+  {
     id: 'wordbank-english',
     label: 'Word Bank (Sinhala → English)',
     description: 'Rebuild the English sentence from Sinhala prompts.',

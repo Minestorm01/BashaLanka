@@ -1,19 +1,21 @@
 ---
 id: unit-05
-title: Languages You Speak
-overview: Build present-tense sentences with “doing” and “speaking”, say which language you speak, and ask others.
+title: Politeness & Farewells
+overview: Close conversations with good wishes and goodbyes, from good morning to casual bye.
 goals:
-  - Use **කරනවා (karanavā)** ‘doing’ and compounds
-  - Use **කතා කරනවා (kathā karanavā)** ‘speaking’
-  - Say “I speak …” and ask “Do you speak … ?” (+ **ද?** question)
+  - Wish someone good morning and good night in Sinhala
+  - Say goodbye politely with ගමන් යන්න (gaman yanna)
+  - Use බයි (bayi) for casual departures
+  - Recognise how polite wishes connect with greetings vocabulary
+  - Blend farewells into short exchanges after introductions
 prerequisites: [unit-04]
 lessons: [lesson-01, lesson-02, lesson-03, lesson-04]
-assessment: Tell and ask languages in a small roleplay.
+assessment: Farewell script: greet, exchange feelings, then part ways with a good wish.
 ---
 
 # Unit 05 Overview
 
-- Lesson 01 — Verb: **කරනවා (doing)** → present
-- Lesson 02 — Verb: **කතා කරනවා (speaking)**; present vs habit
-- Lesson 03 — “I speak …” (English/Sinhala/…)
-- Lesson 04 — “Do you speak … ?” (add **ද?**)
+- **Lesson 01** — Say “Good morning” and “Good night.”
+- **Lesson 02** — Practice polite departures with ගමන් යන්න.
+- **Lesson 03** — Use casual “Bye” in friendly settings.
+- **Lesson 04** — Combine farewells with greetings and feelings to wrap a chat.
