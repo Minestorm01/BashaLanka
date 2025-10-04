@@ -20,21 +20,33 @@ Section01:
         - text: "Hello, how are you?"
           tokens: ["ayubowan", "oyaata", "kohomada"]
           minUnit: 1
+          analysis:
+            rating: "✅ CORRECT"
         - text: "I am fine, thank you."
           tokens: ["mama", "hondai", "sthuthiyi"]
           minUnit: 1
+          analysis:
+            rating: "✅ CORRECT"
         - text: "Yes."
           tokens: ["owu"]
           minUnit: 1
+          analysis:
+            rating: "✅ CORRECT"
         - text: "No."
           tokens: ["nae"]
           minUnit: 1
+          analysis:
+            rating: "✅ CORRECT"
         - text: "Please."
           tokens: ["karunakar"]
           minUnit: 1
+          analysis:
+            rating: "✅ CORRECT"
         - text: "Sorry."
           tokens: ["samavenna"]
           minUnit: 1
+          analysis:
+            rating: "✅ CORRECT"
 
     - id: 2
       name: "Introducing Yourself"
@@ -49,12 +61,21 @@ Section01:
         - text: "My name is {name}."
           tokens: ["mage", "nama", "{name}"]
           minUnit: 2
+          analysis:
+            rating: "✅ CORRECT"
         - text: "What is your name?"
           tokens: ["oyaage", "nama", "mokakda"]
           minUnit: 2
+          analysis:
+            rating: "✅ CORRECT"
         - text: "Nice to meet you."
           tokens: ["oyaata", "haduwime", "sathutak"]
           minUnit: 2
+          analysis:
+            rating: "⚠️ PARTIALLY CORRECT"
+            issue: "Lacks an object marker and speaker reference, reading as 'Meeting to you is a pleasure.'"
+            corrected_sinhala: "ඔයාව හදුනාගන්නට මට සතුටක්."
+            corrected_tokens: ["oyava", "hadunagannata", "mata", "sathutak"]
 
     - id: 3
       name: "Where You're From"
@@ -71,15 +92,26 @@ Section01:
         - text: "I am from Sri Lanka."
           tokens: ["mama", "Sri_Lanka", "gena"]
           minUnit: 3
+          analysis:
+            rating: "✅ CORRECT"
         - text: "I am from {country}."
           tokens: ["mama", "rata", "gena"]
           minUnit: 3
+          analysis:
+            rating: "❌ INCORRECT"
+            issue: "Omits the {country} placeholder, so the sentence becomes 'I am from the country' without specifying which one."
+            corrected_sinhala: "මම {country} රටෙන්."
+            corrected_tokens: ["mama", "{country}", "raten"]
         - text: "Where are you from?"
           tokens: ["oya", "kohenda"]
           minUnit: 3
+          analysis:
+            rating: "✅ CORRECT"
         - text: "My country is Sri Lanka."
           tokens: ["mage", "rata", "Sri_Lanka"]
           minUnit: 3
+          analysis:
+            rating: "✅ CORRECT"
 
     - id: 4
       name: "Feelings & Health"
@@ -96,18 +128,34 @@ Section01:
         - text: "Are you well?"
           tokens: ["oya", "sanipen", "da"]
           minUnit: 4
+          analysis:
+            rating: "✅ CORRECT"
         - text: "I am well."
           tokens: ["mama", "sanipen"]
           minUnit: 4
+          analysis:
+            rating: "✅ CORRECT"
         - text: "I am not well."
           tokens: ["mama", "hondai", "naehae"]
           minUnit: 4
+          analysis:
+            rating: "⚠️ PARTIALLY CORRECT"
+            issue: "Uses 'hondai næhæ' ('not good') instead of the expected health adjective."
+            corrected_sinhala: "මම සනීපෙන් නැහැ."
+            corrected_tokens: ["mama", "sanipen", "naehae"]
         - text: "I am happy."
           tokens: ["mama", "santhoshayi"]
           minUnit: 4
+          analysis:
+            rating: "✅ CORRECT"
         - text: "I am sad."
           tokens: ["mama", "dukthayi"]
           minUnit: 4
+          analysis:
+            rating: "❌ INCORRECT"
+            issue: "'dukthayi' is not a natural Sinhala form; use 'It's sad for me.'"
+            corrected_sinhala: "මට දුකයි."
+            corrected_tokens: ["mata", "dukayi"]
 
     - id: 5
       name: "Politeness & Farewells"
@@ -122,12 +170,29 @@ Section01:
         - text: "Good morning."
           tokens: ["suba", "udek"]
           minUnit: 5
+          analysis:
+            rating: "⚠️ PARTIALLY CORRECT"
+            issue: "'suba udek' is awkward; the natural greeting is 'suba udāsanak.'"
+            corrected_sinhala: "සුබ උදෑසනක්."
+            corrected_tokens: ["suba", "udasanak"]
         - text: "Good night."
           tokens: ["suba", "raththiyek"]
           minUnit: 5
+          analysis:
+            rating: "⚠️ PARTIALLY CORRECT"
+            issue: "'raththiyek' is an uncommon form; prefer 'rathriyak.'"
+            corrected_sinhala: "සුභ රාත්‍රියක්."
+            corrected_tokens: ["suba", "rathriyak"]
         - text: "Goodbye."
           tokens: ["gaman", "yanna"]
           minUnit: 5
+          analysis:
+            rating: "⚠️ PARTIALLY CORRECT"
+            issue: "Imperative 'gaman yanna' feels like a command; 'suba gaman' is the polite farewell."
+            corrected_sinhala: "සුභ ගමන්."
+            corrected_tokens: ["suba", "gaman"]
         - text: "Bye."
           tokens: ["bayi"]
           minUnit: 5
+          analysis:
+            rating: "✅ CORRECT"
