@@ -1,16 +1,13 @@
 ---
 id: section-01-introductions
-title: Introductions & Essentials
-summary: Build your first real conversations: greet, introduce yourself, talk about where you’re from, your age, and the languages you speak.
+title: Introductions & Essentials (Revised)
+summary: Build everyday Sinhala confidence with greetings, introductions, origins, feelings, and polite farewells.
 learning_outcomes:
-  - Use core pronouns (I/you/he/she + plurals, formal/informal contrasts)
-  - Greet casually and formally; reply politely
-  - Use possessives (my/your/his/her/our/their) with **gé**
-  - Introduce yourself and ask names
-  - Ask/tell country and origin (“I am from …” / “Is your country … ?”)
-  - Ask/tell age and numbers; use **how much?**
-  - Say which languages you speak; ask others with yes/no questions
-  - Use **ද? (da?)** to form yes/no questions
+  - Greet politely and ask how someone is feeling
+  - Introduce yourself and ask for someone’s name
+  - Talk about the country you and others are from
+  - Describe how you feel and respond to wellness checks
+  - Use common polite expressions for everyday comings and goings
 prerequisites: []
 units:
   - unit-01-pronouns-greetings
@@ -21,32 +18,27 @@ units:
 cefr: A1
 ---
 
-# Section 01 — Introductions & Essentials
+# Section 01 — Introductions & Essentials (Revised)
 
 ## What you’ll master
-- **Small talk**: *How are you?* → *I’m fine, thank you.*
-- **Polite greetings**: casual **oyā** vs formal **oba**, and **āyubōvan**
-- **Possessives**: *my / your / his / her / our / their* with **gé**
-- **Introduce yourself**: *My name is … / I am …*
-- **Ask names**: *What is your name?*
-- **Country & origin**: *My country is … / I am from … / Are you from … ?*
-- **Yes/no questions**: add **ද? (da?)**
-- **Age & numbers**: *What is your age?* / *My age is …*
-- **How much?** pattern for numbers and age
-- **Languages**: *I speak … / Do you speak … ?*
+- **Greetings & basics**: hello, please, sorry, yes/no, and “How are you?”
+- **Introduce yourself**: state your name, ask for someone else’s, and respond politely.
+- **Where you’re from**: say where you live, ask others, and talk about your country.
+- **Feelings & health**: check in on wellness, express happiness or sadness, and answer honestly.
+- **Politeness & farewells**: wish someone good morning/night and say goodbye naturally.
 
 ## Units
-- **Unit 01 — Pronouns & Basic Greetings**  
-  Learn I/you/he/she, casual vs formal greetings, “How are you?” and polite replies.  
+- **Unit 01 — Greetings & Basics**
+  Learn the essential opening moves: greet formally, ask how someone is, and respond with thanks, please, or sorry.
 
-- **Unit 02 — Introducing Yourself**  
-  Possessives with **gé**, introduce yourself (*My name is … / I am …*), ask names, reply with thanks.  
+- **Unit 02 — Introducing Yourself**
+  Use possessives to state your name, ask for someone else’s, and share polite “nice to meet you” exchanges.
 
-- **Unit 03 — Nationalities**  
-  Ask/tell country, origin with **en**, yes/no with **ද?**.  
+- **Unit 03 — Where You're From**
+  Combine country words with "from" and ask where someone comes from, including reusable {country} prompts.
 
-- **Unit 04 — Age & Numbers**  
-  Ask/tell age, practice numbers for 10, 20, 30, etc., extend to “how much?”.  
+- **Unit 04 — Feelings & Health**
+  Practice wellness check questions, positive/negative answers, and vocabulary for happy or sad moods.
 
-- **Unit 05 — Languages You Speak**  
-  Learn **kathā karanavā**, say which languages you speak, ask others with **ද?**.  
+- **Unit 05 — Politeness & Farewells**
+  Wrap conversations with good morning/night wishes and casual or formal goodbyes.

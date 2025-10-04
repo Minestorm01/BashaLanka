@@ -1,510 +1,133 @@
 Section01:
-  title: "Introductions & Essentials"
-  description: "Greetings, introductions, yes/no, countries, age, and languages."
+  title: "Introductions & Essentials (Revised)"
+  description: "Core greetings, introductions, origin, feelings, and polite expressions."
   units:
 
     - id: 1
-      name: "Pronouns, Yes/No & Basic Greetings"
+      name: "Greetings & Basics"
       vocab:
-        - mama        # I
-        - oya         # you
-        - eya         # he/she
-        - kohomada    # how
-        - hondai      # fine/good
-        - ayubowan    # hello
-        - owu         # yes
-        - nae         # no
+        - ayubowan
+        - oyaata
+        - kohomada
+        - mama
+        - hondai
+        - sthuthiyi
+        - owu
+        - nae
+        - karunakar
+        - samavenna
       sentences:
         - text: "Hello, how are you?"
-          tokens: ["ayubowan", "oya", "kohomada"]
+          tokens: ["ayubowan", "oyaata", "kohomada"]
           minUnit: 1
-          analysis:
-            rating: "✅ CORRECT"
-            issue: "Natural rendering of the greeting and follow-up question."
-            corrected_sinhala: "අයුබෝවන්, ඔයා කොහොමද?"
-            corrected_tokens: ["ayubowan", "oya", "kohomada"]
         - text: "I am fine, thank you."
-          tokens: ["mama", "hondai"]
+          tokens: ["mama", "hondai", "sthuthiyi"]
           minUnit: 1
-          analysis:
-            rating: "❌ INCORRECT"
-            issue: "Missing a phrase equivalent to 'thank you.'"
-            corrected_sinhala: "මම හොඳයි, ස්තුතියි."
-            corrected_tokens: ["mama", "hondai", "istuti"]
-        - text: "Are you fine?"
-          tokens: ["oya", "hondai", "kohomada"]
-          minUnit: 1
-          analysis:
-            rating: "⚠️ PARTIALLY CORRECT"
-            issue: "Word order feels translated literally; needs the yes/no particle."
-            corrected_sinhala: "ඔයා හොඳයිද?"
-            corrected_tokens: ["oya", "hondai", "da"]
-        - text: "Yes, I am fine."
-          tokens: ["owu", "mama", "hondai"]
-          minUnit: 1
-          analysis:
-            rating: "✅ CORRECT"
-            issue: "Matches the intended affirmation."
-            corrected_sinhala: "ඔව්, මම හොඳයි."
-            corrected_tokens: ["owu", "mama", "hondai"]
-        - text: "No, I am not fine."
-          tokens: ["nae", "mama", "hondai"]
-          minUnit: 1
-          analysis:
-            rating: "❌ INCORRECT"
-            issue: "Lacks the negation needed for 'not fine.'"
-            corrected_sinhala: "නෑ, මම හොඳ නැහැ."
-            corrected_tokens: ["nae", "mama", "hondai", "naehae"]
-        - text: "How is he?"
-          tokens: ["eya", "kohomada"]
-          minUnit: 1
-          analysis:
-            rating: "✅ CORRECT"
-            issue: "Sinhala uses the same pronoun for he/she; meaning aligns."
-            corrected_sinhala: "එයා කොහොමද?"
-            corrected_tokens: ["eya", "kohomada"]
-        - text: "How is she?"
-          tokens: ["eya", "kohomada"]
-          minUnit: 1
-          analysis:
-            rating: "✅ CORRECT"
-            issue: "Sinhala 'eya' covers both he and she naturally."
-            corrected_sinhala: "ඇය කොහොමද?"
-            corrected_tokens: ["eya", "kohomada"]
-        - text: "He is fine."
-          tokens: ["eya", "hondai"]
-          minUnit: 1
-          analysis:
-            rating: "✅ CORRECT"
-            issue: "Natural elliptical statement."
-            corrected_sinhala: "එයා හොඳයි."
-            corrected_tokens: ["eya", "hondai"]
-        - text: "She is not fine."
-          tokens: ["eya", "nae", "hondai"]
-          minUnit: 1
-          analysis:
-            rating: "❌ INCORRECT"
-            issue: "Negation placement is wrong; needs a verb-negation form."
-            corrected_sinhala: "ඇය හොඳ නැහැ."
-            corrected_tokens: ["eya", "hondai", "naehae"]
-        - text: "Are you okay?"
-          tokens: ["oya", "kohomada"]
-          minUnit: 1
-          analysis:
-            rating: "⚠️ PARTIALLY CORRECT"
-            issue: "Reads more like 'How are you?'; add the yes/no particle for 'okay'."
-            corrected_sinhala: "ඔයා හොඳයිද?"
-            corrected_tokens: ["oya", "hondai", "da"]
         - text: "Yes."
           tokens: ["owu"]
           minUnit: 1
-          analysis:
-            rating: "✅ CORRECT"
-            issue: "Straightforward translation."
-            corrected_sinhala: "ඔව්."
-            corrected_tokens: ["owu"]
         - text: "No."
           tokens: ["nae"]
           minUnit: 1
-          analysis:
-            rating: "✅ CORRECT"
-            issue: "Simple negation matches."
-            corrected_sinhala: "නෑ."
-            corrected_tokens: ["nae"]
+        - text: "Please."
+          tokens: ["karunakar"]
+          minUnit: 1
+        - text: "Sorry."
+          tokens: ["samavenna"]
+          minUnit: 1
 
     - id: 2
       name: "Introducing Yourself"
       vocab:
-        - mage        # my
-        - nama        # name
-        - yaluwa      # friend
+        - mage
+        - nama
+        - oyaage
+        - mokakda
+        - haduwime
+        - sathutak
       sentences:
         - text: "My name is {name}."
-          tokens: ["mage", "nama"]
+          tokens: ["mage", "nama", "{name}"]
           minUnit: 2
-          analysis:
-            rating: "❌ INCORRECT"
-            issue: "Missing the {name} component to complete the sentence."
-            corrected_sinhala: "මගේ නම {name}."
-            corrected_tokens: ["mage", "nama", "{name}"]
-        - text: "Hello, my name is {name}."
-          tokens: ["ayubowan", "mage", "nama"]
-          minUnit: 2
-          analysis:
-            rating: "❌ INCORRECT"
-            issue: "Does not include the name placeholder in the Sinhala output."
-            corrected_sinhala: "අයුබෝවන්, මගේ නම {name}."
-            corrected_tokens: ["ayubowan", "mage", "nama", "{name}"]
-        - text: "I am {name}."
-          tokens: ["mama", "nama"]
-          minUnit: 2
-          analysis:
-            rating: "❌ INCORRECT"
-            issue: "Uses 'name' instead of inserting the actual name."
-            corrected_sinhala: "මම {name}."
-            corrected_tokens: ["mama", "{name}"]
         - text: "What is your name?"
-          tokens: ["oya", "nama", "kohomada"]
+          tokens: ["oyaage", "nama", "mokakda"]
           minUnit: 2
-          analysis:
-            rating: "✅ CORRECT"
-            issue: "Natural question structure for asking someone's name."
-            corrected_sinhala: "ඔයාගේ නම කොහොමද?"
-            corrected_tokens: ["oya", "nama", "kohomada"]
-        - text: "Is your name {name}? Yes."
-          tokens: ["oya", "nama", "kohomada", "owu"]
+        - text: "Nice to meet you."
+          tokens: ["oyaata", "haduwime", "sathutak"]
           minUnit: 2
-          analysis:
-            rating: "❌ INCORRECT"
-            issue: "Needs the {name} insertion and yes/no particle instead of 'how?'."
-            corrected_sinhala: "ඔයාගේ නම {name} ද? ඔව්."
-            corrected_tokens: ["oyaage", "nama", "{name}", "da", "owu"]
-        - text: "Is your name {name}? No."
-          tokens: ["oya", "nama", "kohomada", "nae"]
-          minUnit: 2
-          analysis:
-            rating: "❌ INCORRECT"
-            issue: "Same issue: wrong question word and missing {name}."
-            corrected_sinhala: "ඔයාගේ නම {name} ද? නෑ."
-            corrected_tokens: ["oyaage", "nama", "{name}", "da", "nae"]
-        - text: "How are you, my friend?"
-          tokens: ["oya", "kohomada", "mage", "yaluwa"]
-          minUnit: 2
-          analysis:
-            rating: "⚠️ PARTIALLY CORRECT"
-            issue: "Word order is clunky; vocative should lead the greeting."
-            corrected_sinhala: "මගේ යාලුවා, ඔයා කොහොමද?"
-            corrected_tokens: ["mage", "yaluwa", "oya", "kohomada"]
-        - text: "You are my friend."
-          tokens: ["oya", "mage", "yaluwa"]
-          minUnit: 2
-          analysis:
-            rating: "✅ CORRECT"
-            issue: "Natural copula-less statement."
-            corrected_sinhala: "ඔයා මගේ යාලුවා."
-            corrected_tokens: ["oya", "mage", "yaluwa"]
-        - text: "Is he your friend?"
-          tokens: ["eya", "yaluwa", "oya", "kohomada"]
-          minUnit: 2
-          analysis:
-            rating: "❌ INCORRECT"
-            issue: "Relies on 'how?' instead of a yes/no question structure."
-            corrected_sinhala: "ඔයාගේ යාලුවා ඔහු ද?"
-            corrected_tokens: ["oyaage", "yaluwa", "eya", "da"]
-        - text: "Yes, he is my friend."
-          tokens: ["owu", "eya", "mage", "yaluwa"]
-          minUnit: 2
-          analysis:
-            rating: "✅ CORRECT"
-            issue: "Sentence reads naturally in Sinhala."
-            corrected_sinhala: "ඔව්, ඔහු මගේ යාලුවා."
-            corrected_tokens: ["owu", "eya", "mage", "yaluwa"]
-        - text: "No, she is not my friend."
-          tokens: ["nae", "eya", "mage", "yaluwa"]
-          minUnit: 2
-          analysis:
-            rating: "❌ INCORRECT"
-            issue: "Missing the negative verb form to express 'not'."
-            corrected_sinhala: "නෑ, ඇය මගේ යාලුවා නොවේ."
-            corrected_tokens: ["nae", "eya", "mage", "yaluwa", "novei"]
 
     - id: 3
-      name: "Nationalities"
+      name: "Where You're From"
       vocab:
-        - rata        # country
-        - gena        # from/about
-        - Australia
+        - mama
+        - oya
+        - kohenda
+        - rata
+        - gena
         - Sri_Lanka
+        - Australia
         - India
       sentences:
+        - text: "I am from Sri Lanka."
+          tokens: ["mama", "Sri_Lanka", "gena"]
+          minUnit: 3
         - text: "I am from {country}."
-          tokens: ["mama", "gena", "rata"]
+          tokens: ["mama", "rata", "gena"]
           minUnit: 3
-          analysis:
-            rating: "❌ INCORRECT"
-            issue: "Omits the {country} slot and uses unnatural word order."
-            corrected_sinhala: "මම {country}ෙන්."
-            corrected_tokens: ["mama", "{country}", "gena"]
-        - text: "My country is {country}."
-          tokens: ["mage", "rata"]
-          minUnit: 3
-          analysis:
-            rating: "❌ INCORRECT"
-            issue: "Sentence stops at 'my country' without naming it."
-            corrected_sinhala: "මගේ රට {country}."
-            corrected_tokens: ["mage", "rata", "{country}"]
-        - text: "Are you from {country}?"
-          tokens: ["oya", "gena", "rata", "kohomada"]
-          minUnit: 3
-          analysis:
-            rating: "❌ INCORRECT"
-            issue: "Uses 'how?' and never inserts the country name."
-            corrected_sinhala: "ඔයා {country}ෙන්ද?"
-            corrected_tokens: ["oya", "{country}", "gena", "da"]
-        - text: "Yes, I am from Sri Lanka."
-          tokens: ["owu", "mama", "gena", "Sri_Lanka"]
-          minUnit: 3
-          analysis:
-            rating: "⚠️ PARTIALLY CORRECT"
-            issue: "Word order is odd; the country should precede the postposition."
-            corrected_sinhala: "ඔව්, මම ශ්‍රී ලංකාවෙන්."
-            corrected_tokens: ["owu", "mama", "Sri_Lanka", "gena"]
-        - text: "No, I am not from Australia."
-          tokens: ["nae", "mama", "gena", "Australia"]
-          minUnit: 3
-          analysis:
-            rating: "❌ INCORRECT"
-            issue: "Missing the negative verb and the country precedes the postposition."
-            corrected_sinhala: "නෑ, මම ඔස්ට්‍රේලියාවෙන් නෙවේ."
-            corrected_tokens: ["nae", "mama", "Australia", "gena", "nevei"]
-        - text: "She is from Sri Lanka."
-          tokens: ["eya", "gena", "Sri_Lanka"]
-          minUnit: 3
-          analysis:
-            rating: "⚠️ PARTIALLY CORRECT"
-            issue: "Meaning is clear but the country should come before 'gena'."
-            corrected_sinhala: "ඇය ශ්‍රී ලංකාවෙන්."
-            corrected_tokens: ["eya", "Sri_Lanka", "gena"]
-        - text: "He is from Australia."
-          tokens: ["eya", "gena", "Australia"]
-          minUnit: 3
-          analysis:
-            rating: "⚠️ PARTIALLY CORRECT"
-            issue: "Same ordering issue as above."
-            corrected_sinhala: "ඔහු ඔස්ට්‍රේලියාවෙන්."
-            corrected_tokens: ["eya", "Australia", "gena"]
         - text: "Where are you from?"
-          tokens: ["oya", "gena", "rata", "kohomada"]
+          tokens: ["oya", "kohenda"]
           minUnit: 3
-          analysis:
-            rating: "❌ INCORRECT"
-            issue: "Translates to 'Your country how?' rather than 'Where from?'."
-            corrected_sinhala: "ඔයා කොහෙන්ද?"
-            corrected_tokens: ["oya", "kohenda"]
-        - text: "Is your country India?"
-          tokens: ["oya", "rata", "India", "kohomada"]
+        - text: "My country is Sri Lanka."
+          tokens: ["mage", "rata", "Sri_Lanka"]
           minUnit: 3
-          analysis:
-            rating: "❌ INCORRECT"
-            issue: "Needs the possessive form and a yes/no particle, not 'how?'."
-            corrected_sinhala: "ඔයාගේ රට ඉන්දියාව ද?"
-            corrected_tokens: ["oyaage", "rata", "India", "da"]
-        - text: "Yes, my country is India."
-          tokens: ["owu", "mage", "rata", "India"]
-          minUnit: 3
-          analysis:
-            rating: "✅ CORRECT"
-            issue: "Elliptical but natural affirmation."
-            corrected_sinhala: "ඔව්, මගේ රට ඉන්දියාව."
-            corrected_tokens: ["owu", "mage", "rata", "India"]
-        - text: "No, my country is not Sri Lanka."
-          tokens: ["nae", "mage", "rata", "Sri_Lanka"]
-          minUnit: 3
-          analysis:
-            rating: "❌ INCORRECT"
-            issue: "Negation is missing for 'is not'."
-            corrected_sinhala: "නෑ, මගේ රට ශ්‍රී ලංකාව නෙවේ."
-            corrected_tokens: ["nae", "mage", "rata", "Sri_Lanka", "nevei"]
 
     - id: 4
-      name: "Age & Numbers"
+      name: "Feelings & Health"
       vocab:
-        - vissara     # years
-        - ganan       # number
-        - dahaya      # ten
-        - visi        # twenty
-        - tis         # thirty
+        - mama
+        - oya
+        - sanipen
+        - da
+        - hondai
+        - naehae
+        - santhoshayi
+        - dukthayi
       sentences:
-        - text: "I am {age} years old."
-          tokens: ["mama", "vissara", "ganan"]
+        - text: "Are you well?"
+          tokens: ["oya", "sanipen", "da"]
           minUnit: 4
-          analysis:
-            rating: "❌ INCORRECT"
-            issue: "Does not place the age value in the sentence."
-            corrected_sinhala: "මම {age} වයසක."
-            corrected_tokens: ["mama", "{age}", "vayasa"]
-        - text: "How old are you?"
-          tokens: ["oya", "kohomada", "vissara"]
+        - text: "I am well."
+          tokens: ["mama", "sanipen"]
           minUnit: 4
-          analysis:
-            rating: "❌ INCORRECT"
-            issue: "Literal order sounds unnatural and omits 'age'."
-            corrected_sinhala: "ඔයාට වයස කොච්චරද?"
-            corrected_tokens: ["oyata", "vayasa", "kochchara", "da"]
-        - text: "He is twenty years old."
-          tokens: ["eya", "visi", "vissara"]
+        - text: "I am not well."
+          tokens: ["mama", "hondai", "naehae"]
           minUnit: 4
-          analysis:
-            rating: "✅ CORRECT"
-            issue: "Natural enumeration of age."
-            corrected_sinhala: "ඔහුට අවුරුදු විස්සයි."
-            corrected_tokens: ["eya", "visi", "vissara"]
-        - text: "She is ten years old."
-          tokens: ["eya", "dahaya", "vissara"]
+        - text: "I am happy."
+          tokens: ["mama", "santhoshayi"]
           minUnit: 4
-          analysis:
-            rating: "✅ CORRECT"
-            issue: "Natural rendering of the age statement."
-            corrected_sinhala: "ඇයට අවුරුදු දහයයි."
-            corrected_tokens: ["eya", "dahaya", "vissara"]
-        - text: "My friend is thirty years old."
-          tokens: ["mage", "yaluwa", "tis", "vissara"]
+        - text: "I am sad."
+          tokens: ["mama", "dukthayi"]
           minUnit: 4
-          analysis:
-            rating: "✅ CORRECT"
-            issue: "Communicates the intended meaning clearly."
-            corrected_sinhala: "මගේ යාලුවාට අවුරුදු තිහයි."
-            corrected_tokens: ["mage", "yaluwa", "tis", "vissara"]
-        - text: "Are you twenty years old?"
-          tokens: ["oya", "visi", "vissara", "kohomada"]
-          minUnit: 4
-          analysis:
-            rating: "❌ INCORRECT"
-            issue: "Ends with 'how?' instead of a yes/no particle and lacks natural order."
-            corrected_sinhala: "ඔයාට අවුරුදු විස්සයිද?"
-            corrected_tokens: ["oyata", "visi", "vissara", "da"]
-        - text: "Yes, I am twenty."
-          tokens: ["owu", "mama", "visi", "vissara"]
-          minUnit: 4
-          analysis:
-            rating: "✅ CORRECT"
-            issue: "Standard affirmative response."
-            corrected_sinhala: "ඔව්, මට අවුරුදු විස්සයි."
-            corrected_tokens: ["owu", "mama", "visi", "vissara"]
-        - text: "No, I am not ten."
-          tokens: ["nae", "mama", "dahaya", "vissara"]
-          minUnit: 4
-          analysis:
-            rating: "❌ INCORRECT"
-            issue: "Fails to negate the age statement."
-            corrected_sinhala: "නෑ, මට අවුරුදු දහය නෙවෙයි."
-            corrected_tokens: ["nae", "mata", "dahaya", "vissara", "nevei"]
-        - text: "How old is he?"
-          tokens: ["eya", "kohomada", "vissara"]
-          minUnit: 4
-          analysis:
-            rating: "❌ INCORRECT"
-            issue: "Needs an age-focused question rather than 'how?' after the pronoun."
-            corrected_sinhala: "ඔහුට වයස කොච්චරද?"
-            corrected_tokens: ["eyata", "vayasa", "kochchara", "da"]
-        - text: "Is your friend thirty? Yes."
-          tokens: ["mage", "yaluwa", "tis", "kohomada", "owu"]
-          minUnit: 4
-          analysis:
-            rating: "❌ INCORRECT"
-            issue: "Question uses 'how?' and lacks the age marker before answering."
-            corrected_sinhala: "ඔයාගේ යාලුවාට අවුරුදු තිහයිද? ඔව්."
-            corrected_tokens: ["oyaage", "yaluwa", "tis", "vissara", "da", "owu"]
-        - text: "Is your friend thirty? No."
-          tokens: ["mage", "yaluwa", "tis", "kohomada", "nae"]
-          minUnit: 4
-          analysis:
-            rating: "❌ INCORRECT"
-            issue: "Same structural issue as the affirmative version."
-            corrected_sinhala: "ඔයාගේ යාලුවාට අවුරුදු තිහයිද? නෑ."
-            corrected_tokens: ["oyaage", "yaluwa", "tis", "vissara", "da", "nae"]
 
     - id: 5
-      name: "Languages You Speak"
+      name: "Politeness & Farewells"
       vocab:
-        - kathaa      # speak
-        - Sinhala
-        - English
-        - Tamil
+        - suba
+        - udek
+        - raththiyek
+        - bayi
+        - gaman
+        - yanna
       sentences:
-        - text: "Do you speak Sinhala?"
-          tokens: ["oya", "kathaa", "Sinhala", "kohomada"]
+        - text: "Good morning."
+          tokens: ["suba", "udek"]
           minUnit: 5
-          analysis:
-            rating: "❌ INCORRECT"
-            issue: "Asks 'you speak Sinhala how?'; needs a verb and yes/no particle."
-            corrected_sinhala: "ඔයා සිංහල කතා කරනවද?"
-            corrected_tokens: ["oya", "Sinhala", "kathaa", "karanava", "da"]
-        - text: "Yes, I speak Sinhala."
-          tokens: ["owu", "mama", "kathaa", "Sinhala"]
+        - text: "Good night."
+          tokens: ["suba", "raththiyek"]
           minUnit: 5
-          analysis:
-            rating: "❌ INCORRECT"
-            issue: "Missing the verb 'karanava' to complete 'speak'."
-            corrected_sinhala: "ඔව්, මම සිංහල කතා කරනවා."
-            corrected_tokens: ["owu", "mama", "Sinhala", "kathaa", "karanava"]
-        - text: "No, I do not speak Sinhala."
-          tokens: ["nae", "mama", "kathaa", "Sinhala"]
+        - text: "Goodbye."
+          tokens: ["gaman", "yanna"]
           minUnit: 5
-          analysis:
-            rating: "❌ INCORRECT"
-            issue: "Needs both the verb and the negative ending."
-            corrected_sinhala: "නෑ, මම සිංහල කතා කරනවා නැහැ."
-            corrected_tokens: ["nae", "mama", "Sinhala", "kathaa", "karanava", "naehae"]
-        - text: "I speak English."
-          tokens: ["mama", "kathaa", "English"]
+        - text: "Bye."
+          tokens: ["bayi"]
           minUnit: 5
-          analysis:
-            rating: "❌ INCORRECT"
-            issue: "Again lacks the speaking verb form."
-            corrected_sinhala: "මම ඉංග්‍රීසි කතා කරනවා."
-            corrected_tokens: ["mama", "English", "kathaa", "karanava"]
-        - text: "She speaks Tamil."
-          tokens: ["eya", "kathaa", "Tamil"]
-          minUnit: 5
-          analysis:
-            rating: "❌ INCORRECT"
-            issue: "Needs the conjugated verb 'karanava'."
-            corrected_sinhala: "ඇය දෙමළ කතා කරනවා."
-            corrected_tokens: ["eya", "Tamil", "kathaa", "karanava"]
-        - text: "I can speak Sinhala and English."
-          tokens: ["mama", "kathaa", "Sinhala", "English"]
-          minUnit: 5
-          analysis:
-            rating: "❌ INCORRECT"
-            issue: "Missing both the conjunction and the ability marker 'puluwan'."
-            corrected_sinhala: "මම සිංහල සහ ඉංග්‍රීසි කතා කරන්න පුළුවන්."
-            corrected_tokens: ["mama", "Sinhala", "saha", "English", "kathaa", "karanna", "puluwan"]
-        - text: "Do you speak Tamil and English?"
-          tokens: ["oya", "kathaa", "Tamil", "English", "kohomada"]
-          minUnit: 5
-          analysis:
-            rating: "❌ INCORRECT"
-            issue: "Needs the conjunction, verb, and yes/no particle instead of 'how?'."
-            corrected_sinhala: "ඔයා දෙමළ සහ ඉංග්‍රීසි කතා කරනවද?"
-            corrected_tokens: ["oya", "Tamil", "saha", "English", "kathaa", "karanava", "da"]
-        - text: "Yes, I speak English and Tamil."
-          tokens: ["owu", "mama", "kathaa", "English", "Tamil"]
-          minUnit: 5
-          analysis:
-            rating: "❌ INCORRECT"
-            issue: "Affirmation still lacks the speaking verb and conjunction."
-            corrected_sinhala: "ඔව්, මම ඉංග්‍රීසි සහ දෙමළ කතා කරනවා."
-            corrected_tokens: ["owu", "mama", "English", "saha", "Tamil", "kathaa", "karanava"]
-        - text: "No, I only speak Sinhala."
-          tokens: ["nae", "mama", "kathaa", "Sinhala"]
-          minUnit: 5
-          analysis:
-            rating: "❌ INCORRECT"
-            issue: "Needs both 'only' and the properly negated verb phrase."
-            corrected_sinhala: "නෑ, මම සිංහල විතරක් කතා කරනවා."
-            corrected_tokens: ["nae", "mama", "Sinhala", "vitarak", "kathaa", "karanava"]
-        - text: "Does your friend speak English?"
-          tokens: ["mage", "yaluwa", "kathaa", "English", "kohomada"]
-          minUnit: 5
-          analysis:
-            rating: "❌ INCORRECT"
-            issue: "Needs possessive 'your', the verb, and a yes/no particle."
-            corrected_sinhala: "ඔයාගේ යාලුවා ඉංග්‍රීසි කතා කරනවද?"
-            corrected_tokens: ["oyaage", "yaluwa", "English", "kathaa", "karanava", "da"]
-        - text: "Yes, my friend speaks Sinhala."
-          tokens: ["owu", "mage", "yaluwa", "kathaa", "Sinhala"]
-          minUnit: 5
-          analysis:
-            rating: "❌ INCORRECT"
-            issue: "Requires the verb 'karanava' to complete 'speaks'."
-            corrected_sinhala: "ඔව්, මගේ යාලුවා සිංහල කතා කරනවා."
-            corrected_tokens: ["owu", "mage", "yaluwa", "Sinhala", "kathaa", "karanava"]
-        - text: "No, my friend does not speak Tamil."
-          tokens: ["nae", "mage", "yaluwa", "kathaa", "Tamil"]
-          minUnit: 5
-          analysis:
-            rating: "❌ INCORRECT"
-            issue: "Missing both the verb form and the negative ending."
-            corrected_sinhala: "නෑ, මගේ යාලුවා දෙමළ කතා කරනවා නෑ."
-            corrected_tokens: ["nae", "mage", "yaluwa", "Tamil", "kathaa", "karanava", "naehae"]

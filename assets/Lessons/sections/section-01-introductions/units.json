@@ -1,15 +1,15 @@
 {
   "id": "section-01-introductions",
   "number": 1,
-  "title": "Introductions & Essentials",
+  "title": "Introductions & Essentials (Revised)",
   "status": "unlocked",
   "cta": "Start Section 1",
-  "description": "Kick off your Sinhala journey with essential introductions and everyday basics.",
+  "description": "Core greetings, introductions, origins, feelings, and polite expressions for everyday Sinhala conversations.",
   "units": [
     {
       "id": "unit-01-pronouns-greetings",
       "number": 1,
-      "title": "Pronouns & Basic Greetings",
+      "title": "Greetings & Basics",
       "status": "unlocked",
       "lessons": [
         { "id": "lesson-01", "title": "Lesson 1", "status": "unlocked" },
@@ -32,7 +32,7 @@
     {
       "id": "unit-03-nationalities",
       "number": 3,
-      "title": "Nationalities",
+      "title": "Where You're From",
       "status": "locked",
       "lessons": [
         { "id": "lesson-01", "title": "Lesson 1", "status": "locked" },
@@ -44,7 +44,7 @@
     {
       "id": "unit-04-age",
       "number": 4,
-      "title": "Age & Numbers",
+      "title": "Feelings & Health",
       "status": "locked",
       "lessons": [
         { "id": "lesson-01", "title": "Lesson 1", "status": "locked" },
@@ -56,7 +56,7 @@
     {
       "id": "unit-05-languages",
       "number": 5,
-      "title": "Languages You Speak",
+      "title": "Politeness & Farewells",
       "status": "locked",
       "lessons": [
         { "id": "lesson-01", "title": "Lesson 1", "status": "locked" },

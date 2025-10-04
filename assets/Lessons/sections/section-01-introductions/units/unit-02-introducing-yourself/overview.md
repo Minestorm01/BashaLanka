@@ -1,21 +1,21 @@
 ---
 id: unit-02
 title: Introducing Yourself
-overview: Possessives (my/your/his/her) and two intro patterns: “My name is …” and “I am …”, plus asking names and polite replies.
+overview: Share your name, ask others for theirs, and close first meetings with a friendly “nice to meet you.”
 goals:
-  - Form possessives with ◌ගේ (gé) for living things; exception: මගේ (magē)
-  - Say “My name is …” / “I am …”
-  - Ask “What is your name?” (casual + formal)
-  - Use “thank you” to reply politely
-  - Recycle yes/no for confirmation
+  - Build possessives with ◌ගේ (gé) to say “my/your name”
+  - Introduce yourself with "මගේ නම {name}." and "මම {name}."
+  - Ask “What is your name?” casually with ඔයාගේ
+  - Say “Nice to meet you” using හඳුවීමේ සතුටක්
+  - Reuse greetings vocabulary to make polite intros
 prerequisites: [unit-01]
 lessons: [lesson-01, lesson-02, lesson-03, lesson-04]
-assessment: Introduce yourself, ask a name, and close with “Thank you.”
+assessment: Swap names with a new friend and finish with a polite closing line.
 ---
 
 # Unit 02 Overview
 
-- **Lesson 01** — Possessives: my/your/his/her (gé + magē)  
-- **Lesson 02** — “My name is …” / “I am …”  
-- **Lesson 03** — Ask “What is your name?” (casual vs formal)  
-- **Lesson 04** — Polite replies: “I’m fine, thank you.”  
+- **Lesson 01** — Possessives with gé: my/your name structures.
+- **Lesson 02** — Say "My name is {name}." and "I am {name}."
+- **Lesson 03** — Ask "What is your name?" and listen for answers.
+- **Lesson 04** — Close with "Nice to meet you" plus recap greetings.
