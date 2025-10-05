@@ -191,10 +191,50 @@ section-04-words:
       - { si: "හතලිහ", translit: "hataliha", en: "forty" }
       - { si: "කීයද", translit: "kiyada", en: "how many" }
 
-  unit-05-languages:
-    - {si: "සුභ", translit: "suba", en: "good (wish)"}
-    - {si: "උදේක්", translit: "udek", en: "morning"}
-    - {si: "රාත්තියේ", translit: "raththiyē", en: "night"}
-    - {si: "බයි", translit: "bayi", en: "bye"}
-    - {si: "ගමන්", translit: "gaman", en: "journey / trip"}
-    - {si: "යන්න", translit: "yanna", en: "to go"}
+# ======================================================
+# Section 05 — Communication & Speech
+# Core vocabulary for verbs of doing, speaking, and saying
+# ======================================================
+
+section-05-words:
+
+  unit-05-communication:
+    lesson-01-doing:
+      - { si: "කරනවා", translit: "karanavā", en: "to do / doing" }
+      - { si: "මම", translit: "mama", en: "I" }
+      - { si: "ඔයා", translit: "oyā", en: "you" }
+      - { si: "අපි", translit: "api", en: "we" }
+      - { si: "පාඩම්", translit: "pāḍam", en: "lesson / study" }
+      - { si: "කෑම", translit: "kæma", en: "food" }
+      - { si: "මොකක්ද?", translit: "mokakda?", en: "what?" }
+
+    lesson-02-speaking:
+      - { si: "කතා", translit: "kathā", en: "talk / speech" }
+      - { si: "කතා කරනවා", translit: "kathā karanavā", en: "to speak / to talk" }
+      - { si: "මම", translit: "mama", en: "I" }
+      - { si: "ඔයා", translit: "oyā", en: "you" }
+      - { si: "අපි", translit: "api", en: "we" }
+
+    lesson-03-languages:
+      - { si: "සිංහල", translit: "siṁhala", en: "Sinhala" }
+      - { si: "ඉංග්‍රීසි", translit: "ingrīsi", en: "English" }
+      - { si: "තාමිල්", translit: "tāmil", en: "Tamil" }
+      - { si: "චයිනිස්", translit: "chainīs", en: "Chinese" }
+      - { si: "අපි", translit: "api", en: "we" }
+      - { si: "කතා කරනවා", translit: "kathā karanavā", en: "to speak / to talk" }
+
+    lesson-04-questions-negation:
+      - { si: "ද?", translit: "da?", en: "question particle" }
+      - { si: "නැහැ", translit: "næhæ", en: "not / no" }
+      - { si: "කතා කරනවා", translit: "kathā karanavā", en: "to speak / to talk" }
+      - { si: "සිංහල", translit: "siṁhala", en: "Sinhala" }
+      - { si: "ඉංග්‍රීසි", translit: "ingrīsi", en: "English" }
+      - { si: "මම", translit: "mama", en: "I" }
+
+    lesson-05-saying:
+      - { si: "කියනවා", translit: "kiyanavā", en: "to say / to tell" }
+      - { si: "කියන්නේ", translit: "kiyannē", en: "is saying / called" }
+      - { si: "කොහොමද", translit: "kohomada", en: "how?" }
+      - { si: "සිංහලෙන්", translit: "siṁhalen", en: "in Sinhala" }
+      - { si: "ඉංග්‍රීසියෙන්", translit: "ingrīsiyen", en: "in English" }
+      - { si: "ඔයා", translit: "oyā", en: "you" }
