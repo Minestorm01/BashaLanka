@@ -3,33 +3,28 @@ title: "Pronouns + Yes/No Basics"
 duration_min: 8
 xp_reward: 10
 objectives:
-  - "Learn I/you/he/she"
-  - "Learn yes/no"
-  - "Use 'fine' in short replies"
+  - Learn pronouns for I / you / they
+  - Use yes / no in short replies
+  - Say “fine / good”
 vocab:
   - { si: "මම", translit: "mama", en: "I" }
   - { si: "ඔයා", translit: "oyā", en: "you (casual)" }
-  - { si: "ඔහු", translit: "ohu", en: "he" }
-  - { si: "ඇය", translit: "eya", en: "she" }
+  - { si: "ඒයා", translit: "eyā", en: "they / he / she (neutral)" }
   - { si: "ඔව්", translit: "owu", en: "yes" }
-  - { si: "නැහැ", translit: "nae", en: "no" }
+  - { si: "නෑ", translit: "nae", en: "no" }
   - { si: "හොඳයි", translit: "hondayi", en: "fine / good" }
-
 pronunciation_tips: |
-  හොඳයි ≈ hon-dai (not hon-dye).  
-  ඔව් ≈ o-woo (short “o” + long “oo”).  
-  නැහැ ≈ nae-ha (flat “ae” like cat).
-
+  හොඳයි = hon-dai (soft ‘h’).  
+  ඔව් = o-woo (short ‘o’).  
+  නෑ = flat ‘ae’ as in “cat”.
 content_blocks:
   - type: "CONCEPT"
-    body: "These are the first building blocks of Sinhala speech. With pronouns and yes/no, you can already hold tiny conversations."
+    body: "Sinhala replies often skip verbs. Just use pronoun + හොඳයි."
   - type: "MINI_EXAMPLE"
     body: |
-      මම — mama — I  
-      ඔයා — oyā — you (casual)  
+      මම හොඳයි — mama hondayi — I’m fine  
       ඔව් — owu — yes  
-      නැහැ — nae — no  
-      හොඳයි — hondayi — fine/good
+      නෑ — nae — no
   - type: "PRACTICE"
-    body: "Say each aloud. Pair them: 'ඔව්, මම හොඳයි.' / 'නැහැ, මම හොඳයි නැහැ.'"
+    body: "Say: මම හොඳයි, ඔව් / නෑ. Practise switching answers quickly."
 unlock_next: "lesson-02"
