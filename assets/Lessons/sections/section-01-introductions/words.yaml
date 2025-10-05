@@ -2,73 +2,127 @@
 # Core vocabulary for greetings, introductions, origin, feelings, and polite farewells
 
 # ======================================================
-# Section 01 — Introductions & Essentials
+# 🪷 SECTION 01 — INTRODUCTIONS & ESSENTIALS
 # Unit 01 — Pronouns & Greetings
-# Core vocabulary used across Lessons 01–05
 # ======================================================
 
 section-01-words:
 
-  unit-01:
+  unit-01-pronouns-greetings:
     lesson-01-pronouns-basics:
-    - { si: "මම", translit: "mama", en: "I / me" }
-    - { si: "ඔයා", translit: "oyā", en: "you" }
-    - { si: "ඔව්", translit: "owu", en: "yes" }
-    - { si: "නෑ", translit: "næ", en: "no" }
-    - { si: "හොඳයි", translit: "hondayi", en: "good / fine" }
-    - { si: "ඒයා", translit: "eyā", en: "he / she (neutral)" }
+      - { si: "මම", translit: "mama", en: "I / me" }
+      - { si: "ඔයා", translit: "oyā", en: "you" }
+      - { si: "ඔව්", translit: "owu", en: "yes" }
+      - { si: "නෑ", translit: "næ", en: "no" }
+      - { si: "හොඳයි", translit: "hondayi", en: "good / fine" }
+      - { si: "ඒයා", translit: "eyā", en: "he / she (neutral)" }
 
     lesson-02-how-are-you:
-     - { si: "ඔයාට", translit: "oyāta", en: "to you" 
-     - { si: "කොහොමද", translit: "kohomada", en: "how" }
-     - { si: "සනීපෙන්", translit: "sanīpen", en: "well / healthy" }
-     - { si: "සන්තෝෂයි", translit: "santhōshayi", en: "happy" }
-     - { si: "දුක්තයි", translit: "dukthayi", en: "sad / tired" }
-     - { si: "නැහැ", translit: "næhæ", en: "not / none" }
+      - { si: "ඔයාට", translit: "oyāta", en: "to you" }
+      - { si: "කොහොමද", translit: "kohomada", en: "how" }
+      - { si: "සනීපෙන්", translit: "sanīpen", en: "well / healthy" }
+      - { si: "සන්තෝෂයි", translit: "santhōshayi", en: "happy" }
+      - { si: "දුක්තයි", translit: "dukthayi", en: "sad / tired" }
+      - { si: "නැහැ", translit: "næhæ", en: "not / none" }
 
     lesson-03-formal-greeting:
-    - { si: "ආයුබෝවන්", translit: "āyubōvan", en: "hello (formal greeting)" }
-    - { si: "ඔබට", translit: "obata", en: "to you (formal)" }
-    - { si: "හොඳින්", translit: "hondin", en: "well / nicely" }
-    - { si: "ඉන්නවා", translit: "innavā", en: "to be / staying" }
-    - { si: "ස්තුතියි", translit: "sthuthiyi", en: "thank you" }
-    - { si: "ඔබටත්", translit: "obatat", en: "to you too" }
-      
-   lesson-04-politeness:
-     - { si: "කරුණාකර", translit: "karunākar", en: "please" }
-     - { si: "සමාවෙන්න", translit: "samāvenna", en: "sorry / excuse me" }
-     - { si: "ඒකට", translit: "ekata", en: "for that" }
-     - { si: "ඇතුළට", translit: "æthulata", en: "inside" }
-     - { si: "එන්න", translit: "enna", en: "come" }
+      - { si: "ආයුබෝවන්", translit: "āyubōvan", en: "hello (formal)" }
+      - { si: "ඔබට", translit: "obata", en: "to you (formal)" }
+      - { si: "හොඳින්", translit: "hondin", en: "well / nicely" }
+      - { si: "ඉන්නවා", translit: "innavā", en: "to be / staying" }
+      - { si: "ස්තුතියි", translit: "sthuthiyi", en: "thank you" }
+      - { si: "ඔබටත්", translit: "obatat", en: "to you too" }
 
-   lesson-05-farewells:
-     - { si: "සුභ", translit: "suba", en: "good / blessing" }
-     - { si: "උදේක්", translit: "udek", en: "morning" }
-     - { si: "රාත්‍රියක්", translit: "rātriyak", en: "night" }
-     - { si: "බායි", translit: "bāyi", en: "bye (casual)" }
-     - { si: "ගමන්", translit: "gaman", en: "journey / trip" }
-     - { si: "යන්න", translit: "yanna", en: "to go" }
+    lesson-04-politeness:
+      - { si: "කරුණාකර", translit: "karunākar", en: "please" }
+      - { si: "සමාවෙන්න", translit: "samāvenna", en: "sorry / excuse me" }
+      - { si: "ඒකට", translit: "ekata", en: "for that" }
+      - { si: "ඇතුළට", translit: "æthulata", en: "inside" }
+      - { si: "එන්න", translit: "enna", en: "come" }
 
-  unit-02-introducing-yourself:
-    - {si: "මගේ", translit: "magē", en: "my"}
-    - {si: "නම", translit: "nama", en: "name"}
-    - {si: "ඔයාගේ", translit: "oyāgē", en: "your (casual)"}
-    - {si: "මොකක්ද?", translit: "mokakda?", en: "what?"}
-    - {si: "ඔයාට", translit: "oyāta", en: "to you"}
-    - {si: "හඳුවීමේ", translit: "haduwimē", en: "of meeting"}
-    - {si: "සතුටක්", translit: "sathutak", en: "a pleasure"}
-    - {si: "{name}", translit: "{name}", en: "{name}"}
+    lesson-05-farewells:
+      - { si: "සුභ", translit: "suba", en: "good / blessing" }
+      - { si: "උදේක්", translit: "udek", en: "morning" }
+      - { si: "රාත්‍රියක්", translit: "rātriyak", en: "night" }
+      - { si: "බායි", translit: "bāyi", en: "bye (casual)" }
+      - { si: "ගමන්", translit: "gaman", en: "journey / trip" }
+      - { si: "යන්න", translit: "yanna", en: "to go" }
 
-  unit-03-nationalities:
-    - {si: "මම", translit: "mama", en: "I"}
-    - {si: "ඔයා", translit: "oyā", en: "you"}
-    - {si: "කොහෙන්ද?", translit: "kohenda?", en: "from where?"}
-    - {si: "රට", translit: "raṭa", en: "country"}
-    - {si: "ගෙන්", translit: "gen", en: "from"}
-    - {si: "ශ්‍රී ලංකාව", translit: "Sri Lankāva", en: "Sri Lanka"}
-    - {si: "ඕස්ට්‍රේලියාව", translit: "Ōstrēliyāva", en: "Australia"}
-    - {si: "ඉන්දියාව", translit: "Indiyāva", en: "India"}
-    - {si: "{country}", translit: "{country}", en: "{country}"}
+
+# ======================================================
+# 🌸 SECTION 02 — INTRODUCING YOURSELF
+# Unit 01 — Self-Identity & Names
+# ======================================================
+
+section-02-words:
+
+  unit-01-introducing-yourself:
+    lesson-01-possessives:
+      - { si: "මගේ", translit: "magē", en: "my" }
+      - { si: "ඔයාගේ", translit: "oyāgē", en: "your (casual)" }
+      - { si: "නම", translit: "nama", en: "name" }
+      - { si: "මොකක්ද", translit: "mokakda", en: "what?" }
+
+    lesson-02-introductions:
+      - { si: "මගේ", translit: "magē", en: "my" }
+      - { si: "{name}", translit: "{name}", en: "{name}" }
+      - { si: "යාලුවා", translit: "yāluwā", en: "friend" }
+      - { si: "ඒයා", translit: "eyā", en: "he / she (neutral)" }
+
+    lesson-03-ask-names:
+      - { si: "ඔයාගේ", translit: "oyāgē", en: "your" }
+      - { si: "නම", translit: "nama", en: "name" }
+      - { si: "මොකක්ද", translit: "mokakda", en: "what?" }
+      - { si: "ඔබගේ", translit: "obagē", en: "your (formal)" }
+
+    lesson-04-polite-replies:
+      - { si: "හඳුවීම", translit: "hamuwīma", en: "meeting" }
+      - { si: "සතුටක්", translit: "sathutak", en: "a pleasure" }
+      - { si: "ඔයාට", translit: "oyāta", en: "to you" }
+      - { si: "ස්තුතියි", translit: "sthuthiyi", en: "thank you" }
+      - { si: "හොඳින්", translit: "hondin", en: "well" }
+      - { si: "ඉන්නවා", translit: "innavā", en: "to be / stay" }
+
+
+# ======================================================
+# 🌍 SECTION 03 — COUNTRIES & ORIGIN
+# Unit 01 — Talking About Where You're From
+# ======================================================
+
+section-03-words:
+
+  unit-01-countries-origin:
+    lesson-01-what-country:
+      - { si: "රට", translit: "raṭa", en: "country" }
+      - { si: "මොකක්ද", translit: "mokakda", en: "what?" }
+      - { si: "ඔයාගේ", translit: "oyāgē", en: "your" }
+      - { si: "මගේ", translit: "magē", en: "my" }
+      - { si: "ශ්‍රී ලංකාව", translit: "Sri Lankāva", en: "Sri Lanka" }
+      - { si: "ඕස්ට්‍රේලියාව", translit: "Ōstrēliyāva", en: "Australia" }
+      - { si: "ඉන්දියාව", translit: "Indiyāva", en: "India" }
+      - { si: "ඇමෙරිකාව", translit: "Amerikāva", en: "America" }
+      - { si: "ජපන්", translit: "Japan", en: "Japan" }
+
+    lesson-02-my-country:
+      - { si: "වි", translit: "vayi", en: "is (formal)" }
+      - { si: "හොඳ", translit: "honda", en: "good / nice" }
+      - { si: "රටක්", translit: "raṭak", en: "a country" }
+      - { si: "නෙ", translit: "ne", en: "isn't it? / right?" }
+
+    lesson-03-from-country:
+      - { si: "මම", translit: "mama", en: "I / me" }
+      - { si: "ගෙන්", translit: "gen", en: "from" }
+      - { si: "කොහෙන්ද", translit: "kohenda", en: "from where?" }
+      - { si: "ශ්‍රී ලංකාවෙන්", translit: "Sri Lankāven", en: "from Sri Lanka" }
+      - { si: "ඕස්ට්‍රේලියාවෙන්", translit: "Ōstrēliyāven", en: "from Australia" }
+      - { si: "ඉන්දියාවෙන්", translit: "Indiyāven", en: "from India" }
+
+    lesson-04-are-you-from:
+      - { si: "ද", translit: "da", en: "question particle" }
+      - { si: "නෙවේ", translit: "nevē", en: "not / isn't" }
+      - { si: "ඔව්", translit: "owu", en: "yes" }
+      - { si: "නෑ", translit: "næ", en: "no" }
+      - { si: "ඒත්", translit: "ēth", en: "but" }
 
   unit-04-age:
     - {si: "මම", translit: "mama", en: "I"}
