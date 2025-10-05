@@ -1,6 +1,6 @@
 {
   "unitId": "s1u5",
-  "title": "Possessives",
+  "title": "Communication & Speech",
   "skills": [
     {
       "skillId": "s1u5-skill-01",
@@ -8,15 +8,129 @@
       "levels": [
         {
           "levelId": "s1u5-skill-01-l1",
-          "lessonCount": 2,
+          "lessonCount": 5,
           "lessons": [
-            { "lessonId": "lesson-01", "title": "Lesson 1", "objectives": [], "content_blocks": [] },
-            { "lessonId": "lesson-02", "title": "Lesson 2", "objectives": [], "content_blocks": [] }
+            {
+              "lessonId": "lesson-01",
+              "title": "Doing things",
+              "duration_min": 6,
+              "xp_reward": 10,
+              "objectives": [
+                "Use කරනවා with everyday actions",
+                "Ask මොකක්ද? for what"
+              ],
+              "vocab": [
+                {"si": "කරනවා", "translit": "karanawa", "en": "to do"},
+                {"si": "ඉගෙනගන්නවා", "translit": "igenagannawa", "en": "to study"},
+                {"si": "පාඩම්", "translit": "padam", "en": "lessons"},
+                {"si": "කෑම", "translit": "kema", "en": "food"},
+                {"si": "මොකක්", "translit": "mokak", "en": "what"},
+                {"si": "ද", "translit": "da", "en": "question particle"}
+              ],
+              "content_blocks": [
+                {"type": "CONCEPT", "body": "Pattern: [pronoun] + [activity] + කරනවා."},
+                {"type": "MINI_EXAMPLE", "body": "ඔයා මොකක් කරනවාද? — oyā mokak karanawāda?"},
+                {"type": "PRACTICE", "body": "Swap verbs (study/eat/play) while keeping the question form."}
+              ]
+            },
+            {
+              "lessonId": "lesson-02",
+              "title": "Speaking",
+              "duration_min": 6,
+              "xp_reward": 10,
+              "objectives": [
+                "Combine කතා + කරනවා",
+                "State who is talking"
+              ],
+              "vocab": [
+                {"si": "කතා", "translit": "katha", "en": "talk"},
+                {"si": "මම", "translit": "mama", "en": "I"},
+                {"si": "ඔයා", "translit": "oya", "en": "you"},
+                {"si": "අපි", "translit": "api", "en": "we"},
+                {"si": "ඔහු", "translit": "ohu", "en": "he"}
+              ],
+              "content_blocks": [
+                {"type": "CONCEPT", "body": "Speaking = කතා + කරනවා. No extra verb needed."},
+                {"type": "DIALOGUE", "body": "A: ඔයා කතා කරනවාද?\nB: ඔව්, මම කතා කරනවා."},
+                {"type": "PRACTICE", "body": "Match pronouns to sentences, then record each line."}
+              ]
+            },
+            {
+              "lessonId": "lesson-03",
+              "title": "Languages",
+              "duration_min": 7,
+              "xp_reward": 10,
+              "objectives": [
+                "Name Sinhala, English, Tamil, Chinese",
+                "Say I speak …"
+              ],
+              "vocab": [
+                {"si": "සිංහල", "translit": "sinhala", "en": "Sinhala"},
+                {"si": "ඉංග්‍රීසි", "translit": "ingrisi", "en": "English"},
+                {"si": "තාමිල්", "translit": "tamil", "en": "Tamil"},
+                {"si": "චයිනිස්", "translit": "chayinis", "en": "Chinese"},
+                {"si": "සිංහලෙන්", "translit": "sinhalaen", "en": "in Sinhala"},
+                {"si": "ඉංග්‍රීසියෙන්", "translit": "ingriisiyen", "en": "in English"}
+              ],
+              "content_blocks": [
+                {"type": "CONCEPT", "body": "Use language name + කතා කරනවා for \"speak\". Add -ෙන් for \"in [language]\"."},
+                {"type": "MINI_DIALOGUE", "body": "A: ඔයා සිංහල කතා කරනවාද?\nB: ඔව්, මම සිංහල කතා කරනවා."},
+                {"type": "PRACTICE", "body": "Mix and match pronouns with language tiles."}
+              ]
+            },
+            {
+              "lessonId": "lesson-04",
+              "title": "Questions & negation",
+              "duration_min": 7,
+              "xp_reward": 12,
+              "objectives": [
+                "Ask Do you speak …?",
+                "Answer with නැහැ / නෙවේ"
+              ],
+              "vocab": [
+                {"si": "නැහැ", "translit": "naehae", "en": "not / no"},
+                {"si": "නෙවේ", "translit": "neve", "en": "is not"},
+                {"si": "ඔව්", "translit": "owu", "en": "yes"},
+                {"si": "නෑ", "translit": "nae", "en": "no"},
+                {"si": "ප්‍රශ්නය", "translit": "prashnaya", "en": "question"},
+                {"si": "පිළිතුර", "translit": "pilithura", "en": "answer"}
+              ],
+              "content_blocks": [
+                {"type": "CONCEPT", "body": "Negative pattern: මම සිංහල කතා කරනවා නැහැ / නෙවේ."},
+                {"type": "MINI_DIALOGUE", "body": "A: ඔයා ඉංග්‍රීසි කතා කරනවාද?\nB: නැහැ, මම සිංහල කතා කරනවා."},
+                {"type": "PRACTICE", "body": "Choose the correct positive or negative response."}
+              ]
+            },
+            {
+              "lessonId": "lesson-05",
+              "title": "How do you say …?",
+              "duration_min": 8,
+              "xp_reward": 12,
+              "objectives": [
+                "Use කියන්නේ කොහොමද?",
+                "Give translations with කියනවා"
+              ],
+              "vocab": [
+                {"si": "කියන්නේ", "translit": "kiyanne", "en": "how to say"},
+                {"si": "කියනවා", "translit": "kiyanawa", "en": "to say"},
+                {"si": "කොහොම", "translit": "kohoma", "en": "how"},
+                {"si": "සිංහලෙන්", "translit": "sinhalaen", "en": "in Sinhala"},
+                {"si": "ඉංග්‍රීසියෙන්", "translit": "ingriisiyen", "en": "in English"},
+                {"si": "ස්තුතියි", "translit": "sthuthiyi", "en": "thank you"}
+              ],
+              "content_blocks": [
+                {"type": "CONCEPT", "body": "Question: \"Hello\" සිංහලෙන් ඔයා කියන්නේ කොහොමද? Answer: ආයුබෝවන් කියනවා."},
+                {"type": "DIALOGUE", "body": "A: \"Thank you\" සිංහලෙන් ඔයා කියන්නේ කොහොමද?\nB: ස්තුතියි කියනවා."},
+                {"type": "PRACTICE", "body": "Give translations between Sinhala and English with prompts."}
+              ]
+            }
           ],
           "review": {
             "type": "review",
             "title": "Lesson Review",
-            "content_blocks": []
+            "content_blocks": [
+              {"type": "SUMMARY", "body": "Review: everyday actions, speaking languages, asking and negating, and saying words in Sinhala."}
+            ]
           }
         }
       ]

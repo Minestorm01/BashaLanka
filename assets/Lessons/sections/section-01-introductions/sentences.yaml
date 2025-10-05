@@ -4,37 +4,51 @@
 
 Section01:
   title: "Introductions & Essentials"
-  description: "Greetings, introductions, origin, feelings, and polite expressions."
+  description: "Greetings, introductions, origin, feelings, age, and communication."
   units:
 
     - id: 1
-      name: "Greetings & Basics"
+      name: "Pronouns & Greetings"
       vocab:
-        - ayubowan
-        - oyaata
-        - kohomada
         - mama
-        - hondai
+        - oya
+        - ohu
+        - eya
+        - api
+        - owun
+        - ayubowan
+        - kohoma
+        - da
+        - hondayi
+        - honda
+        - saniipen
         - sthuthiyi
         - owu
         - nae
-        - karunakar
+        - naehae
+        - karunakara
         - samavenna
       sentences:
+        - text: "Hello!"
+          tokens: ["ayubowan"]
+          minUnit: 1
         - text: "Hello, how are you?"
-          tokens: ["ayubowan", "oyaata", "kohomada"]
+          tokens: ["ayubowan", "oya", "kohoma", "da"]
           minUnit: 1
-        - text: "I am fine, thank you."
-          tokens: ["mama", "hondai", "sthuthiyi"]
+        - text: "I am fine."
+          tokens: ["mama", "hondayi"]
           minUnit: 1
-        - text: "Yes."
-          tokens: ["owu"]
+        - text: "No, I am not fine."
+          tokens: ["nae", "mama", "honda", "naehae"]
           minUnit: 1
-        - text: "No."
-          tokens: ["nae"]
+        - text: "Are you well?"
+          tokens: ["oya", "saniipen", "da"]
+          minUnit: 1
+        - text: "Thank you."
+          tokens: ["sthuthiyi"]
           minUnit: 1
         - text: "Please."
-          tokens: ["karunakar"]
+          tokens: ["karunakara"]
           minUnit: 1
         - text: "Sorry."
           tokens: ["samavenna"]
@@ -44,239 +58,126 @@ Section01:
       name: "Introducing Yourself"
       vocab:
         - mage
-        - nama
         - oyaage
-        - mokakda
-        - haduwime
+        - obage
+        - ohuge
+        - eyage
+        - ape
+        - owunge
+        - nama
+        - mokak
+        - da
+        - kiyanne
+        - kiyanawa
+        - me
+        - yalua
+        - yaluwō
+        - oyata
+        - oyatat
+        - handuwima
         - sathutak
+        - sthuthiyi
+        - hondin
       sentences:
         - text: "My name is {name}."
           tokens: ["mage", "nama", "{name}"]
           minUnit: 2
         - text: "What is your name?"
-          tokens: ["oyaage", "nama", "mokakda"]
+          tokens: ["oyaage", "nama", "mokak", "da"]
           minUnit: 2
         - text: "Nice to meet you."
-          tokens: ["oyaata", "haduwime", "sathutak"]
+          tokens: ["oyata", "handuwima", "sathutak"]
           minUnit: 2
-
-    - id: 3
-      name: "Where You're From"
-      vocab:
-        - mama
-        - oya
-        - kohenda
-        - rata
-        - gena
-        - Sri_Lanka
-        - Australia
-      sentences:
-        - text: "I am from Sri Lanka."
-          tokens: ["mama", "Sri_Lanka", "gena"]
-          minUnit: 3
-        - text: "Where are you from?"
-          tokens: ["oya", "kohenda"]
-          minUnit: 3
-        - text: "My country is Australia."
-          tokens: ["mage", "rata", "Australia"]
-          minUnit: 3
-
-    - id: 4
-      name: "Feelings & Health"
-      vocab:
-        - mama
-        - oya
-        - sanipen
-        - da
-        - hondai
-        - naehae
-        - santhoshayi
-        - dukthayi
-      sentences:
-        - text: "Are you well?"
-          tokens: ["oya", "sanipen", "da"]
-          minUnit: 4
-        - text: "I am well."
-          tokens: ["mama", "sanipen"]
-          minUnit: 4
-        - text: "I am not well."
-          tokens: ["mama", "hondai", "naehae"]
-          minUnit: 4
-        - text: "I am happy."
-          tokens: ["mama", "santhoshayi"]
-          minUnit: 4
-        - text: "I am sad."
-          tokens: ["mama", "dukthayi"]
-          minUnit: 4
-
-    - id: 5
-      name: "Politeness & Farewells"
-      vocab:
-        - suba
-        - udek
-        - raththiyek
-        - bayi
-        - gaman
-        - yanna
-      sentences:
-        - text: "Good morning."
-          tokens: ["suba", "udek"]
-          minUnit: 5
-        - text: "Good night."
-          tokens: ["suba", "raththiyek"]
-          minUnit: 5
-        - text: "Goodbye."
-          tokens: ["gaman", "yanna"]
-          minUnit: 5
-        - text: "Bye."
-          tokens: ["bayi"]
-          minUnit: 5
-
-# ======================================================
-# Section 02 — Introducing Yourself & Others
-# ======================================================
-
-Section02:
-  title: "Introducing Yourself & Others"
-  description: "Learn to introduce yourself and others with pronouns and basic structures."
-  units:
-
-    - id: 1
-      name: "Pronouns & Simple Sentences"
-      vocab:
-        - mama
-        - oya
-        - api
-      sentences:
-        - text: "I am {name}."
-          tokens: ["mama", "{name}"]
-          minUnit: 1
-        - text: "You are {name}."
-          tokens: ["oya", "{name}"]
-          minUnit: 1
-        - text: "We are friends."
-          tokens: ["api", "yaluwō"]
-          minUnit: 1
-
-    - id: 2
-      name: "Introducing Others"
-      vocab:
-        - eya
-        - mage
-        - yaluwō
-      sentences:
+        - text: "This is my friend."
+          tokens: ["me", "mage", "yalua"]
+          minUnit: 2
         - text: "He is my friend."
-          tokens: ["eya", "mage", "yaluwō"]
+          tokens: ["ohu", "mage", "yalua"]
           minUnit: 2
         - text: "She is my friend."
-          tokens: ["eya", "mage", "yaluwō"]
+          tokens: ["eya", "mage", "yalua"]
+          minUnit: 2
+        - text: "Thank you, you too."
+          tokens: ["sthuthiyi", "oyatat"]
           minUnit: 2
 
     - id: 3
-      name: "Polite Forms"
+      name: "Countries & Origin"
       vocab:
-        - oyā
-        - oyāla
-        - ayubowan
-      sentences:
-        - text: "Hello everyone!"
-          tokens: ["ayubowan", "oyāla"]
-          minUnit: 3
-        - text: "How are you all?"
-          tokens: ["oyāla", "kohomada"]
-          minUnit: 3
-        - text: "We are fine."
-          tokens: ["api", "hondai"]
-          minUnit: 3
-
-# ======================================================
-# Section 03 — Origins & Nationalities
-# ======================================================
-
-Section03:
-  title: "Origins & Nationalities"
-  description: "Learn to say where you and others are from."
-  units:
-
-    - id: 1
-      name: "Talking About Where You’re From"
-      vocab:
-        - mama
-        - oya
         - rata
-        - gena
-        - kohenda
-      sentences:
-        - text: "I am from Sri Lanka."
-          tokens: ["mama", "Sri_Lanka", "gena"]
-          minUnit: 1
-        - text: "Are you from Australia?"
-          tokens: ["oya", "Australia", "gena", "da"]
-          minUnit: 1
-        - text: "My country is Sri Lanka."
-          tokens: ["mage", "rata", "Sri_Lanka"]
-          minUnit: 1
-
-    - id: 2
-      name: "Countries & Nationalities"
-      vocab:
-        - Sri_Lanka
-        - Australia
-        - India
-      sentences:
-        - text: "He is from India."
-          tokens: ["eya", "India", "gena"]
-          minUnit: 2
-        - text: "We are from Australia."
-          tokens: ["api", "Australia", "gena"]
-          minUnit: 2
-
-# ======================================================
-# Section 04 — Age & Numbers
-# ======================================================
-
-Section04:
-  title: "Age & Numbers"
-  description: "Learn to ask and tell ages and count numbers."
-  units:
-
-    - id: 1
-      name: "Asking Age"
-      vocab:
-        - oya
-        - vayasa
-        - kiiyada
-        - da
-      sentences:
-        - text: "How old are you?"
-          tokens: ["oya", "vayasa", "kiiyada", "da"]
-          minUnit: 1
-
-    - id: 2
-      name: "Telling Age"
-      vocab:
         - mage
-        - vayasa
-        - vissayi
+        - oya
+        - oyaage
+        - mokak
+        - da
+        - srilankava
+        - australiya
+        - indiyava
+        - amerikava
+        - cheenaya
+        - japanaya
+        - kanadava
+        - pruthugalaya
+        - jermany
+        - france
+        - italiya
+        - ven
+        - gen
+        - kohen
+        - kohe
+        - methana
+        - othana
+        - owu
+        - nae
+        - neve
       sentences:
-        - text: "I am twenty years old."
-          tokens: ["mage", "vayasa", "vissayi"]
-          minUnit: 2
-
-    - id: 3
-      name: "Comparing Age"
-      vocab:
-        - ohugē
-        - ayagē
-        - vadā
-      sentences:
-        - text: "He is older than me."
-          tokens: ["ohugē", "vayasa", "vadā", "maṭa"]
+        - text: "What is your country?"
+          tokens: ["oyaage", "rata", "mokak", "da"]
+          minUnit: 3
+        - text: "My country is Sri Lanka."
+          tokens: ["mage", "rata", "srilankava"]
+          minUnit: 3
+        - text: "I am from Sri Lanka."
+          tokens: ["mama", "srilankava", "ven"]
+          minUnit: 3
+        - text: "Where are you from?"
+          tokens: ["oya", "kohen", "da"]
+          minUnit: 3
+        - text: "I am from Australia."
+          tokens: ["mama", "australiya", "ven"]
+          minUnit: 3
+        - text: "Are you from India?"
+          tokens: ["oya", "indiyava", "ven", "da"]
+          minUnit: 3
+        - text: "No, I am from China."
+          tokens: ["nae", "mama", "cheenaya", "ven"]
+          minUnit: 3
+        - text: "My friend is not from America."
+          tokens: ["mage", "yalua", "amerikava", "ven", "neve"]
           minUnit: 3
 
     - id: 4
-      name: "Numbers Practice"
+      name: "Age & Numbers"
       vocab:
+        - oya
+        - oyaage
+        - oyala
+        - oyalage
+        - ohuge
+        - eyage
+        - owunge
+        - ape
+        - nivasa
+        - potha
+        - yaluwō
+        - vayasa
+        - kiyada
+        - da
+        - vayasayi
+        - avurudu
+        - samanayi
+        - wada
+        - kuda
         - eka
         - deka
         - thuna
@@ -287,97 +188,118 @@ Section04:
         - ata
         - navaya
         - dahaya
+        - ekolaha
+        - dolaha
+        - dahathuna
+        - dahahathara
+        - pahalowa
+        - solaha
+        - dahahata
+        - dahaata
+        - dahanavaya
+        - vissa
+        - ekavissa
+        - devissa
+        - thunavissa
+        - hatharavissa
+        - pahavissa
+        - hayavissa
+        - hathavissa
+        - atavissa
+        - navayavissa
+        - thiha
+        - thihaeka
+        - thihadeka
+        - thihathuna
+        - thihahathara
+        - thihapaha
+        - thihahaya
+        - thihahatha
+        - thihaata
+        - thihanavaya
+        - hathaliha
       sentences:
-        - text: "Count from one to ten."
+        - text: "How old are you?"
+          tokens: ["oyaage", "vayasa", "kiyada", "da"]
+          minUnit: 4
+        - text: "My age is twenty."
+          tokens: ["mage", "vayasa", "vissa", "vayasayi"]
+          minUnit: 4
+        - text: "He is twenty years old."
+          tokens: ["ohu", "avurudu", "vissa", "vayasayi"]
+          minUnit: 4
+        - text: "Her age is not thirty."
+          tokens: ["eyage", "vayasa", "thiha", "neve"]
+          minUnit: 4
+        - text: "Our house is the same age."
+          tokens: ["ape", "nivasa", "samanayi"]
+          minUnit: 4
+        - text: "Their friend is older than me."
+          tokens: ["owunge", "yalua", "wada", "mama", "vayasayi"]
+          minUnit: 4
+        - text: "Count to ten."
           tokens: ["eka", "deka", "thuna", "hathara", "paha", "haya", "hatha", "ata", "navaya", "dahaya"]
           minUnit: 4
+        - text: "Count to forty."
+          tokens: ["eka", "deka", "thuna", "hathara", "paha", "haya", "hatha", "ata", "navaya", "dahaya", "ekolaha", "dolaha", "dahathuna", "dahahathara", "pahalowa", "solaha", "dahahata", "dahaata", "dahanavaya", "vissa", "ekavissa", "devissa", "thunavissa", "hatharavissa", "pahavissa", "hayavissa", "hathavissa", "atavissa", "navayavissa", "thiha", "thihaeka", "thihadeka", "thihathuna", "thihahathara", "thihapaha", "thihahaya", "thihahatha", "thihaata", "thihanavaya", "hathaliha"]
+          minUnit: 4
 
-# ======================================================
-# Section 05 — Communication & Speech
-# ======================================================
-
-Section05:
-  title: "Communication & Speech"
-  description: "Learn to do, speak, ask, and say words in Sinhala."
-  units:
-
-    - id: 1
-      name: "Doing Things — කරනවා"
+    - id: 5
+      name: "Communication & Speech"
       vocab:
         - mama
         - oya
         - api
-        - karanavā
-        - pāḍam
-        - kæma
-        - mokakda
-      sentences:
-        - text: "I study."
-          tokens: ["mama", "pāḍam", "karanavā"]
-          minUnit: 1
-        - text: "We are eating."
-          tokens: ["api", "kæma", "karanavā"]
-          minUnit: 1
-        - text: "What are you doing?"
-          tokens: ["oya", "mokakda", "karanavā"]
-          minUnit: 1
-
-    - id: 2
-      name: "Speaking — කතා කරනවා"
-      vocab:
-        - kathā
-        - karanavā
-      sentences:
-        - text: "I am speaking."
-          tokens: ["mama", "kathā", "karanavā"]
-          minUnit: 2
-        - text: "You are talking."
-          tokens: ["oya", "kathā", "karanavā"]
-          minUnit: 2
-
-    - id: 3
-      name: "Speaking Languages"
-      vocab:
-        - siṁhala
-        - ingrīsi
-        - tāmil
-        - chainīs
-      sentences:
-        - text: "I speak Sinhala."
-          tokens: ["mama", "siṁhala", "kathā", "karanavā"]
-          minUnit: 3
-        - text: "We speak Tamil."
-          tokens: ["api", "tāmil", "kathā", "karanavā"]
-          minUnit: 3
-        - text: "He speaks Chinese."
-          tokens: ["eya", "chainīs", "kathā", "karanavā"]
-          minUnit: 3
-
-    - id: 4
-      name: "Questions & Negation"
-      vocab:
+        - ohu
+        - owu
+        - nae
+        - naehae
+        - karanawa
+        - igenagannawa
+        - padam
+        - kema
+        - keli
+        - mokak
         - da
-        - næhæ
+        - katha
+        - kiyanawa
+        - kiyanne
+        - prashnaya
+        - pilithura
+        - sinhala
+        - ingrisi
+        - tamil
+        - chayinis
+        - sinhalaen
+        - ingriisiyen
+        - tamiyen
+        - chayinisen
+        - kohoma
       sentences:
-        - text: "Do you speak Sinhala?"
-          tokens: ["oya", "siṁhala", "kathā", "karanavā", "da"]
-          minUnit: 4
+        - text: "I am studying."
+          tokens: ["mama", "padam", "igenagannawa"]
+          minUnit: 5
+        - text: "We are eating."
+          tokens: ["api", "kema", "karanawa"]
+          minUnit: 5
+        - text: "What are you doing?"
+          tokens: ["oya", "mokak", "karanawa", "da"]
+          minUnit: 5
+        - text: "I speak Sinhala."
+          tokens: ["mama", "sinhala", "katha", "karanawa"]
+          minUnit: 5
+        - text: "Do you speak English?"
+          tokens: ["oya", "ingrisi", "katha", "karanawa", "da"]
+          minUnit: 5
         - text: "I do not speak Sinhala."
-          tokens: ["mama", "siṁhala", "kathā", "karanavā", "næhæ"]
-          minUnit: 4
-
-    - id: 5
-      name: "Saying Words — කියනවා"
-      vocab:
-        - kiyanavā
-        - kiyannē
-        - kohomada
-        - siṁhalen
-        - ingrīsiyen
-      sentences:
+          tokens: ["mama", "sinhala", "katha", "karanawa", "naehae"]
+          minUnit: 5
         - text: "How do you say 'Hello' in Sinhala?"
-          tokens: ["siṁhalen", "oya", "kiyannē", "kohomada"]
+          tokens: ["sinhalaen", "oya", "kiyanne", "kohoma", "da"]
           minUnit: 5
         - text: "We say 'Ayubowan.'"
-          tokens: ["api", "ayubowan", "kiyanavā"]
+          tokens: ["api", "ayubowan", "kiyanawa"]
+          minUnit: 5
+        - text: "He says thank you."
+          tokens: ["ohu", "sthuthiyi", "kiyanawa"]
           minUnit: 5
