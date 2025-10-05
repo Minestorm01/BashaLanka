@@ -15,6 +15,22 @@ section-01-words:
     - {si: "කරුණාකර", translit: "karuṇākara", en: "please"}
     - {si: "සමාවෙන්න", translit: "samāvenna", en: "sorry / excuse me"}
 
+  unit-01-polite-basics:
+    - { si: "ස්තුතියි", translit: "sthuthiyi", en: "thank you" }
+    - { si: "කරුණාකර", translit: "karuṇākara", en: "please" }
+    - { si: "සමාවෙන්න", translit: "samāvenna", en: "sorry / excuse me" }
+
+  unit-01-farewells-smalltalk:
+    - { si: "සුභ", translit: "suba", en: "good (blessing)" }
+    - { si: "උදේක්", translit: "udek", en: "morning" }
+    - { si: "රාත්‍රියක්", translit: "rātriyak", en: "night" }
+    - { si: "බායි", translit: "bāyi", en: "bye (casual)" }
+    - { si: "ගමන්", translit: "gaman", en: "journey / go (noun)" }
+    - { si: "යන්න", translit: "yanna", en: "to go" }
+    - { si: "ඔයාට", translit: "oyāta", en: "to you" }
+    - { si: "හමුවීම", translit: "hamuwīma", en: "meeting" }
+    - { si: "සතුටක්", translit: "sathutak", en: "a pleasure" }
+
   unit-02-introducing-yourself:
     - {si: "මගේ", translit: "magē", en: "my"}
     - {si: "නම", translit: "nama", en: "name"}
