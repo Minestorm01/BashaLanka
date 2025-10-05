@@ -1,18 +1,32 @@
 id: lesson-04
-title: "Thank You + Polite Reply"
-duration_min: 5
-xp_reward: 8
+title: "Polite Replies — Thank You / I’m Well"
+duration_min: 9
+xp_reward: 13
 objectives:
-  - Say **thank you** politely
-  - Add **sthuthi** after answers
+  - Use **ස්තුතියි** to reply politely
+  - Say **මම හොඳින් ඉන්නවා** (I’m doing well)
+  - Combine with greetings for smooth small talk
 vocab:
-  - { si: "ස්තුතියි / ස්තුති", translit: "stūthiyi / sthuthi", en: "thank you" }
-  - { si: "මම හොඳින් ඉන්නවා.", translit: "mama hondin innavā.", en: "I’m doing well." }
-  - { si: "මම හොඳින් ඉන්නවා, ස්තුති.", translit: "mama hondin innavā, sthuthi.", en: "I’m well, thank you." }
-pronunciation_tips: "ස්තුති ≈ sthuthi (like ‘stoo-thi’)."
+  - { si: "ස්තුතියි", translit: "sthuthiyi", en: "thank you" }
+  - { si: "මම", translit: "mama", en: "I" }
+  - { si: "හොඳින්", translit: "hondin", en: "well" }
+  - { si: "ඉන්නවා", translit: "innavā", en: "to be / stay" }
+  - { si: "මම හොඳින් ඉන්නවා", translit: "mama hondin innavā", en: "I’m doing well" }
+  - { si: "ඒයා", translit: "eyā", en: "they / he / she (neutral)" }
+  - { si: "ඒයා හොඳින් ඉන්නවා", translit: "eyā hondin innavā", en: "They’re doing well" }
+pronunciation_tips: |
+  හොඳින් = hon-din (soft n).  
+  ඉන්නවා = in-na-vā (steady rhythm).  
+  ස්තුතියි ≈ sthoo-thi-yi.
 content_blocks:
   - type: "CONCEPT"
-    body: "Add **sthuthi** to soften replies. Works after greetings or Q&A."
+    body: "Use **ස්තුතියි** after greetings or answers to sound polite.  
+           Sinhala uses **ඒයා** for 'he/she' in neutral speech."
+  - type: "MINI_EXAMPLE"
+    body: |
+      A: ඔයාට කොහොමද? — oyāta kohomada? — How are you?  
+      B: මම හොඳින් ඉන්නවා, ස්තුතියි. — mama hondin innavā, sthuthiyi. — I’m doing well, thank you.  
+      C: ඒයා හොඳින් ඉන්නවා. — eyā hondin innavā. — They’re fine.
   - type: "PRACTICE"
-    body: "Roleplay: ask → answer politely → add thank you. Swap roles."
+    body: "Pair up: greet → ask → answer for yourself → answer about someone else → thank politely."
 unlock_next: null
