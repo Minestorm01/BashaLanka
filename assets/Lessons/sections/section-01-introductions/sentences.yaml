@@ -1,6 +1,10 @@
+# ======================================================
+# Section 01 — Introductions & Essentials
+# ======================================================
+
 Section01:
-  title: "Introductions & Essentials (Revised)"
-  description: "Core greetings, introductions, origin, feelings, and polite expressions."
+  title: "Introductions & Essentials"
+  description: "Greetings, introductions, origin, feelings, and polite expressions."
   units:
 
     - id: 1
@@ -20,33 +24,21 @@ Section01:
         - text: "Hello, how are you?"
           tokens: ["ayubowan", "oyaata", "kohomada"]
           minUnit: 1
-          analysis:
-            rating: "✅ CORRECT"
         - text: "I am fine, thank you."
           tokens: ["mama", "hondai", "sthuthiyi"]
           minUnit: 1
-          analysis:
-            rating: "✅ CORRECT"
         - text: "Yes."
           tokens: ["owu"]
           minUnit: 1
-          analysis:
-            rating: "✅ CORRECT"
         - text: "No."
           tokens: ["nae"]
           minUnit: 1
-          analysis:
-            rating: "✅ CORRECT"
         - text: "Please."
           tokens: ["karunakar"]
           minUnit: 1
-          analysis:
-            rating: "✅ CORRECT"
         - text: "Sorry."
           tokens: ["samavenna"]
           minUnit: 1
-          analysis:
-            rating: "✅ CORRECT"
 
     - id: 2
       name: "Introducing Yourself"
@@ -61,21 +53,12 @@ Section01:
         - text: "My name is {name}."
           tokens: ["mage", "nama", "{name}"]
           minUnit: 2
-          analysis:
-            rating: "✅ CORRECT"
         - text: "What is your name?"
           tokens: ["oyaage", "nama", "mokakda"]
           minUnit: 2
-          analysis:
-            rating: "✅ CORRECT"
         - text: "Nice to meet you."
           tokens: ["oyaata", "haduwime", "sathutak"]
           minUnit: 2
-          analysis:
-            rating: "⚠️ PARTIALLY CORRECT"
-            issue: "Lacks an object marker and speaker reference, reading as 'Meeting to you is a pleasure.'"
-            corrected_sinhala: "ඔයාව හදුනාගන්නට මට සතුටක්."
-            corrected_tokens: ["oyava", "hadunagannata", "mata", "sathutak"]
 
     - id: 3
       name: "Where You're From"
@@ -87,31 +70,16 @@ Section01:
         - gena
         - Sri_Lanka
         - Australia
-        - India
       sentences:
         - text: "I am from Sri Lanka."
           tokens: ["mama", "Sri_Lanka", "gena"]
           minUnit: 3
-          analysis:
-            rating: "✅ CORRECT"
-        - text: "I am from {country}."
-          tokens: ["mama", "rata", "gena"]
-          minUnit: 3
-          analysis:
-            rating: "❌ INCORRECT"
-            issue: "Omits the {country} placeholder, so the sentence becomes 'I am from the country' without specifying which one."
-            corrected_sinhala: "මම {country} රටෙන්."
-            corrected_tokens: ["mama", "{country}", "raten"]
         - text: "Where are you from?"
           tokens: ["oya", "kohenda"]
           minUnit: 3
-          analysis:
-            rating: "✅ CORRECT"
-        - text: "My country is Sri Lanka."
-          tokens: ["mage", "rata", "Sri_Lanka"]
+        - text: "My country is Australia."
+          tokens: ["mage", "rata", "Australia"]
           minUnit: 3
-          analysis:
-            rating: "✅ CORRECT"
 
     - id: 4
       name: "Feelings & Health"
@@ -128,34 +96,18 @@ Section01:
         - text: "Are you well?"
           tokens: ["oya", "sanipen", "da"]
           minUnit: 4
-          analysis:
-            rating: "✅ CORRECT"
         - text: "I am well."
           tokens: ["mama", "sanipen"]
           minUnit: 4
-          analysis:
-            rating: "✅ CORRECT"
         - text: "I am not well."
           tokens: ["mama", "hondai", "naehae"]
           minUnit: 4
-          analysis:
-            rating: "⚠️ PARTIALLY CORRECT"
-            issue: "Uses 'hondai næhæ' ('not good') instead of the expected health adjective."
-            corrected_sinhala: "මම සනීපෙන් නැහැ."
-            corrected_tokens: ["mama", "sanipen", "naehae"]
         - text: "I am happy."
           tokens: ["mama", "santhoshayi"]
           minUnit: 4
-          analysis:
-            rating: "✅ CORRECT"
         - text: "I am sad."
           tokens: ["mama", "dukthayi"]
           minUnit: 4
-          analysis:
-            rating: "❌ INCORRECT"
-            issue: "'dukthayi' is not a natural Sinhala form; use 'It's sad for me.'"
-            corrected_sinhala: "මට දුකයි."
-            corrected_tokens: ["mata", "dukayi"]
 
     - id: 5
       name: "Politeness & Farewells"
@@ -170,29 +122,262 @@ Section01:
         - text: "Good morning."
           tokens: ["suba", "udek"]
           minUnit: 5
-          analysis:
-            rating: "⚠️ PARTIALLY CORRECT"
-            issue: "'suba udek' is awkward; the natural greeting is 'suba udāsanak.'"
-            corrected_sinhala: "සුබ උදෑසනක්."
-            corrected_tokens: ["suba", "udasanak"]
         - text: "Good night."
           tokens: ["suba", "raththiyek"]
           minUnit: 5
-          analysis:
-            rating: "⚠️ PARTIALLY CORRECT"
-            issue: "'raththiyek' is an uncommon form; prefer 'rathriyak.'"
-            corrected_sinhala: "සුභ රාත්‍රියක්."
-            corrected_tokens: ["suba", "rathriyak"]
         - text: "Goodbye."
           tokens: ["gaman", "yanna"]
           minUnit: 5
-          analysis:
-            rating: "⚠️ PARTIALLY CORRECT"
-            issue: "Imperative 'gaman yanna' feels like a command; 'suba gaman' is the polite farewell."
-            corrected_sinhala: "සුභ ගමන්."
-            corrected_tokens: ["suba", "gaman"]
         - text: "Bye."
           tokens: ["bayi"]
           minUnit: 5
-          analysis:
-            rating: "✅ CORRECT"
+
+# ======================================================
+# Section 02 — Introducing Yourself & Others
+# ======================================================
+
+Section02:
+  title: "Introducing Yourself & Others"
+  description: "Learn to introduce yourself and others with pronouns and basic structures."
+  units:
+
+    - id: 1
+      name: "Pronouns & Simple Sentences"
+      vocab:
+        - mama
+        - oya
+        - api
+      sentences:
+        - text: "I am {name}."
+          tokens: ["mama", "{name}"]
+          minUnit: 1
+        - text: "You are {name}."
+          tokens: ["oya", "{name}"]
+          minUnit: 1
+        - text: "We are friends."
+          tokens: ["api", "yaluwō"]
+          minUnit: 1
+
+    - id: 2
+      name: "Introducing Others"
+      vocab:
+        - eya
+        - mage
+        - yaluwō
+      sentences:
+        - text: "He is my friend."
+          tokens: ["eya", "mage", "yaluwō"]
+          minUnit: 2
+        - text: "She is my friend."
+          tokens: ["eya", "mage", "yaluwō"]
+          minUnit: 2
+
+    - id: 3
+      name: "Polite Forms"
+      vocab:
+        - oyā
+        - oyāla
+        - ayubowan
+      sentences:
+        - text: "Hello everyone!"
+          tokens: ["ayubowan", "oyāla"]
+          minUnit: 3
+        - text: "How are you all?"
+          tokens: ["oyāla", "kohomada"]
+          minUnit: 3
+        - text: "We are fine."
+          tokens: ["api", "hondai"]
+          minUnit: 3
+
+# ======================================================
+# Section 03 — Origins & Nationalities
+# ======================================================
+
+Section03:
+  title: "Origins & Nationalities"
+  description: "Learn to say where you and others are from."
+  units:
+
+    - id: 1
+      name: "Talking About Where You’re From"
+      vocab:
+        - mama
+        - oya
+        - rata
+        - gena
+        - kohenda
+      sentences:
+        - text: "I am from Sri Lanka."
+          tokens: ["mama", "Sri_Lanka", "gena"]
+          minUnit: 1
+        - text: "Are you from Australia?"
+          tokens: ["oya", "Australia", "gena", "da"]
+          minUnit: 1
+        - text: "My country is Sri Lanka."
+          tokens: ["mage", "rata", "Sri_Lanka"]
+          minUnit: 1
+
+    - id: 2
+      name: "Countries & Nationalities"
+      vocab:
+        - Sri_Lanka
+        - Australia
+        - India
+      sentences:
+        - text: "He is from India."
+          tokens: ["eya", "India", "gena"]
+          minUnit: 2
+        - text: "We are from Australia."
+          tokens: ["api", "Australia", "gena"]
+          minUnit: 2
+
+# ======================================================
+# Section 04 — Age & Numbers
+# ======================================================
+
+Section04:
+  title: "Age & Numbers"
+  description: "Learn to ask and tell ages and count numbers."
+  units:
+
+    - id: 1
+      name: "Asking Age"
+      vocab:
+        - oya
+        - vayasa
+        - kiiyada
+        - da
+      sentences:
+        - text: "How old are you?"
+          tokens: ["oya", "vayasa", "kiiyada", "da"]
+          minUnit: 1
+
+    - id: 2
+      name: "Telling Age"
+      vocab:
+        - mage
+        - vayasa
+        - vissayi
+      sentences:
+        - text: "I am twenty years old."
+          tokens: ["mage", "vayasa", "vissayi"]
+          minUnit: 2
+
+    - id: 3
+      name: "Comparing Age"
+      vocab:
+        - ohugē
+        - ayagē
+        - vadā
+      sentences:
+        - text: "He is older than me."
+          tokens: ["ohugē", "vayasa", "vadā", "maṭa"]
+          minUnit: 3
+
+    - id: 4
+      name: "Numbers Practice"
+      vocab:
+        - eka
+        - deka
+        - thuna
+        - hathara
+        - paha
+        - haya
+        - hatha
+        - ata
+        - navaya
+        - dahaya
+      sentences:
+        - text: "Count from one to ten."
+          tokens: ["eka", "deka", "thuna", "hathara", "paha", "haya", "hatha", "ata", "navaya", "dahaya"]
+          minUnit: 4
+
+# ======================================================
+# Section 05 — Communication & Speech
+# ======================================================
+
+Section05:
+  title: "Communication & Speech"
+  description: "Learn to do, speak, ask, and say words in Sinhala."
+  units:
+
+    - id: 1
+      name: "Doing Things — කරනවා"
+      vocab:
+        - mama
+        - oya
+        - api
+        - karanavā
+        - pāḍam
+        - kæma
+        - mokakda
+      sentences:
+        - text: "I study."
+          tokens: ["mama", "pāḍam", "karanavā"]
+          minUnit: 1
+        - text: "We are eating."
+          tokens: ["api", "kæma", "karanavā"]
+          minUnit: 1
+        - text: "What are you doing?"
+          tokens: ["oya", "mokakda", "karanavā"]
+          minUnit: 1
+
+    - id: 2
+      name: "Speaking — කතා කරනවා"
+      vocab:
+        - kathā
+        - karanavā
+      sentences:
+        - text: "I am speaking."
+          tokens: ["mama", "kathā", "karanavā"]
+          minUnit: 2
+        - text: "You are talking."
+          tokens: ["oya", "kathā", "karanavā"]
+          minUnit: 2
+
+    - id: 3
+      name: "Speaking Languages"
+      vocab:
+        - siṁhala
+        - ingrīsi
+        - tāmil
+        - chainīs
+      sentences:
+        - text: "I speak Sinhala."
+          tokens: ["mama", "siṁhala", "kathā", "karanavā"]
+          minUnit: 3
+        - text: "We speak Tamil."
+          tokens: ["api", "tāmil", "kathā", "karanavā"]
+          minUnit: 3
+        - text: "He speaks Chinese."
+          tokens: ["eya", "chainīs", "kathā", "karanavā"]
+          minUnit: 3
+
+    - id: 4
+      name: "Questions & Negation"
+      vocab:
+        - da
+        - næhæ
+      sentences:
+        - text: "Do you speak Sinhala?"
+          tokens: ["oya", "siṁhala", "kathā", "karanavā", "da"]
+          minUnit: 4
+        - text: "I do not speak Sinhala."
+          tokens: ["mama", "siṁhala", "kathā", "karanavā", "næhæ"]
+          minUnit: 4
+
+    - id: 5
+      name: "Saying Words — කියනවා"
+      vocab:
+        - kiyanavā
+        - kiyannē
+        - kohomada
+        - siṁhalen
+        - ingrīsiyen
+      sentences:
+        - text: "How do you say 'Hello' in Sinhala?"
+          tokens: ["siṁhalen", "oya", "kiyannē", "kohomada"]
+          minUnit: 5
+        - text: "We say 'Ayubowan.'"
+          tokens: ["api", "ayubowan", "kiyanavā"]
+          minUnit: 5
