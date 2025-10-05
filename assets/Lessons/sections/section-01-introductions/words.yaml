@@ -124,15 +124,72 @@ section-03-words:
       - { si: "නෑ", translit: "næ", en: "no" }
       - { si: "ඒත්", translit: "ēth", en: "but" }
 
+# ======================================================
+# Section 04 — Age & Numbers
+# Vocabulary for describing age, asking questions, and counting
+# ======================================================
+
+section-04-words:
+
   unit-04-age:
-    - {si: "මම", translit: "mama", en: "I"}
-    - {si: "ඔයා", translit: "oyā", en: "you"}
-    - {si: "සනීපෙන්", translit: "sanīpen", en: "well / healthy"}
-    - {si: "ද?", translit: "da?", en: "question particle"}
-    - {si: "හොඳයි", translit: "hondayi", en: "fine / good"}
-    - {si: "නැහැ", translit: "næhæ", en: "not / no"}
-    - {si: "සන්තෝෂයි", translit: "santhōshay", en: "happy"}
-    - {si: "දුක්තයි", translit: "duktayi", en: "sad"}
+    lesson-01-pronouns-and-age:
+      - { si: "මම", translit: "mama", en: "I" }
+      - { si: "ඔයා", translit: "oyā", en: "you" }
+      - { si: "වයස", translit: "vayasa", en: "age" }
+      - { si: "කිීයද", translit: "kiiyada", en: "how many / how much" }
+      - { si: "ද?", translit: "da?", en: "question particle" }
+
+    lesson-02-stating-age:
+      - { si: "මගේ", translit: "magē", en: "my" }
+      - { si: "වයසක", translit: "vayasaka", en: "years old" }
+      - { si: "අවුරුදු", translit: "avurudu", en: "years (of age)" }
+      - { si: "විස්සයි", translit: "vissayi", en: "twenty" }
+      - { si: "දහනවයයි", translit: "dahanavayayi", en: "nineteen" }
+
+    lesson-03-comparing-age:
+      - { si: "ඔහුගේ", translit: "ohugē", en: "his" }
+      - { si: "ඇයගේ", translit: "ayagē", en: "her" }
+      - { si: "වඩා", translit: "vaḍā", en: "more / older" }
+      - { si: "යුවන", translit: "yuvana", en: "young" }
+      - { si: "වයස්කාර", translit: "vayaskāra", en: "old (person)" }
+      - { si: "එකම", translit: "ekama", en: "same" }
+      - { si: "වයසයි", translit: "vayasayi", en: "is aged" }
+
+    lesson-04-talking-age:
+      - { si: "මට", translit: "maṭa", en: "to me" }
+      - { si: "ඔහුට", translit: "ohuta", en: "to him" }
+      - { si: "ඇයට", translit: "ayata", en: "to her" }
+      - { si: "අවුරුදු", translit: "avurudu", en: "years" }
+      - { si: "අවුරුදු විස්සයි", translit: "avurudu vissayi", en: "twenty years old" }
+      - { si: "අවුරුදු දහයයි", translit: "avurudu dahayi", en: "ten years old" }
+      - { si: "අවුරුදු තිහයි", translit: "avurudu tihayi", en: "thirty years old" }
+
+    lesson-05-numbers:
+      - { si: "එක", translit: "eka", en: "one" }
+      - { si: "දෙක", translit: "deka", en: "two" }
+      - { si: "තුන", translit: "thuna", en: "three" }
+      - { si: "හතර", translit: "hathara", en: "four" }
+      - { si: "පහ", translit: "paha", en: "five" }
+      - { si: "හය", translit: "haya", en: "six" }
+      - { si: "හත", translit: "hatha", en: "seven" }
+      - { si: "අට", translit: "aṭa", en: "eight" }
+      - { si: "නවය", translit: "navaya", en: "nine" }
+      - { si: "දහය", translit: "dahaya", en: "ten" }
+      - { si: "එකොළහ", translit: "ekolaha", en: "eleven" }
+      - { si: "දොළහ", translit: "dolaha", en: "twelve" }
+      - { si: "දහතුන", translit: "dahathuna", en: "thirteen" }
+      - { si: "දහහතර", translit: "dahahathara", en: "fourteen" }
+      - { si: "පහළොව", translit: "pahalowa", en: "fifteen" }
+      - { si: "සොළහ", translit: "solaha", en: "sixteen" }
+      - { si: "දහහත", translit: "dahahatha", en: "seventeen" }
+      - { si: "දහඅට", translit: "daha-ata", en: "eighteen" }
+      - { si: "දහනවය", translit: "dahanavaya", en: "nineteen" }
+      - { si: "විස්ස", translit: "vissa", en: "twenty" }
+      - { si: "එකවිස්ස", translit: "ekavissa", en: "twenty-one" }
+      - { si: "දෙවිස්ස", translit: "devissa", en: "twenty-two" }
+      - { si: "තිහ", translit: "thiha", en: "thirty" }
+      - { si: "හතලිහ", translit: "hataliha", en: "forty" }
+      - { si: "කීයද", translit: "kiyada", en: "how many" }
 
   unit-05-languages:
     - {si: "සුභ", translit: "suba", en: "good (wish)"}
