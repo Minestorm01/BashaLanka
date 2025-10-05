@@ -5,7 +5,7 @@ xp_reward: 10
 objectives:
   - "Learn I/you/he/she"
   - "Learn yes/no"
-  - "Learn 'fine'"
+  - "Use 'fine' in short replies"
 vocab:
   - { si: "මම", translit: "mama", en: "I" }
   - { si: "ඔයා", translit: "oyā", en: "you (casual)" }
@@ -22,13 +22,14 @@ pronunciation_tips: |
 
 content_blocks:
   - type: "CONCEPT"
-    body: "Core pronouns (I/you/he/she) plus yes/no let you make full mini-conversations immediately."
+    body: "These are the first building blocks of Sinhala speech. With pronouns and yes/no, you can already hold tiny conversations."
   - type: "MINI_EXAMPLE"
     body: |
-      මම — mama — I
-      ඔයා — oyā — you (casual)
-      ඔව් — owu — yes
-      නැහැ — nae — no
+      මම — mama — I  
+      ඔයා — oyā — you (casual)  
+      ඔව් — owu — yes  
+      නැහැ — nae — no  
+      හොඳයි — hondayi — fine/good
   - type: "PRACTICE"
-    body: "Flashcards: say each aloud, answer quickly with yes/no."
+    body: "Say each aloud. Pair them: 'ඔව්, මම හොඳයි.' / 'නැහැ, මම හොඳයි නැහැ.'"
 unlock_next: "lesson-02"
