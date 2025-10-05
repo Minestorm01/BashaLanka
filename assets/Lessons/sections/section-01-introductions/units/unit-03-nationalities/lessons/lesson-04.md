@@ -1,16 +1,31 @@
 id: lesson-04
-title: "Statement → Question with 'ද?'"
-duration_min: 6
-xp_reward: 10
+title: "Are you from Sri Lanka?"
+duration_min: 12
+xp_reward: 14
 objectives:
-  - Turn statements into yes/no questions by adding **ද? (da?)**
+  - Form yes/no questions using “ද?”.
+  - Answer positively or negatively.
+  - Use “නෙවේ (nevē)” for negation.
 vocab:
-  - { si: "ඔයා ශ්‍රී ලංකාවෙන් ද?", translit: "oyā Sri Lankāven da?", en: "Are you from Sri Lanka?" }
-  - { si: "ඔයාගේ රට ඉන්දියාවද?", translit: "oyāgē raṭa Indiyāvada?", en: "Is your country India?" }
-pronunciation_tips: "**da?** = clipped and light, almost like English 'da?'."
+  - { si: "ද?", translit: "da?", en: "question particle" }
+  - { si: "නෙවේ", translit: "nevē", en: "not / isn’t" }
+  - { si: "ඔව්", translit: "owu", en: "yes" }
+  - { si: "නෑ", translit: "næ", en: "no" }
+  - { si: "ඒත්", translit: "ēth", en: "but" }
 content_blocks:
   - type: "CONCEPT"
-    body: "Add **ද?** to a statement to turn it into a yes/no question."
+    body: |
+      Add **ද? (da?)** to make a yes/no question.  
+      Example: “මම ශ්‍රී ලංකාවෙන්.” → “ඔයා ශ්‍රී ලංකාවෙන් ද?” (Are you from Sri Lanka?)  
+      Use **නෙවේ (nevē)** for “not”.
+  - type: "DIALOGUE"
+    body: |
+      A: ඔයා ශ්‍රී ලංකාවෙන් ද? — Are you from Sri Lanka?  
+      B: ඔව්, මම ශ්‍රී ලංකාවෙන්. — Yes, I’m from Sri Lanka.  
+      A: නෑ, මම ඉන්දියාවෙන් නෙවේ. — No, I’m not from India.  
+      B: ඒත් මම ඔස්ට්‍රේලියාවෙන්. — But I’m from Australia.
   - type: "PRACTICE"
-    body: "Convert 3 statements to questions; say both forms aloud."
-unlock_next: null
+    body: |
+      Turn any statement into a question by adding **ද?**  
+      Practise both “ඔව්” and “නෑ” answers aloud.
+unlock_next: "lesson-05"

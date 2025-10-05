@@ -1,16 +1,36 @@
-id: lesson-04
-title: "Tell Age — My age is …"
-duration_min: 6
-xp_reward: 10
+id: lesson-03
+title: "How Old Are You?"
+duration_min: 12
+xp_reward: 15
 objectives:
-  - State **magē vayasa [number]**
+  - Ask about someone’s age.
+  - Learn numbers 10–40.
+  - Practise polite small talk.
 vocab:
-  - { si: "මගේ වයස තිහයි.", translit: "magē vayasa tihayi.", en: "My age is thirty." }
-  - { si: "ඔයාලගේ වයස විසිපහයි.", translit: "oyālagē vayasa visipahayi.", en: "Your (pl.) age is twenty-five." }
-pronunciation_tips: "Sinhala numbers end with **-yi** when used in sentences (tihayi = 30 is)."
+  - { si: "වයස", translit: "vayasa", en: "age" }
+  - { si: "කීයද", translit: "kiyada", en: "how much / how many" }
+  - { si: "දහය", translit: "dahaya", en: "ten" }
+  - { si: "විස්ස", translit: "vissa", en: "twenty" }
+  - { si: "තිහ", translit: "thiha", en: "thirty" }
+  - { si: "හතලිහ", translit: "hataliha", en: "forty" }
+  - { si: "වයසයි", translit: "vayasayi", en: "has age (used in speech)" }
 content_blocks:
   - type: "CONCEPT"
-    body: "Use pattern: **[pronoun possessive] vayasa [number]**. 'is' is implied."
+    body: |
+      “How old are you?” → **ඔයාගේ වයස කීයද?**  
+      - Use **වයස (vayasa)** = age  
+      - **කීයද (kiyada)** = how much / how many  
+      Sinhala doesn’t add “years old” — it’s understood.
+  - type: "DIALOGUE"
+    body: |
+      A: ඔයාගේ වයස කීයද? — How old are you?  
+      B: මගේ වයස විස්සයි. — I’m twenty.  
+      A: ඔහොමද? මම තිහයි! — Really? I’m thirty!  
+      B: හොඳයි නේද? — Nice, right?
   - type: "PRACTICE"
-    body: "Say your real age. Then switch pronouns: 'his age is…', 'their age is…'"
-unlock_next: null
+    body: |
+      Ask and answer:
+      - “ඔයාගේ වයස කීයද?”  
+      - “මගේ වයස [number]යි.”  
+      Practise using 10 (දහය), 20 (විස්ස), 30 (තිහ), 40 (හතලිහ).
+unlock_next: "lesson-04"

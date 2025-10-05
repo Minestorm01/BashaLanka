@@ -1,28 +1,29 @@
 id: lesson-03
-title: "Answers + Formal Greeting"
-duration_min: 8
-xp_reward: 12
+title: "Formal Greeting & First Conversation"
+duration_min: 11
+xp_reward: 13
 objectives:
-  - "Say 'I’m fine / He/She is fine'"
-  - "Use ආයුබෝවන් as a formal greeting"
-  - "Mix yes/no into replies"
+  - Use **ආයුබෝවන්** formally
+  - Ask and reply politely
+  - Keep a short natural dialogue going
 vocab:
-  - { si: "මම හොඳයි.", translit: "mama hondayi.", en: "I am fine." }
-  - { si: "ඔහු හොඳයි.", translit: "ohu hondayi.", en: "He is fine." }
-  - { si: "ඇය හොඳයි.", translit: "eya hondayi.", en: "She is fine." }
-  - { si: "ආයුබෝවන්", translit: "āyubōvan", en: "formal greeting (hello)" }
-
+  - { si: "ආයුබෝවන්", translit: "āyubōvan", en: "hello / formal greeting" }
+  - { si: "ඔබට කොහොමද?", translit: "obata kohomada?", en: "How are you? (formal)" }
+  - { si: "මම හොඳින් ඉන්නවා", translit: "mama hondin innavā", en: "I’m doing well" }
+  - { si: "ස්තුතියි", translit: "sthuthiyi", en: "thank you" }
+  - { si: "ඔබටත්", translit: "obatat", en: "to you too" }
 pronunciation_tips: |
-  හොඳයි ≈ hon-dai (stress on first syllable).  
-  ආයුබෝවන් = ā-yu-bō-van (four beats, each vowel clear).
-
+  ආයුබෝවන් = ā-yu-bō-van (steady rhythm).  
+  Use with slight bow or hand gesture — shows respect.
 content_blocks:
   - type: "CONCEPT"
-    body: "Replies are simple: [pronoun] + හොඳයි. Add owu/nae for agreement or contrast. Use āyubōvan at openings or closings."
+    body: "Formal settings use **ආයුබෝවන්** and **ඔබට කොහොමද?** instead of casual forms.  
+           Add **ඔබටත්** to say 'to you too'."
   - type: "DIALOGUE"
     body: |
-      A: ඔබ කොහොමද? — oba kohomada? — How are you?  
-      B: ඔව්, මම හොඳයි. ආයුබෝවන්. — owu, mama hondayi. āyubōvan.
+      A: ආයුබෝවන්! ඔබට කොහොමද? — Hello! How are you?  
+      B: මම හොඳින් ඉන්නවා, ස්තුතියි. — I’m doing well, thank you.  
+      A: මටත් හොඳයි! ඔබටත් ස්තුතියි! — I’m good too, thanks to you too.
   - type: "PRACTICE"
-    body: "Roleplay: greet → ask → reply → close with āyubōvan."
-unlock_next: null
+    body: "Read aloud the full conversation. Swap A/B and repeat. Add gestures for realism."
+unlock_next: "lesson-04"

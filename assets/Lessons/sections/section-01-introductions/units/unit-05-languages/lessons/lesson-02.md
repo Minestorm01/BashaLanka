@@ -1,17 +1,31 @@
 id: lesson-02
-title: "Verb: කතා කරනවා — speaking"
-duration_min: 6
-xp_reward: 10
+title: "Speaking — කතා කරනවා"
+duration_min: 12
+xp_reward: 15
 objectives:
-  - Use compound **කතා කරනවා (kathā karanavā)**
-  - Contrast “I’m speaking” vs “I speak” (same form)
+  - Use 'කතා කරනවා' for speaking or talking.
+  - Compare it with 'කරනවා' from the previous lesson.
+  - Practise short dialogues about talking.
 vocab:
-  - { si: "කතා කරනවා", translit: "kathā karanavā", en: "speaking / speak" }
-  - { si: "මම කතා කරනවා.", translit: "mama kathā karanavā.", en: "I am speaking / I speak." }
-pronunciation_tips: "Compound verbs: noun + **karanavā** → activity (e.g. kathā = talk → speaking)."
+  - { si: "කතා", translit: "kathā", en: "speech / talk" }
+  - { si: "කතා කරනවා", translit: "kathā karanavā", en: "to speak / to talk" }
+  - { si: "මම", translit: "mama", en: "I" }
+  - { si: "ඔයා", translit: "oyā", en: "you" }
+  - { si: "අපි", translit: "api", en: "we" }
 content_blocks:
   - type: "CONCEPT"
-    body: "Sinhala makes compound verbs: noun + **karanavā**. Eg: **kathā** (talk) + **karanavā** = to speak."
+    body: |
+      Combine **කතා (kathā)** + **කරනවා (karanavā)** → **කතා කරනවා**  
+      means *to speak / to talk*.
+      - මම කතා කරනවා — I’m speaking.
+      - ඔයා කතා කරනවා — You’re talking.
+  - type: "DIALOGUE"
+    body: |
+      A: ඔයා කතා කරනවාද? — Are you talking?  
+      B: ඔව්, මම කතා කරනවා. — Yes, I am.
   - type: "PRACTICE"
-    body: "Say: I/you/he/she/we/they **kathā karanavā**."
+    body: |
+      🔹 Practise saying:
+        - අපි කතා කරනවා. (We are speaking.)
+        - මම ඔයාට කතා කරනවා. (I’m talking to you.)
 unlock_next: "lesson-03"

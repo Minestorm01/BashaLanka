@@ -1,22 +1,29 @@
 id: lesson-02
 title: "Introduce Yourself — My name / I am"
-duration_min: 7
-xp_reward: 10
+duration_min: 9
+xp_reward: 11
 objectives:
-  - Build **magē nama [Name]** (My name is X)
-  - Build **mama [Name]** (I am X)
+  - Say **මගේ නම [name]** (My name is …)
+  - Say **මම [name]** (I am …)
 vocab:
+  - { si: "මම", translit: "mama", en: "I" }
   - { si: "නම", translit: "nama", en: "name" }
-  - { si: "මගේ නම [Name]", translit: "magē nama [Name]", en: "My name is [Name]." }
-  - { si: "මම [Name]", translit: "mama [Name]", en: "I am [Name]." }
-pronunciation_tips: "Sinhala often drops 'is': **magē nama Pat** = My name (is) Pat."
+  - { si: "මගේ නම [name]", translit: "magē nama [name]", en: "My name is [name]" }
+  - { si: "මම [name]", translit: "mama [name]", en: "I am [name]" }
+pronunciation_tips: |
+  Sinhala often drops “is.”  
+  Example: **magē nama Pat** = “My name (is) Pat.”
 content_blocks:
   - type: "CONCEPT"
-    body: "Sinhala sentences often omit 'is'. Just say: **magē nama Pat**."
+    body: "To introduce yourself, just say: **magē nama [name]** or **mama [name]** — no 'is' needed."
   - type: "BIG_EXAMPLE"
     body: |
-      A: මගේ නම පෑට්. — magē nama Pat. — My name is Pat.  
-      B: මම රියා. — mama Riya. — I am Riya.
+      A: මගේ නම රියා. — magē nama Riya. — My name is Riya.  
+      B: මම පෑට්. — mama Pat. — I am Pat.
+  - type: "DIALOGUE"
+    body: |
+      A: ඔයාගේ නම මොකක්ද? — oyāgē nama mokakda?  
+      B: මගේ නම රියා. — magē nama Riya.
   - type: "PRACTICE"
-    body: "Write and say your name in both patterns. Drill aloud."
+    body: "Say your name both ways. Ask a partner theirs and answer back."
 unlock_next: "lesson-03"

@@ -1,18 +1,27 @@
 id: lesson-03
-title: "I speak X (English/Sinhala/…)"
-duration_min: 6
-xp_reward: 10
+title: "Speaking Languages"
+duration_min: 13
+xp_reward: 18
 objectives:
-  - Slot a language between pronoun and verb
+  - Say what languages you speak.
+  - Use 'කතා කරනවා' with language names.
+  - Learn new language vocabulary.
 vocab:
-  - { si: "ඉංග්‍රීසි", translit: "ingrīsi", en: "English" }
   - { si: "සිංහල", translit: "siṁhala", en: "Sinhala" }
-  - { si: "මම ඉංග්‍රීසි කතා කරනවා.", translit: "mama ingrīsi kathā karanavā.", en: "I speak English." }
-  - { si: "ඔයා සිංහල කතා කරනවා.", translit: "oyā siṁhala kathā karanavā.", en: "You speak Sinhala." }
-pronunciation_tips: "Languages slot before verb: **mama ingrīsi kathā karanavā**."
+  - { si: "ඉංග්‍රීසි", translit: "ingrīsi", en: "English" }
+  - { si: "තාමිල්", translit: "tāmil", en: "Tamil" }
+  - { si: "චයිනිස්", translit: "chainīs", en: "Chinese" }
+  - { si: "අපි", translit: "api", en: "we" }
+  - { si: "කතා කරනවා", translit: "kathā karanavā", en: "to speak / to talk" }
 content_blocks:
   - type: "CONCEPT"
-    body: "Pattern: **[pronoun] [language] kathā karanavā** = ‘I speak X’."
+    body: |
+      To say you speak a language:
+      - මම සිංහල කතා කරනවා. — I speak Sinhala.
+      - ඔයා ඉංග්‍රීසි කතා කරනවාද? — Do you speak English?
   - type: "PRACTICE"
-    body: "Make 3 sentences: I speak X; He/She speaks Y; We speak Z."
+    body: |
+      🔹 Build more:
+        - අපි තාමිල් කතා කරනවා. (We speak Tamil.)
+        - ඔහු චයිනිස් කතා කරනවා. (He speaks Chinese.)
 unlock_next: "lesson-04"

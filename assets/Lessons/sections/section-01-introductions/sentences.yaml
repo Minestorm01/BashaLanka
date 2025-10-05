@@ -1,49 +1,31 @@
+# ======================================================
+# Section 01 — Introductions & Essentials
+# ======================================================
+
 Section01:
   title: "Introductions & Essentials"
-  description: "Greetings, introductions, yes/no, countries, age, and languages."
+  description: "Greetings, introductions, origin, feelings, and polite expressions."
   units:
 
     - id: 1
-      name: "Pronouns, Yes/No & Basic Greetings"
+      name: "Greetings & Basics"
       vocab:
-        - mama        # I
-        - oya         # you
-        - eya         # he/she
-        - kohomada    # how
-        - hondai      # fine/good
-        - ayubowan    # hello
-        - owu         # yes
-        - nae         # no
+        - ayubowan
+        - oyaata
+        - kohomada
+        - mama
+        - hondai
+        - sthuthiyi
+        - owu
+        - nae
+        - karunakar
+        - samavenna
       sentences:
         - text: "Hello, how are you?"
-          tokens: ["ayubowan", "oya", "kohomada"]
+          tokens: ["ayubowan", "oyaata", "kohomada"]
           minUnit: 1
         - text: "I am fine, thank you."
-          tokens: ["mama", "hondai"]
-          minUnit: 1
-        - text: "Are you fine?"
-          tokens: ["oya", "hondai", "kohomada"]
-          minUnit: 1
-        - text: "Yes, I am fine."
-          tokens: ["owu", "mama", "hondai"]
-          minUnit: 1
-        - text: "No, I am not fine."
-          tokens: ["nae", "mama", "hondai"]
-          minUnit: 1
-        - text: "How is he?"
-          tokens: ["eya", "kohomada"]
-          minUnit: 1
-        - text: "How is she?"
-          tokens: ["eya", "kohomada"]
-          minUnit: 1
-        - text: "He is fine."
-          tokens: ["eya", "hondai"]
-          minUnit: 1
-        - text: "She is not fine."
-          tokens: ["eya", "nae", "hondai"]
-          minUnit: 1
-        - text: "Are you okay?"
-          tokens: ["oya", "kohomada"]
+          tokens: ["mama", "hondai", "sthuthiyi"]
           minUnit: 1
         - text: "Yes."
           tokens: ["owu"]
@@ -51,175 +33,351 @@ Section01:
         - text: "No."
           tokens: ["nae"]
           minUnit: 1
+        - text: "Please."
+          tokens: ["karunakar"]
+          minUnit: 1
+        - text: "Sorry."
+          tokens: ["samavenna"]
+          minUnit: 1
 
     - id: 2
       name: "Introducing Yourself"
       vocab:
-        - mage        # my
-        - nama        # name
-        - yaluwa      # friend
+        - mage
+        - nama
+        - oyaage
+        - mokakda
+        - haduwime
+        - sathutak
       sentences:
         - text: "My name is {name}."
-          tokens: ["mage", "nama"]
-          minUnit: 2
-        - text: "Hello, my name is {name}."
-          tokens: ["ayubowan", "mage", "nama"]
-          minUnit: 2
-        - text: "I am {name}."
-          tokens: ["mama", "nama"]
+          tokens: ["mage", "nama", "{name}"]
           minUnit: 2
         - text: "What is your name?"
-          tokens: ["oya", "nama", "kohomada"]
+          tokens: ["oyaage", "nama", "mokakda"]
           minUnit: 2
-        - text: "Is your name {name}? Yes."
-          tokens: ["oya", "nama", "kohomada", "owu"]
-          minUnit: 2
-        - text: "Is your name {name}? No."
-          tokens: ["oya", "nama", "kohomada", "nae"]
-          minUnit: 2
-        - text: "How are you, my friend?"
-          tokens: ["oya", "kohomada", "mage", "yaluwa"]
-          minUnit: 2
-        - text: "You are my friend."
-          tokens: ["oya", "mage", "yaluwa"]
-          minUnit: 2
-        - text: "Is he your friend?"
-          tokens: ["eya", "yaluwa", "oya", "kohomada"]
-          minUnit: 2
-        - text: "Yes, he is my friend."
-          tokens: ["owu", "eya", "mage", "yaluwa"]
-          minUnit: 2
-        - text: "No, she is not my friend."
-          tokens: ["nae", "eya", "mage", "yaluwa"]
+        - text: "Nice to meet you."
+          tokens: ["oyaata", "haduwime", "sathutak"]
           minUnit: 2
 
     - id: 3
-      name: "Nationalities"
+      name: "Where You're From"
       vocab:
-        - rata        # country
-        - gena        # from/about
-        - Australia
+        - mama
+        - oya
+        - kohenda
+        - rata
+        - gena
         - Sri_Lanka
-        - India
+        - Australia
       sentences:
-        - text: "I am from {country}."
-          tokens: ["mama", "gena", "rata"]
-          minUnit: 3
-        - text: "My country is {country}."
-          tokens: ["mage", "rata"]
-          minUnit: 3
-        - text: "Are you from {country}?"
-          tokens: ["oya", "gena", "rata", "kohomada"]
-          minUnit: 3
-        - text: "Yes, I am from Sri Lanka."
-          tokens: ["owu", "mama", "gena", "Sri_Lanka"]
-          minUnit: 3
-        - text: "No, I am not from Australia."
-          tokens: ["nae", "mama", "gena", "Australia"]
-          minUnit: 3
-        - text: "She is from Sri Lanka."
-          tokens: ["eya", "gena", "Sri_Lanka"]
-          minUnit: 3
-        - text: "He is from Australia."
-          tokens: ["eya", "gena", "Australia"]
+        - text: "I am from Sri Lanka."
+          tokens: ["mama", "Sri_Lanka", "gena"]
           minUnit: 3
         - text: "Where are you from?"
-          tokens: ["oya", "gena", "rata", "kohomada"]
+          tokens: ["oya", "kohenda"]
           minUnit: 3
-        - text: "Is your country India?"
-          tokens: ["oya", "rata", "India", "kohomada"]
-          minUnit: 3
-        - text: "Yes, my country is India."
-          tokens: ["owu", "mage", "rata", "India"]
-          minUnit: 3
-        - text: "No, my country is not Sri Lanka."
-          tokens: ["nae", "mage", "rata", "Sri_Lanka"]
+        - text: "My country is Australia."
+          tokens: ["mage", "rata", "Australia"]
           minUnit: 3
 
     - id: 4
-      name: "Age & Numbers"
+      name: "Feelings & Health"
       vocab:
-        - vissara     # years
-        - ganan       # number
-        - dahaya      # ten
-        - visi        # twenty
-        - tis         # thirty
+        - mama
+        - oya
+        - sanipen
+        - da
+        - hondai
+        - naehae
+        - santhoshayi
+        - dukthayi
       sentences:
-        - text: "I am {age} years old."
-          tokens: ["mama", "vissara", "ganan"]
+        - text: "Are you well?"
+          tokens: ["oya", "sanipen", "da"]
           minUnit: 4
-        - text: "How old are you?"
-          tokens: ["oya", "kohomada", "vissara"]
+        - text: "I am well."
+          tokens: ["mama", "sanipen"]
           minUnit: 4
-        - text: "He is twenty years old."
-          tokens: ["eya", "visi", "vissara"]
+        - text: "I am not well."
+          tokens: ["mama", "hondai", "naehae"]
           minUnit: 4
-        - text: "She is ten years old."
-          tokens: ["eya", "dahaya", "vissara"]
+        - text: "I am happy."
+          tokens: ["mama", "santhoshayi"]
           minUnit: 4
-        - text: "My friend is thirty years old."
-          tokens: ["mage", "yaluwa", "tis", "vissara"]
-          minUnit: 4
-        - text: "Are you twenty years old?"
-          tokens: ["oya", "visi", "vissara", "kohomada"]
-          minUnit: 4
-        - text: "Yes, I am twenty."
-          tokens: ["owu", "mama", "visi", "vissara"]
-          minUnit: 4
-        - text: "No, I am not ten."
-          tokens: ["nae", "mama", "dahaya", "vissara"]
-          minUnit: 4
-        - text: "How old is he?"
-          tokens: ["eya", "kohomada", "vissara"]
-          minUnit: 4
-        - text: "Is your friend thirty? Yes."
-          tokens: ["mage", "yaluwa", "tis", "kohomada", "owu"]
-          minUnit: 4
-        - text: "Is your friend thirty? No."
-          tokens: ["mage", "yaluwa", "tis", "kohomada", "nae"]
+        - text: "I am sad."
+          tokens: ["mama", "dukthayi"]
           minUnit: 4
 
     - id: 5
-      name: "Languages You Speak"
+      name: "Politeness & Farewells"
       vocab:
-        - kathaa      # speak
-        - Sinhala
-        - English
-        - Tamil
+        - suba
+        - udek
+        - raththiyek
+        - bayi
+        - gaman
+        - yanna
+      sentences:
+        - text: "Good morning."
+          tokens: ["suba", "udek"]
+          minUnit: 5
+        - text: "Good night."
+          tokens: ["suba", "raththiyek"]
+          minUnit: 5
+        - text: "Goodbye."
+          tokens: ["gaman", "yanna"]
+          minUnit: 5
+        - text: "Bye."
+          tokens: ["bayi"]
+          minUnit: 5
+
+# ======================================================
+# Section 02 — Introducing Yourself & Others
+# ======================================================
+
+Section02:
+  title: "Introducing Yourself & Others"
+  description: "Learn to introduce yourself and others with pronouns and basic structures."
+  units:
+
+    - id: 1
+      name: "Pronouns & Simple Sentences"
+      vocab:
+        - mama
+        - oya
+        - api
+      sentences:
+        - text: "I am {name}."
+          tokens: ["mama", "{name}"]
+          minUnit: 1
+        - text: "You are {name}."
+          tokens: ["oya", "{name}"]
+          minUnit: 1
+        - text: "We are friends."
+          tokens: ["api", "yaluwō"]
+          minUnit: 1
+
+    - id: 2
+      name: "Introducing Others"
+      vocab:
+        - eya
+        - mage
+        - yaluwō
+      sentences:
+        - text: "He is my friend."
+          tokens: ["eya", "mage", "yaluwō"]
+          minUnit: 2
+        - text: "She is my friend."
+          tokens: ["eya", "mage", "yaluwō"]
+          minUnit: 2
+
+    - id: 3
+      name: "Polite Forms"
+      vocab:
+        - oyā
+        - oyāla
+        - ayubowan
+      sentences:
+        - text: "Hello everyone!"
+          tokens: ["ayubowan", "oyāla"]
+          minUnit: 3
+        - text: "How are you all?"
+          tokens: ["oyāla", "kohomada"]
+          minUnit: 3
+        - text: "We are fine."
+          tokens: ["api", "hondai"]
+          minUnit: 3
+
+# ======================================================
+# Section 03 — Origins & Nationalities
+# ======================================================
+
+Section03:
+  title: "Origins & Nationalities"
+  description: "Learn to say where you and others are from."
+  units:
+
+    - id: 1
+      name: "Talking About Where You’re From"
+      vocab:
+        - mama
+        - oya
+        - rata
+        - gena
+        - kohenda
+      sentences:
+        - text: "I am from Sri Lanka."
+          tokens: ["mama", "Sri_Lanka", "gena"]
+          minUnit: 1
+        - text: "Are you from Australia?"
+          tokens: ["oya", "Australia", "gena", "da"]
+          minUnit: 1
+        - text: "My country is Sri Lanka."
+          tokens: ["mage", "rata", "Sri_Lanka"]
+          minUnit: 1
+
+    - id: 2
+      name: "Countries & Nationalities"
+      vocab:
+        - Sri_Lanka
+        - Australia
+        - India
+      sentences:
+        - text: "He is from India."
+          tokens: ["eya", "India", "gena"]
+          minUnit: 2
+        - text: "We are from Australia."
+          tokens: ["api", "Australia", "gena"]
+          minUnit: 2
+
+# ======================================================
+# Section 04 — Age & Numbers
+# ======================================================
+
+Section04:
+  title: "Age & Numbers"
+  description: "Learn to ask and tell ages and count numbers."
+  units:
+
+    - id: 1
+      name: "Asking Age"
+      vocab:
+        - oya
+        - vayasa
+        - kiiyada
+        - da
+      sentences:
+        - text: "How old are you?"
+          tokens: ["oya", "vayasa", "kiiyada", "da"]
+          minUnit: 1
+
+    - id: 2
+      name: "Telling Age"
+      vocab:
+        - mage
+        - vayasa
+        - vissayi
+      sentences:
+        - text: "I am twenty years old."
+          tokens: ["mage", "vayasa", "vissayi"]
+          minUnit: 2
+
+    - id: 3
+      name: "Comparing Age"
+      vocab:
+        - ohugē
+        - ayagē
+        - vadā
+      sentences:
+        - text: "He is older than me."
+          tokens: ["ohugē", "vayasa", "vadā", "maṭa"]
+          minUnit: 3
+
+    - id: 4
+      name: "Numbers Practice"
+      vocab:
+        - eka
+        - deka
+        - thuna
+        - hathara
+        - paha
+        - haya
+        - hatha
+        - ata
+        - navaya
+        - dahaya
+      sentences:
+        - text: "Count from one to ten."
+          tokens: ["eka", "deka", "thuna", "hathara", "paha", "haya", "hatha", "ata", "navaya", "dahaya"]
+          minUnit: 4
+
+# ======================================================
+# Section 05 — Communication & Speech
+# ======================================================
+
+Section05:
+  title: "Communication & Speech"
+  description: "Learn to do, speak, ask, and say words in Sinhala."
+  units:
+
+    - id: 1
+      name: "Doing Things — කරනවා"
+      vocab:
+        - mama
+        - oya
+        - api
+        - karanavā
+        - pāḍam
+        - kæma
+        - mokakda
+      sentences:
+        - text: "I study."
+          tokens: ["mama", "pāḍam", "karanavā"]
+          minUnit: 1
+        - text: "We are eating."
+          tokens: ["api", "kæma", "karanavā"]
+          minUnit: 1
+        - text: "What are you doing?"
+          tokens: ["oya", "mokakda", "karanavā"]
+          minUnit: 1
+
+    - id: 2
+      name: "Speaking — කතා කරනවා"
+      vocab:
+        - kathā
+        - karanavā
+      sentences:
+        - text: "I am speaking."
+          tokens: ["mama", "kathā", "karanavā"]
+          minUnit: 2
+        - text: "You are talking."
+          tokens: ["oya", "kathā", "karanavā"]
+          minUnit: 2
+
+    - id: 3
+      name: "Speaking Languages"
+      vocab:
+        - siṁhala
+        - ingrīsi
+        - tāmil
+        - chainīs
+      sentences:
+        - text: "I speak Sinhala."
+          tokens: ["mama", "siṁhala", "kathā", "karanavā"]
+          minUnit: 3
+        - text: "We speak Tamil."
+          tokens: ["api", "tāmil", "kathā", "karanavā"]
+          minUnit: 3
+        - text: "He speaks Chinese."
+          tokens: ["eya", "chainīs", "kathā", "karanavā"]
+          minUnit: 3
+
+    - id: 4
+      name: "Questions & Negation"
+      vocab:
+        - da
+        - næhæ
       sentences:
         - text: "Do you speak Sinhala?"
-          tokens: ["oya", "kathaa", "Sinhala", "kohomada"]
+          tokens: ["oya", "siṁhala", "kathā", "karanavā", "da"]
+          minUnit: 4
+        - text: "I do not speak Sinhala."
+          tokens: ["mama", "siṁhala", "kathā", "karanavā", "næhæ"]
+          minUnit: 4
+
+    - id: 5
+      name: "Saying Words — කියනවා"
+      vocab:
+        - kiyanavā
+        - kiyannē
+        - kohomada
+        - siṁhalen
+        - ingrīsiyen
+      sentences:
+        - text: "How do you say 'Hello' in Sinhala?"
+          tokens: ["siṁhalen", "oya", "kiyannē", "kohomada"]
           minUnit: 5
-        - text: "Yes, I speak Sinhala."
-          tokens: ["owu", "mama", "kathaa", "Sinhala"]
-          minUnit: 5
-        - text: "No, I do not speak Sinhala."
-          tokens: ["nae", "mama", "kathaa", "Sinhala"]
-          minUnit: 5
-        - text: "I speak English."
-          tokens: ["mama", "kathaa", "English"]
-          minUnit: 5
-        - text: "She speaks Tamil."
-          tokens: ["eya", "kathaa", "Tamil"]
-          minUnit: 5
-        - text: "I can speak Sinhala and English."
-          tokens: ["mama", "kathaa", "Sinhala", "English"]
-          minUnit: 5
-        - text: "Do you speak Tamil and English?"
-          tokens: ["oya", "kathaa", "Tamil", "English", "kohomada"]
-          minUnit: 5
-        - text: "Yes, I speak English and Tamil."
-          tokens: ["owu", "mama", "kathaa", "English", "Tamil"]
-          minUnit: 5
-        - text: "No, I only speak Sinhala."
-          tokens: ["nae", "mama", "kathaa", "Sinhala"]
-          minUnit: 5
-        - text: "Does your friend speak English?"
-          tokens: ["mage", "yaluwa", "kathaa", "English", "kohomada"]
-          minUnit: 5
-        - text: "Yes, my friend speaks Sinhala."
-          tokens: ["owu", "mage", "yaluwa", "kathaa", "Sinhala"]
-          minUnit: 5
-        - text: "No, my friend does not speak Tamil."
-          tokens: ["nae", "mage", "yaluwa", "kathaa", "Tamil"]
+        - text: "We say 'Ayubowan.'"
+          tokens: ["api", "ayubowan", "kiyanavā"]
           minUnit: 5
