@@ -1,6 +1,6 @@
 {
   "unitId": "s1u2",
-  "title": "Yes/No & ‘Am’ Forms",
+  "title": "Countries & Origin",
   "skills": [
     {
       "skillId": "s1u2-skill-01",
@@ -8,15 +8,107 @@
       "levels": [
         {
           "levelId": "s1u2-skill-01-l1",
-          "lessonCount": 2,
+          "lessonCount": 4,
           "lessons": [
-            { "lessonId": "lesson-01", "title": "Lesson 1", "objectives": [], "content_blocks": [] },
-            { "lessonId": "lesson-02", "title": "Lesson 2", "objectives": [], "content_blocks": [] }
+            {
+              "lessonId": "lesson-01",
+              "title": "What is your country?",
+              "duration_min": 7,
+              "xp_reward": 10,
+              "objectives": [
+                "Ask about someone’s country using කොහෙන්ද?",
+                "Learn key country names"
+              ],
+              "vocab": [
+                {"si": "රට", "translit": "rata", "en": "country"},
+                {"si": "ඔයාගේ", "translit": "oyaage", "en": "your"},
+                {"si": "මගේ", "translit": "mage", "en": "my"},
+                {"si": "ශ්‍රීලංකාව", "translit": "srilankava", "en": "Sri Lanka"},
+                {"si": "ඕස්ට්‍රේලියාව", "translit": "australiya", "en": "Australia"},
+                {"si": "කොහෙන්", "translit": "kohen", "en": "from where"}
+              ],
+              "content_blocks": [
+                {"type": "CONCEPT", "body": "Pattern: [possessive] + රට — rata — country. Use කොහෙන්ද? to ask \"from where?\""},
+                {"type": "MINI_EXAMPLE", "body": "ඔයාගේ රට මොකක්ද? — oyāge rata mokakda? — What is your country?"},
+                {"type": "PRACTICE", "body": "Match countries with Sinhala names, then record the question aloud."}
+              ]
+            },
+            {
+              "lessonId": "lesson-02",
+              "title": "My country is …",
+              "duration_min": 7,
+              "xp_reward": 10,
+              "objectives": [
+                "Say My country is …",
+                "Build answers with yes/no"
+              ],
+              "vocab": [
+                {"si": "මගේ", "translit": "mage", "en": "my"},
+                {"si": "රට", "translit": "rata", "en": "country"},
+                {"si": "ඇමෙරිකාව", "translit": "amerikava", "en": "America"},
+                {"si": "ඉන්දියාව", "translit": "indiyava", "en": "India"},
+                {"si": "ඔව්", "translit": "owu", "en": "yes"},
+                {"si": "නෑ", "translit": "nae", "en": "no"}
+              ],
+              "content_blocks": [
+                {"type": "CONCEPT", "body": "Statement: මගේ රට ___ . Drop \"is\" — Sinhala doesn’t need a copula here."},
+                {"type": "DIALOGUE", "body": "A: මගේ රට ශ්‍රීලංකාව.\nB: ඔව්, මගේ රටත් ශ්‍රීලංකාව."},
+                {"type": "PRACTICE", "body": "Flashcards with new countries, then create your own sentences."}
+              ]
+            },
+            {
+              "lessonId": "lesson-03",
+              "title": "I’m from …",
+              "duration_min": 8,
+              "xp_reward": 12,
+              "objectives": [
+                "Use ___ වෙන් / ___ ගෙන් for origin",
+                "Answer where you are from"
+              ],
+              "vocab": [
+                {"si": "මම", "translit": "mama", "en": "I"},
+                {"si": "වෙන්", "translit": "ven", "en": "from"},
+                {"si": "ගෙන්", "translit": "gen", "en": "from"},
+                {"si": "චීනය", "translit": "cheenaya", "en": "China"},
+                {"si": "ජපානය", "translit": "japanaya", "en": "Japan"},
+                {"si": "නෙවේ", "translit": "neve", "en": "is not"}
+              ],
+              "content_blocks": [
+                {"type": "CONCEPT", "body": "Attach වෙන් (ven) to a place: ශ්‍රීලංකාව + වෙන් → ශ්‍රීලංකාවෙන්. Use නැහැ / නෙවේ for negatives."},
+                {"type": "MINI_DIALOGUE", "body": "A: ඔයා කොහෙන්ද?\nB: මම චීනයෙන්."},
+                {"type": "PRACTICE", "body": "Build origin sentences with positive + negative variations."}
+              ]
+            },
+            {
+              "lessonId": "lesson-04",
+              "title": "Are you from …?",
+              "duration_min": 9,
+              "xp_reward": 12,
+              "objectives": [
+                "Form yes/no origin questions",
+                "Answer naturally with නෙවේ"
+              ],
+              "vocab": [
+                {"si": "ඔයා", "translit": "oya", "en": "you"},
+                {"si": "ද", "translit": "da", "en": "question particle"},
+                {"si": "කැනඩාව", "translit": "kanadava", "en": "Canada"},
+                {"si": "ප්‍රෂ්නය", "translit": "prashnaya", "en": "question"},
+                {"si": "නෙවේ", "translit": "neve", "en": "is not"},
+                {"si": "ඔව්", "translit": "owu", "en": "yes"}
+              ],
+              "content_blocks": [
+                {"type": "CONCEPT", "body": "Question: [place] + වෙන් + ද? Answer: ඔව් / නෑ, මම … නෙවේ."},
+                {"type": "MINI_DIALOGUE", "body": "A: ඔයා ඉන්දියාවේන් ද?\nB: නෑ, මම කැනඩාවෙන්."},
+                {"type": "PRACTICE", "body": "Roleplay mini-dialogues swapping countries for drill variety."}
+              ]
+            }
           ],
           "review": {
             "type": "review",
             "title": "Lesson Review",
-            "content_blocks": []
+            "content_blocks": [
+              {"type": "SUMMARY", "body": "Review: ask where from, answer with වෙන්/ගෙන්, and use නෙවේ for natural negatives."}
+            ]
           }
         }
       ]

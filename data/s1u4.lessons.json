@@ -1,6 +1,6 @@
 {
   "unitId": "s1u4",
-  "title": "Pronouns 1",
+  "title": "Age & Numbers",
   "skills": [
     {
       "skillId": "s1u4-skill-01",
@@ -8,16 +8,129 @@
       "levels": [
         {
           "levelId": "s1u4-skill-01-l1",
-          "lessonCount": 3,
+          "lessonCount": 5,
           "lessons": [
-            { "lessonId": "lesson-01", "title": "Lesson 1", "objectives": [], "content_blocks": [] },
-            { "lessonId": "lesson-02", "title": "Lesson 2", "objectives": [], "content_blocks": [] },
-            { "lessonId": "lesson-03", "title": "Lesson 3", "objectives": [], "content_blocks": [] }
+            {
+              "lessonId": "lesson-01",
+              "title": "Asking age",
+              "duration_min": 6,
+              "xp_reward": 10,
+              "objectives": [
+                "Ask How old are you?",
+                "Use plural you (ඔයාලා)"
+              ],
+              "vocab": [
+                {"si": "ඔයාගේ", "translit": "oyaage", "en": "your"},
+                {"si": "වයස", "translit": "vayasa", "en": "age"},
+                {"si": "කීයද", "translit": "kiyada", "en": "how many"},
+                {"si": "ද", "translit": "da", "en": "question particle"},
+                {"si": "ඔයාලා", "translit": "oyala", "en": "you (plural)"},
+                {"si": "ඔයාලගේ", "translit": "oyalage", "en": "your (plural)"}
+              ],
+              "content_blocks": [
+                {"type": "CONCEPT", "body": "Frame questions: ඔයාගේ වයස කීයද? / ඔයාලගේ වයස කීයද?"},
+                {"type": "MINI_EXAMPLE", "body": "ඔයාගේ වයස කීයද? — oyāge vayasa kiyāda?"},
+                {"type": "PRACTICE", "body": "Drill singular vs plural questions with audio prompts."}
+              ]
+            },
+            {
+              "lessonId": "lesson-02",
+              "title": "Telling age",
+              "duration_min": 7,
+              "xp_reward": 10,
+              "objectives": [
+                "Say My age is …",
+                "Add years (අවුරුදු)"
+              ],
+              "vocab": [
+                {"si": "මගේ", "translit": "mage", "en": "my"},
+                {"si": "වයස", "translit": "vayasa", "en": "age"},
+                {"si": "විස්ස", "translit": "vissa", "en": "twenty"},
+                {"si": "අවුරුදු", "translit": "avurudu", "en": "years"},
+                {"si": "වයසයි", "translit": "vayasayi", "en": "is aged"}
+              ],
+              "content_blocks": [
+                {"type": "CONCEPT", "body": "Statement: මගේ වයස විස්සයි. Optionally add අවුරුදු for clarity."},
+                {"type": "BIG_EXAMPLE", "body": "A: ඔයාගේ වයස කීයද?\nB: මගේ වයස විස්සයි."},
+                {"type": "PRACTICE", "body": "Substitute different numbers to answer the question."}
+              ]
+            },
+            {
+              "lessonId": "lesson-03",
+              "title": "Comparing age",
+              "duration_min": 8,
+              "xp_reward": 12,
+              "objectives": [
+                "Use වඩා / කුඩා / සමානයි",
+                "Talk about his/her age"
+              ],
+              "vocab": [
+                {"si": "ඔහුගේ", "translit": "ohuge", "en": "his"},
+                {"si": "ඇයගේ", "translit": "eyage", "en": "her"},
+                {"si": "වඩා", "translit": "wada", "en": "older / more"},
+                {"si": "කුඩා", "translit": "kuda", "en": "younger / small"},
+                {"si": "සමානයි", "translit": "samanayi", "en": "is the same"},
+                {"si": "නෙවේ", "translit": "neve", "en": "is not"}
+              ],
+              "content_blocks": [
+                {"type": "CONCEPT", "body": "Use ප්‍රතිසංයෝග: ඔහුගේ වයස මට වඩා ලොකුයි / සමානයි."},
+                {"type": "MINI_DIALOGUE", "body": "A: ඔහුගේ වයස මට වඩා ද?\nB: නැහැ, සමානයි."},
+                {"type": "PRACTICE", "body": "Compare ages of friends, siblings, and classmates."}
+              ]
+            },
+            {
+              "lessonId": "lesson-04",
+              "title": "Numbers 1–20",
+              "duration_min": 9,
+              "xp_reward": 12,
+              "objectives": [
+                "Count from 1 to 20",
+                "Use numbers in age sentences"
+              ],
+              "vocab": [
+                {"si": "එක", "translit": "eka", "en": "one"},
+                {"si": "දහය", "translit": "dahaya", "en": "ten"},
+                {"si": "එකොළහ", "translit": "ekolaha", "en": "eleven"},
+                {"si": "පහළොව", "translit": "pahalowa", "en": "fifteen"},
+                {"si": "දහඅට", "translit": "dahaata", "en": "eighteen"},
+                {"si": "විස්ස", "translit": "vissa", "en": "twenty"}
+              ],
+              "content_blocks": [
+                {"type": "CONCEPT", "body": "Group numbers into 1–5, 6–10, teens. Teens start with දහ- (daha-)."},
+                {"type": "PRACTICE", "body": "Tap tiles in order, then read each number aloud."},
+                {"type": "PRACTICE", "body": "Answer: ඔහුගේ වයස කීයද? using different numbers."}
+              ]
+            },
+            {
+              "lessonId": "lesson-05",
+              "title": "Numbers 21–40",
+              "duration_min": 9,
+              "xp_reward": 12,
+              "objectives": [
+                "Count 21–40",
+                "Reuse numbers in age comparisons"
+              ],
+              "vocab": [
+                {"si": "එකවිස්ස", "translit": "ekavissa", "en": "twenty-one"},
+                {"si": "දෙවිස්ස", "translit": "devissa", "en": "twenty-two"},
+                {"si": "හතරවිස්ස", "translit": "hatharavissa", "en": "twenty-four"},
+                {"si": "තිහ", "translit": "thiha", "en": "thirty"},
+                {"si": "තිහහය", "translit": "thihahaya", "en": "thirty-six"},
+                {"si": "හතලිහ", "translit": "hathaliha", "en": "forty"}
+              ],
+              "content_blocks": [
+                {"type": "CONCEPT", "body": "Twenty-something = විස්ස + number. Thirty-something = තිහ + number."},
+                {"type": "MINI_DIALOGUE", "body": "A: ඔවුන්ගේ වයස හතලිහ නෙවේ?\nB: නෑ, තිහහයයි."},
+                {"type": "PRACTICE", "body": "Number ladder drill 21→40 with quick recall."}
+              ]
+            }
           ],
           "review": {
             "type": "review",
             "title": "Lesson Review",
-            "content_blocks": []
+            "content_blocks": [
+              {"type": "SUMMARY", "body": "Review: asking age, giving age, comparing ages, and counting 1–40."}
+            ]
           }
         }
       ]
