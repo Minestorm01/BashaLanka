@@ -8,10 +8,70 @@ import {
   answerLookupHas,
   normaliseChoiceItem,
   setStatusMessage,
+  shuffle,
 } from '../_shared/utils.js';
+import { fetchLessonVocab } from '../TranslateToBase/index.js';
 
 const DEFAULT_CONTAINER_SELECTOR = '[data-exercise="picture-choice"]';
 const STYLESHEET_ID = 'picture-choice-styles';
+
+function getLessonId() {
+  if (typeof window === 'undefined') return 'lesson-01';
+  const context = window.BashaLanka?.currentLesson;
+  if (!context) return 'lesson-01';
+  const lessonId = context.detail?.lessonId || context.detail?.id || context.meta?.lessonId || context.meta?.id;
+  return lessonId || 'lesson-01';
+}
+
+function buildPictureChoiceConfig(vocabEntries) {
+  const items = Array.isArray(vocabEntries)
+    ? vocabEntries
+        .map((entry) => {
+          if (!entry || typeof entry !== 'object') return null;
+          const si = normaliseText(entry.si);
+          const en = normaliseText(entry.en);
+          const translit = normaliseText(entry.translit || entry.transliteration);
+          if (!si || !en || !translit) return null;
+          return { si, en, translit };
+        })
+        .filter(Boolean)
+    : [];
+
+  if (items.length < 4) {
+    throw new Error('Need at least 4 vocabulary items for PictureChoice exercise.');
+  }
+
+  const lessonId = getLessonId();
+  const shuffled = shuffle([...items]);
+  const correctItem = shuffled[0];
+  const wrongItems = shuffled.slice(1, 4);
+
+  const choices = shuffle([
+    {
+      image: `./assets/PNG/vocabulary/${lessonId}/${correctItem.translit.toLowerCase()}.png`,
+      label: correctItem.en,
+      value: correctItem.translit,
+      isCorrect: true,
+      alt: `Image for ${correctItem.en}`,
+    },
+    ...wrongItems.map((item) => ({
+      image: `./assets/PNG/vocabulary/${lessonId}/${item.translit.toLowerCase()}.png`,
+      label: item.en,
+      value: item.translit,
+      isCorrect: false,
+      alt: `Image for ${item.en}`,
+    })),
+  ]);
+
+  return {
+    prompt: correctItem.si,
+    instructions: 'Select the image that matches the Sinhala word',
+    choices,
+    answers: [correctItem.translit],
+    successMessage: `Correct! ${correctItem.si} means '${correctItem.en}'`,
+    errorMessage: `Not quite. ${correctItem.si} means '${correctItem.en}'.`,
+  };
+}
 
 function buildLayout(config) {
   const wrapper = document.createElement('section');
@@ -61,6 +121,12 @@ function createPictureButton(option, onClick) {
   image.className = 'picture-choice__image';
   image.src = option.image;
   image.alt = option.alt || option.label || '';
+  
+  image.addEventListener('error', () => {
+    image.src = './assets/PNG/vocabulary/placeholder.png';
+    image.alt = 'Image not available';
+  });
+  
   button.appendChild(image);
 
   const label = document.createElement('span');
@@ -151,7 +217,24 @@ export async function initPictureChoiceExercise(options = {}) {
   }
 
   ensureStylesheet(STYLESHEET_ID, './styles.css', { baseUrl: import.meta.url });
-  const rawConfig = await loadConfig({ config: configOverride, baseUrl: import.meta.url });
+  
+  let rawConfig;
+  
+  if (configOverride) {
+    rawConfig = configOverride;
+  } else {
+    try {
+      const vocabEntries = await fetchLessonVocab();
+      rawConfig = buildPictureChoiceConfig(vocabEntries);
+    } catch (vocabError) {
+      try {
+        rawConfig = await loadConfig({ config: null, baseUrl: import.meta.url });
+      } catch (configError) {
+        throw new Error('PictureChoice: Unable to load vocab or config. ' + vocabError.message);
+      }
+    }
+  }
+
   const config = prepareConfig(rawConfig);
   const { wrapper, choices, feedback } = buildLayout(config);
   target.innerHTML = '';

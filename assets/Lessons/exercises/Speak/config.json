@@ -1,0 +1,11 @@
+{
+  "prompt": "ආයුබෝවන්",
+  "transliteration": "Ayubowan",
+  "instructions": "Speak the Sinhala word into your microphone.",
+  "startLabel": "Start recording",
+  "stopLabel": "Stop recording",
+  "successMessage": "Great pronunciation!",
+  "errorMessage": "Try again. Listen to the word and repeat.",
+  "audioSrc": "./assets/Sinhala_Audio/ආයුබෝවන්_fast.mp3",
+  "answers": ["ayubowan", "ආයුබෝවන්"]
+}

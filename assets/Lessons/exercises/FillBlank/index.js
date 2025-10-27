@@ -6,10 +6,52 @@ import {
   createAnswerLookup,
   setStatusMessage,
   createChoiceButton,
+  shuffle,
 } from '../_shared/utils.js';
+import { fetchLessonVocab } from '../TranslateToBase/index.js';
 
 const DEFAULT_CONTAINER_SELECTOR = '[data-exercise="fill-blank"]';
 const STYLESHEET_ID = 'fill-blank-styles';
+
+// 🛠 Build config from lesson vocab (auto-generate for lesson simulator)
+function buildFillBlankConfig(vocabEntries) {
+  const items = Array.isArray(vocabEntries)
+    ? vocabEntries
+        .map((entry) => {
+          if (!entry || typeof entry !== 'object') return null;
+          const si = normaliseText(entry.si);
+          const en = normaliseText(entry.en);
+          if (!si || !en) return null;
+          return { si, en };
+        })
+        .filter(Boolean)
+    : [];
+
+  if (items.length < 3) {
+    throw new Error('FillBlank requires at least three vocab entries.');
+  }
+
+  // Pick one random item as the correct answer
+  const shuffled = shuffle(items);
+  const correct = shuffled[0];
+  
+  // Pick 2 random distractors
+  const distractors = shuffled.slice(1, 3).map(item => item.en);
+  const allChoices = shuffle([correct.en, ...distractors]);
+
+  return {
+    prompt: 'Complete the sentence',
+    sentence: {
+      before: 'The Sinhala word for',
+      after: `is "${correct.si}"`,
+    },
+    choices: allChoices,
+    answers: [correct.en],
+    instructions: 'Choose the word that best completes the sentence.',
+    successMessage: `Correct! ${correct.si} means "${correct.en}"`,
+    errorMessage: 'Not quite, try again.',
+  };
+}
 
 function buildLayout(config) {
   const wrapper = document.createElement('section');
@@ -134,7 +176,26 @@ export async function initFillBlankExercise(options = {}) {
   }
 
   ensureStylesheet(STYLESHEET_ID, './styles.css', { baseUrl: import.meta.url });
-  const rawConfig = await loadConfig({ config: configOverride, baseUrl: import.meta.url });
+  
+  // Try to load config - either from override, or auto-generate from lesson vocab
+  let rawConfig;
+  if (configOverride) {
+    rawConfig = configOverride;
+  } else {
+    try {
+      // Try to auto-generate config from lesson vocabulary (like MatchPairs does)
+      const vocabEntries = await fetchLessonVocab();
+      rawConfig = buildFillBlankConfig(vocabEntries);
+    } catch (vocabError) {
+      // Fallback to loading config.json if vocab fetch fails
+      try {
+        rawConfig = await loadConfig({ config: null, baseUrl: import.meta.url });
+      } catch (configError) {
+        throw new Error(`FillBlank: Cannot auto-generate from vocab (${vocabError.message}), and no config.json found (${configError.message}).`);
+      }
+    }
+  }
+  
   const config = prepareConfig(rawConfig);
   const { wrapper, blank, choices, feedback } = buildLayout(config);
   target.innerHTML = '';

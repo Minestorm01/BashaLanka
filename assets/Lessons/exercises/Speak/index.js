@@ -7,10 +7,43 @@ import {
   setStatusMessage,
   supportsSpeechRecognition,
   createSpeechRecognizer,
+  shuffle,
 } from '../_shared/utils.js';
+import { fetchLessonVocab } from '../TranslateToBase/index.js';
 
 const DEFAULT_CONTAINER_SELECTOR = '[data-exercise="speak"]';
 const STYLESHEET_ID = 'speak-styles';
+
+function buildSpeakConfig(vocabEntries) {
+  const items = Array.isArray(vocabEntries)
+    ? vocabEntries
+        .map((entry) => {
+          if (!entry || typeof entry !== 'object') return null;
+          const si = normaliseText(entry.si);
+          const en = normaliseText(entry.en);
+          const translit = normaliseText(entry.translit || entry.transliteration);
+          if (!si) return null;
+          return { si, en, translit };
+        })
+        .filter(Boolean)
+    : [];
+
+  if (items.length === 0) {
+    throw new Error('Need at least 1 vocabulary item for Speak exercise.');
+  }
+
+  const shuffled = shuffle([...items]);
+  const targetWord = shuffled[0];
+
+  return {
+    prompt: `Say: ${targetWord.si}`,
+    transliteration: targetWord.translit ? `(${targetWord.translit})` : '',
+    instructions: 'Tap start and say the phrase aloud.',
+    answers: [targetWord.si, targetWord.translit, targetWord.en].filter(Boolean),
+    successMessage: `Great! ${targetWord.si} (${targetWord.en})`,
+    errorMessage: 'Try again.',
+  };
+}
 
 function buildLayout(config) {
   const wrapper = document.createElement('section');
@@ -119,7 +152,24 @@ export async function initSpeakExercise(options = {}) {
   }
 
   ensureStylesheet(STYLESHEET_ID, './styles.css', { baseUrl: import.meta.url });
-  const rawConfig = await loadConfig({ config: configOverride, baseUrl: import.meta.url });
+  
+  let rawConfig;
+  
+  if (configOverride) {
+    rawConfig = configOverride;
+  } else {
+    try {
+      const vocabEntries = await fetchLessonVocab();
+      rawConfig = buildSpeakConfig(vocabEntries);
+    } catch (vocabError) {
+      try {
+        rawConfig = await loadConfig({ config: null, baseUrl: import.meta.url });
+      } catch (configError) {
+        throw new Error('Speak: Unable to load vocab or config. ' + vocabError.message);
+      }
+    }
+  }
+
   const config = prepareConfig(rawConfig);
   const { wrapper, button, feedback, transcript } = buildLayout(config);
   target.innerHTML = '';

@@ -10,10 +10,64 @@ import {
   setStatusMessage,
   createChoiceButton,
   createAudio,
+  shuffle,
 } from '../_shared/utils.js';
+import { fetchLessonVocab } from '../TranslateToBase/index.js';
 
 const DEFAULT_CONTAINER_SELECTOR = '[data-exercise="listening"]';
 const STYLESHEET_ID = 'listening-styles';
+
+function normalizeSinhalaForAudioPath(sinhalaText) {
+  if (!sinhalaText) return '';
+  return sinhalaText.trim().replace(/\s+/g, '_');
+}
+
+function buildListeningConfig(vocabEntries) {
+  const items = Array.isArray(vocabEntries)
+    ? vocabEntries
+        .map((entry) => {
+          if (!entry || typeof entry !== 'object') return null;
+          const si = normaliseText(entry.si);
+          const en = normaliseText(entry.en);
+          if (!si || !en) return null;
+          return { si, en };
+        })
+        .filter(Boolean)
+    : [];
+
+  if (items.length < 3) {
+    throw new Error('Need at least 3 vocabulary items for Listening exercise.');
+  }
+
+  const shuffled = shuffle([...items]);
+  const correctItem = shuffled[0];
+  const wrongItems = shuffled.slice(1, 3);
+
+  const choices = shuffle([
+    {
+      label: correctItem.en,
+      value: correctItem.en.toLowerCase(),
+      isCorrect: true,
+    },
+    ...wrongItems.map((item) => ({
+      label: item.en,
+      value: item.en.toLowerCase(),
+      isCorrect: false,
+    })),
+  ]);
+
+  const normalizedSinhala = normalizeSinhalaForAudioPath(correctItem.si);
+
+  return {
+    prompt: 'What do you hear?',
+    instructions: 'Listen to the audio and choose the correct translation.',
+    audioSrc: `./assets/Sinhala_Audio/${normalizedSinhala}_fast.mp3`,
+    choices,
+    answers: [correctItem.en.toLowerCase()],
+    successMessage: `Correct! You heard ${correctItem.si} (${correctItem.en})`,
+    errorMessage: 'Not quite. Listen again and try.',
+  };
+}
 
 function buildLayout(config) {
   const wrapper = document.createElement('section');
@@ -208,7 +262,24 @@ export async function initListeningExercise(options = {}) {
   }
 
   ensureStylesheet(STYLESHEET_ID, './styles.css', { baseUrl: import.meta.url });
-  const rawConfig = await loadConfig({ config: configOverride, baseUrl: import.meta.url });
+  
+  let rawConfig;
+  
+  if (configOverride) {
+    rawConfig = configOverride;
+  } else {
+    try {
+      const vocabEntries = await fetchLessonVocab();
+      rawConfig = buildListeningConfig(vocabEntries);
+    } catch (vocabError) {
+      try {
+        rawConfig = await loadConfig({ config: null, baseUrl: import.meta.url });
+      } catch (configError) {
+        throw new Error('Listening: Unable to load vocab or config. ' + vocabError.message);
+      }
+    }
+  }
+
   const config = prepareConfig(rawConfig);
   const { wrapper, playButton, answerGroup, feedback } = buildLayout(config);
   target.innerHTML = '';

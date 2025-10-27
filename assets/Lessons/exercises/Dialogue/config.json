@@ -1,0 +1,59 @@
+{
+  "prompt": "Practice this dialogue",
+  "instructions": "Choose the correct response for each turn in the conversation.",
+  "initialMessage": "Select your response to continue the conversation.",
+  "successMessage": "Great job! You completed the dialogue.",
+  "errorMessage": "Not quite. Try again.",
+  "turns": [
+    {
+      "speaker": "tutor",
+      "text": "ආයුබෝවන්",
+      "translation": "Hello"
+    },
+    {
+      "speaker": "learner",
+      "choices": [
+        {
+          "label": "ආයුබෝවන්",
+          "value": "ආයුබෝවන්",
+          "isCorrect": true
+        },
+        {
+          "label": "ස්තූතියි",
+          "value": "ස්තූතියි",
+          "isCorrect": false
+        },
+        {
+          "label": "මම",
+          "value": "මම",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "speaker": "tutor",
+      "text": "ඔබ කොහොමද?",
+      "translation": "How are you?"
+    },
+    {
+      "speaker": "learner",
+      "choices": [
+        {
+          "label": "මම හොඳයි",
+          "value": "මම හොඳයි",
+          "isCorrect": true
+        },
+        {
+          "label": "ඔබ කොහොමද",
+          "value": "ඔබ කොහොමද",
+          "isCorrect": false
+        },
+        {
+          "label": "ආයුබෝවන්",
+          "value": "ආයුබෝවන්",
+          "isCorrect": false
+        }
+      ]
+    }
+  ]
+}

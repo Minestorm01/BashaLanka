@@ -1,0 +1,25 @@
+{
+  "prompt": "What do you hear?",
+  "instructions": "Listen to the audio and choose the correct translation.",
+  "audioSrc": "./assets/Sinhala_Audio/ආයුබෝවන්_fast.mp3",
+  "choices": [
+    {
+      "label": "Hello",
+      "value": "hello",
+      "isCorrect": true
+    },
+    {
+      "label": "You",
+      "value": "you",
+      "isCorrect": false
+    },
+    {
+      "label": "I",
+      "value": "i",
+      "isCorrect": false
+    }
+  ],
+  "answers": ["hello"],
+  "successMessage": "Correct! You heard ආයුබෝවන් (Hello)",
+  "errorMessage": "Not quite. Listen again and try."
+}
