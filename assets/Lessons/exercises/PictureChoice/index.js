@@ -47,7 +47,6 @@ function buildLayout(config) {
   return {
     wrapper,
     choices,
-    choices,
     feedback,
   };
 }
