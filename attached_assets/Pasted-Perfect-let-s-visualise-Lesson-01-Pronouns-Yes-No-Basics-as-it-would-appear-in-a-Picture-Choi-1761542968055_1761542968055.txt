@@ -1,0 +1,40 @@
+Perfect — let’s visualise Lesson 01: “Pronouns + Yes/No Basics” as it would appear in a Picture Choice exercise.
+
+Below are the kinds of images you’d prepare for the vocabulary items — what they’d show, and why they fit.
+
+🖼️ Lesson 01 — Picture Choice Image Concepts
+Sinhala	English meaning	What the picture should show	Notes / style
+මම (mama – I)	“I / me”	A single person pointing to themselves, hand on chest or finger toward chest.	Simple neutral-gender illustration or photo. Works best if consistent art style (flat, friendly, Duolingo-style).
+ඔයා (oyā – you)	“you (casual)”	Person pointing directly at viewer / camera.	Make eye contact, smiling — clear “you” cue.
+ඒයා (eyā – they / he / she)	“they / he / she (neutral)”	A small group of two-three people standing together, or one gender-neutral figure waving.	Avoid gender bias; stylised icons help.
+ඔව් (owu – yes)	“yes”	Green check ✅, thumbs-up 👍, or person nodding.	The concept of agreement / affirmation.
+නෑ (nae – no)	“no”	Red cross ❌, head-shake gesture, or person crossing arms.	Contrast visually with “ඔව්”.
+හොඳයි (hondayi – fine / good)	“fine / good”	Smiling face, sunshine, or person giving a relaxed OK gesture.	Warm colours; conveys positive state.
+📦 How They’d Be Used in the Exercise
+
+Each prompt would pick one Sinhala word and show four possible images — one correct, three distractors.
+Example question sets:
+
+Prompt	Correct image	Distractors
+“ඔව්” (Yes)	✅ Thumbs-up	❌ Cross, 🤷 Person pointing, 🙂 Smiling face
+“නෑ” (No)	❌ Crossed arms	✅ Thumbs-up, 🙂 Smiling face, 👥 Group of people
+“මම” (I)	Person pointing to self	Person pointing outward, Group of people, Check mark
+“ඔයා” (You)	Person pointing outward	Person pointing to self, Cross mark, Group
+“හොඳයි” (Fine/Good)	Relaxed smiling person	Angry face, Thumbs-down, Question mark
+“ඒයා” (They)	Small group of two-three	One person, Check mark, Smiling sun
+🎨 Design Notes
+
+Keep all pictures uniform (same dimensions and background, preferably transparent PNGs or SVGs).
+
+Use friendly, expressive characters or icons — Duolingo/Flat-illustration style.
+
+Background: soft pastel gradient or solid light colour (to fit BashaLanka’s green-teal theme).
+
+File names should match lesson ID for easy mapping, e.g.:
+
+lesson-01_mama.png
+lesson-01_oya.png
+lesson-01_eyaa.png
+lesson-01_owu.png
+lesson-01_nae.png
+lesson-01_hondayi.png

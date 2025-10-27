@@ -1,0 +1,38 @@
+{
+  "id": "lesson-01-picture-choice-02",
+  "type": "picture-choice",
+  "prompt": "ඔයා",
+  "instructions": "Select the image that matches the Sinhala word",
+  "choices": [
+    {
+      "image": "./assets/PNG/vocabulary/lesson-01/mama.png",
+      "label": "I (pointing to self)",
+      "value": "mama",
+      "isCorrect": false,
+      "alt": "Lion pointing to itself"
+    },
+    {
+      "image": "./assets/PNG/vocabulary/lesson-01/oya.png",
+      "label": "You (pointing out)",
+      "value": "oya",
+      "isCorrect": true,
+      "alt": "Lion pointing outward"
+    },
+    {
+      "image": "./assets/PNG/vocabulary/lesson-01/nae.png",
+      "label": "No (crossed paws)",
+      "value": "nae",
+      "isCorrect": false,
+      "alt": "Lion with crossed paws"
+    },
+    {
+      "image": "./assets/PNG/vocabulary/lesson-01/hondayi.png",
+      "label": "Fine/Good (OK gesture)",
+      "value": "hondayi",
+      "isCorrect": false,
+      "alt": "Lion making OK gesture"
+    }
+  ],
+  "correctFeedback": "Excellent! ඔයා (oyā) means 'you (casual)'",
+  "incorrectFeedback": "Not quite. ඔයා means 'you' — the lion pointing at you."
+}

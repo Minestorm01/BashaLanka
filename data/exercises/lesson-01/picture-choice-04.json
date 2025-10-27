@@ -1,0 +1,38 @@
+{
+  "id": "lesson-01-picture-choice-04",
+  "type": "picture-choice",
+  "prompt": "නෑ",
+  "instructions": "Select the image that matches the Sinhala word",
+  "choices": [
+    {
+      "image": "./assets/PNG/vocabulary/lesson-01/owu.png",
+      "label": "Yes (thumbs up)",
+      "value": "owu",
+      "isCorrect": false,
+      "alt": "Lion giving thumbs up"
+    },
+    {
+      "image": "./assets/PNG/vocabulary/lesson-01/nae.png",
+      "label": "No (crossed paws)",
+      "value": "nae",
+      "isCorrect": true,
+      "alt": "Lion with crossed paws"
+    },
+    {
+      "image": "./assets/PNG/vocabulary/lesson-01/mama.png",
+      "label": "I (pointing to self)",
+      "value": "mama",
+      "isCorrect": false,
+      "alt": "Lion pointing to itself"
+    },
+    {
+      "image": "./assets/PNG/vocabulary/lesson-01/oya.png",
+      "label": "You (pointing out)",
+      "value": "oya",
+      "isCorrect": false,
+      "alt": "Lion pointing outward"
+    }
+  ],
+  "correctFeedback": "Great! නෑ (nae) means 'no'",
+  "incorrectFeedback": "Not quite. නෑ means 'no' — the crossed paws showing 'no'."
+}

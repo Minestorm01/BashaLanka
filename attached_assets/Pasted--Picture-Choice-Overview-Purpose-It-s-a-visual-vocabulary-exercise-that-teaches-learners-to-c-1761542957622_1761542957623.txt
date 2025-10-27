@@ -1,0 +1,88 @@
+🖼️ Picture Choice — Overview
+
+Purpose:
+It’s a visual vocabulary exercise that teaches learners to connect Sinhala words or phrases with the correct image.
+It’s one of the simplest, most intuitive lesson types — great for reinforcing meaning through visual association.
+
+🧠 How it Works (Step-by-Step)
+
+Prompt appears at the top
+
+This can be either:
+
+An English word/phrase → “dog”
+
+Or a Sinhala word → “බල්ලා (ballā)”
+
+Depending on lesson direction (English → Sinhala or Sinhala → English).
+
+Four image options are displayed in a grid below.
+
+Only one image correctly represents the prompt.
+
+The rest are distractors (related or random objects).
+
+Learner clicks on the image they think matches.
+
+The chosen card briefly highlights (hover + click animation).
+
+If correct → image flashes green ✅
+
+If incorrect → image flashes red ❌ and the correct one glows green.
+
+Feedback appears (“Correct!” or “That was [X], not [Y].”)
+
+A short delay (≈ 1.5 sec), then it auto-advances to the next prompt.
+
+🎮 Example
+
+Prompt:
+
+“බල්ලා”
+
+Choices:
+🐶 Dog (correct)
+🐱 Cat
+🐘 Elephant
+🐓 Chicken
+
+Learner clicks the dog → it flashes green → next question loads.
+
+💾 Data Structure (Simplified Example)
+
+The JSON for this kind of exercise might look like this:
+
+{
+  "type": "picture-choice",
+  "prompts": [
+    {
+      "question": "බල්ලා",
+      "correct": "dog.jpg",
+      "options": ["dog.jpg", "cat.jpg", "elephant.jpg", "chicken.jpg"],
+      "translation": "Dog"
+    },
+    {
+      "question": "අපේ රට",
+      "correct": "sri_lanka.jpg",
+      "options": ["sri_lanka.jpg", "india.jpg", "china.jpg", "japan.jpg"],
+      "translation": "Our country"
+    }
+  ]
+}
+
+🧩 Integration in the LessonSimulator
+
+Each Picture Choice prompt runs as one exercise “slide.”
+
+When the learner answers correctly (or after correction), the exercise calls onComplete() to advance to the next one.
+
+The module is self-contained and lives at:
+assets/Lessons/exercises/PictureChoice/index.js
+
+💡 Teaching Value
+
+Builds word-image association quickly, which is vital for beginners.
+
+Great for nouns, animals, foods, objects, and actions.
+
+Works well as one of the first exercise types in any new lesson unit.

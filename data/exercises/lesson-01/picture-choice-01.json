@@ -1,0 +1,38 @@
+{
+  "id": "lesson-01-picture-choice-01",
+  "type": "picture-choice",
+  "prompt": "මම",
+  "instructions": "Select the image that matches the Sinhala word",
+  "choices": [
+    {
+      "image": "./assets/PNG/vocabulary/lesson-01/mama.png",
+      "label": "I (pointing to self)",
+      "value": "mama",
+      "isCorrect": true,
+      "alt": "Lion pointing to itself"
+    },
+    {
+      "image": "./assets/PNG/vocabulary/lesson-01/oya.png",
+      "label": "You (pointing out)",
+      "value": "oya",
+      "isCorrect": false,
+      "alt": "Lion pointing outward"
+    },
+    {
+      "image": "./assets/PNG/vocabulary/lesson-01/eyaa.png",
+      "label": "They (group)",
+      "value": "eyaa",
+      "isCorrect": false,
+      "alt": "Group of lions"
+    },
+    {
+      "image": "./assets/PNG/vocabulary/lesson-01/owu.png",
+      "label": "Yes (thumbs up)",
+      "value": "owu",
+      "isCorrect": false,
+      "alt": "Lion giving thumbs up"
+    }
+  ],
+  "correctFeedback": "Correct! මම (mama) means 'I'",
+  "incorrectFeedback": "Not quite. මම means 'I' — the lion pointing to itself."
+}

@@ -1,0 +1,38 @@
+{
+  "id": "lesson-01-picture-choice-03",
+  "type": "picture-choice",
+  "prompt": "ඔව්",
+  "instructions": "Select the image that matches the Sinhala word",
+  "choices": [
+    {
+      "image": "./assets/PNG/vocabulary/lesson-01/owu.png",
+      "label": "Yes (thumbs up)",
+      "value": "owu",
+      "isCorrect": true,
+      "alt": "Lion giving thumbs up"
+    },
+    {
+      "image": "./assets/PNG/vocabulary/lesson-01/nae.png",
+      "label": "No (crossed paws)",
+      "value": "nae",
+      "isCorrect": false,
+      "alt": "Lion with crossed paws"
+    },
+    {
+      "image": "./assets/PNG/vocabulary/lesson-01/hondayi.png",
+      "label": "Fine/Good (OK gesture)",
+      "value": "hondayi",
+      "isCorrect": false,
+      "alt": "Lion making OK gesture"
+    },
+    {
+      "image": "./assets/PNG/vocabulary/lesson-01/eyaa.png",
+      "label": "They (group)",
+      "value": "eyaa",
+      "isCorrect": false,
+      "alt": "Group of lions"
+    }
+  ],
+  "correctFeedback": "Perfect! ඔව් (owu) means 'yes'",
+  "incorrectFeedback": "Not quite. ඔව් means 'yes' — the happy thumbs up!"
+}

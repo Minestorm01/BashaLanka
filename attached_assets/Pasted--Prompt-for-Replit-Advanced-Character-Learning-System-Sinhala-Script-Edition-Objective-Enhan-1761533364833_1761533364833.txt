@@ -1,0 +1,121 @@
+🦁 Prompt for Replit — Advanced Character Learning System (Sinhala Script Edition)
+
+Objective:
+Enhance the existing Characters view in BashaLanka by turning it into an interactive, gamified tool — similar to Duolingo’s new Japanese writing-system learning feature.
+This should fit naturally into the existing BashaLanka UI (using the current design, not a rebuild) while adding new functionality, interactivity, and polish.
+
+1. Core Concept
+
+We’re implementing a Character Learning Hub for Sinhala that mirrors the experience described in Duolingo’s Japanese system:
+
+Visual, interactive character charts for Sinhala vowels, consonants, and combined forms.
+
+Users can trace, match, listen, and identify Sinhala letters to master reading and recognition.
+
+Each character visually “lights up” or animates as the user masters it.
+
+A progress tracker shows how many letters are mastered, in progress, or new.
+
+2. Integration Requirements
+
+Keep and enhance the existing Characters UI, not replace it.
+This means:
+
+Maintain the current layout and filtering (All, Vowels, Consonants, Combined Forms).
+
+Rework the inner logic to use a new structured JSON data model (already reworked characters.json).
+
+Add interactive layers and visual feedback animations similar to Duolingo’s tabs for hiragana / katakana / kanji.
+
+3. Functional Additions
+
+Each character card should now support these new features:
+
+🖊️ Tracing Mode
+
+Add a tracing overlay canvas where users can draw the Sinhala letter using their mouse or finger (touch-friendly).
+
+The drawn path should briefly show a success animation if it roughly matches the shape outline (tolerance-based check).
+
+🔊 Pronunciation Practice
+
+Add a “Listen & Repeat” button for each character.
+
+Uses the existing Sinhala audio if available; fallback to a generated voice (if SpeechSynthesis API works).
+
+Later expansion: speech recognition scoring for user pronunciation.
+
+🎮 Gamified Mastery System
+
+Characters light up or pulse when mastered.
+
+Track progress (New → Learning → Mastered) in localStorage.
+
+Optionally add a streak bonus for mastering multiple in a row.
+
+Progress ring or small glowing badge per character.
+
+🧩 Mini-Exercises
+
+Within the Characters view (not full LessonSimulator):
+
+Matching mini-game (match Sinhala to Romanized).
+
+Quick multiple-choice quiz (“Which sound is this letter?”).
+
+Listening quiz (“Click the letter you heard”).
+
+These appear as small pop-up modals or inline cards so users can practice per letter without leaving the Characters screen.
+
+4. Visual + UX Goals
+
+Make it clean, beautiful, and consistent with the BashaLanka design.
+
+Use existing fonts, rounded cards, and shadows from styles.features.css.
+
+Subtle glass-like background or gradient panels (like the home page).
+
+Smooth hover animations, progress color gradients (teal → orange → gold as mastery increases).
+
+Keep accessibility (keyboard focus + aria labels) intact.
+
+5. JSON & Data Model
+
+Use the reworked assets/data/characters.json structure:
+
+{
+  "vowels": [{ "char": "අ", "roman": "a", "audio": "a.mp3" }],
+  "consonants": [{ "char": "ක", "roman": "ka", "audio": "ka.mp3" }],
+  "combined": [{ "char": "කා", "roman": "kā", "base": "ක", "vowel": "ා" }]
+}
+
+
+Each character’s progress should be stored locally like:
+
+{
+  "අ": { "status": "mastered", "score": 0.95 },
+  "ක": { "status": "learning", "score": 0.5 }
+}
+
+6. Stretch Goals (Phase 2)
+
+After the base features work:
+
+Add a Character Progress Overview Modal (bar graph of mastery).
+
+Introduce daily character goals integrated into the Quests system.
+
+Optional: integrate tracing data as XP gain.
+
+7. Summary of Implementation Tasks
+Feature	Description
+Interactive Charts	Make each character clickable and animated
+Tracing Canvas	Add stroke-based drawing for recognition practice
+Audio & Pronunciation	Add listen/repeat support per character
+Mini-Exercises	Add small quiz + matching games within the Characters view
+Progress Tracking	Persist mastery per character in localStorage
+Visual Polish	Smooth animations, glowing mastery effects
+Data Source	Use updated characters.json for structure
+
+Important:
+All of this must integrate seamlessly into the existing BashaLanka Characters page layout — no breaking or replacing the UI, only enriching it.

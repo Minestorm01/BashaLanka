@@ -1,0 +1,38 @@
+{
+  "id": "lesson-01-picture-choice-06",
+  "type": "picture-choice",
+  "prompt": "ඒයා",
+  "instructions": "Select the image that matches the Sinhala word",
+  "choices": [
+    {
+      "image": "./assets/PNG/vocabulary/lesson-01/mama.png",
+      "label": "I (pointing to self)",
+      "value": "mama",
+      "isCorrect": false,
+      "alt": "Lion pointing to itself"
+    },
+    {
+      "image": "./assets/PNG/vocabulary/lesson-01/oya.png",
+      "label": "You (pointing out)",
+      "value": "oya",
+      "isCorrect": false,
+      "alt": "Lion pointing outward"
+    },
+    {
+      "image": "./assets/PNG/vocabulary/lesson-01/eyaa.png",
+      "label": "They (group)",
+      "value": "eyaa",
+      "isCorrect": true,
+      "alt": "Group of lions"
+    },
+    {
+      "image": "./assets/PNG/vocabulary/lesson-01/hondayi.png",
+      "label": "Fine/Good (OK gesture)",
+      "value": "hondayi",
+      "isCorrect": false,
+      "alt": "Lion making OK gesture"
+    }
+  ],
+  "correctFeedback": "Perfect! ඒයා (eyā) means 'they/he/she (neutral)'",
+  "incorrectFeedback": "Not quite. ඒයා means 'they' — the group of lions."
+}
