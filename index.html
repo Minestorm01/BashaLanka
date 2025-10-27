@@ -27,14 +27,10 @@
     <!-- Include fixed sidebar overrides -->
     <link rel="stylesheet" href="./sidebar-fixed.override.css" />
     <link rel="stylesheet" href="./styles.learn.css" />
+    <link rel="stylesheet" href="./styles.features.css" />
 
     <!-- PWA / Theming -->
     <meta name="theme-color" content="#0f1720" />
-
-    <!-- Fonts: local WOFF2 with preloads -->
-    <link rel="preload" href="./assets/font/Feather-Bold.woff2" as="font" type="font/woff2" crossorigin>
-    <link rel="preload" href="./assets/font/DINNextRounded-Regular.woff2" as="font" type="font/woff2" crossorigin>
-    <link rel="preload" href="./assets/font/DINNextRounded-Medium.woff2" as="font" type="font/woff2" crossorigin>
   </head>
 
   <body>
@@ -81,6 +77,43 @@
 
     <!-- Main content area -->
     <main id="app" class="main" role="main">
+    
+    <!-- HOME / LANDING -->
+    <section id="view-home" class="view view-home" hidden>
+      <div class="landing">
+        <div class="landing__hero">
+          <img src="./assets/SVG/app_logo.svg" alt="BashaLanka" class="landing__logo" />
+          <h1 class="landing__title">Learn Sinhala with BashaLanka</h1>
+          <p class="landing__tagline">Master the Sinhala language with interactive, game-like lessons</p>
+          <div class="landing__cta">
+            <a href="#/learn" class="btn btn--primary btn--lg">Start Learning</a>
+            <a href="#/characters" class="btn btn--secondary btn--lg">Explore Characters</a>
+          </div>
+        </div>
+        <div class="landing__features">
+          <div class="feature-card">
+            <div class="feature-card__icon">🎯</div>
+            <h3 class="feature-card__title">Interactive Lessons</h3>
+            <p class="feature-card__description">Learn through engaging exercises like matching, translation, and listening comprehension</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-card__icon">📚</div>
+            <h3 class="feature-card__title">Structured Path</h3>
+            <p class="feature-card__description">Follow a carefully designed curriculum from beginner to advanced</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-card__icon">🔊</div>
+            <h3 class="feature-card__title">Audio Pronunciation</h3>
+            <p class="feature-card__description">Hear native pronunciations and practice speaking with confidence</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-card__icon">🏆</div>
+            <h3 class="feature-card__title">Track Progress</h3>
+            <p class="feature-card__description">Complete quests, earn rewards, and see your improvement over time</p>
+          </div>
+        </div>
+      </div>
+    </section>
     
     <!-- LEARN -->
     <section id="view-learn" class="view" hidden></section>
@@ -145,6 +178,10 @@
   <div id="drawerScrim" class="scrim" hidden></div>
 
     
+    <script src="./app.home.js" defer></script>
+    <script src="./app.characters.js" defer></script>
+    <script src="./app.practice.js" defer></script>
+    <script src="./app.quests.js" defer></script>
     <script id="sections-overview-data" type="application/json">
 {
   "1": {

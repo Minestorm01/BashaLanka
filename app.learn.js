@@ -303,7 +303,8 @@
     const sectionId = String(sec.number);
     const subtitle = sec.description || '';
     const titleId = `section-${sectionId}-title`;
-    return `<article class="section-card" data-section-id="${sectionId}"><div class="section-card__left">
+    return `<article class="section-card" data-section-id="${sectionId}">
+    <div class="section-card__left">
       <div class="section-card__header">
         <h2 class="section-title" id="${titleId}">${sec.title}</h2>
         ${subtitle ? `<p class="section-subtitle">${subtitle}</p>` : ''}
@@ -327,6 +328,7 @@
         ${speechBubble(sec.phrase)}
       </div>
     </div>
+    <div class="section-units" hidden data-expanded="false" aria-expanded="false" aria-hidden="true"></div>
     </article>`;
   }
 
@@ -778,7 +780,6 @@
     <button class="btn-back" data-action="back">← Back</button>
     ${unitsMarkup}
   </div>`;
-    connectLessons('lesson-01', 'lesson-02');
   }
 
   function closeLessonBubbles(except){
@@ -829,10 +830,114 @@
     }
   }
 
+  function expandSectionUnits(sectionId){
+    if(location.hash !== '#/learn' && location.hash !== '#learn'){
+      location.hash = '#/learn';
+      window.addEventListener('hashchange', function handleExpand(){
+        setTimeout(() => {
+          performSectionExpansion(sectionId);
+        }, 100);
+        window.removeEventListener('hashchange', handleExpand);
+      }, { once: true });
+    }else{
+      performSectionExpansion(sectionId);
+    }
+  }
+
+  function performSectionExpansion(sectionId){
+    const card = container.querySelector(`.section-card[data-section-id="${sectionId}"]`);
+    if(!card) return;
+    
+    const unitsContainer = card.querySelector('.section-units');
+    if(unitsContainer && !unitsContainer.dataset.rendered){
+      renderSectionUnits(card, sectionId);
+    }
+    
+    const unitsPanel = card.querySelector('.section-units');
+    if(unitsPanel){
+      expandSectionUnitsPanel(unitsPanel, card);
+      
+      setTimeout(() => {
+        card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        card.classList.add('section-highlight');
+        setTimeout(() => card.classList.remove('section-highlight'), 2000);
+      }, 150);
+    }
+  }
+
+  function renderSectionUnits(card, sectionId){
+    const sec = sections.find(s => String(s.number) === String(sectionId));
+    if(!sec) return;
+    
+    const unitsContainer = card.querySelector('.section-units');
+    if(!unitsContainer) return;
+    
+    const unitsMarkup = sec.units.length
+      ? sec.units.map(unit => renderUnit(sec.number, unit)).join('')
+      : '<p class="unit-path__empty">No units available yet.</p>';
+    
+    unitsContainer.innerHTML = unitsMarkup;
+    unitsContainer.dataset.rendered = 'true';
+  }
+
+  function expandSectionUnitsPanel(panel, card){
+    if(!panel || !card) return;
+    
+    const isExpanded = panel.dataset.expanded === 'true';
+    if(isExpanded) return;
+    
+    panel.hidden = false;
+    panel.removeAttribute('hidden');
+    panel.dataset.expanded = 'true';
+    panel.setAttribute('aria-expanded', 'true');
+    panel.setAttribute('aria-hidden', 'false');
+    panel.classList.add('is-open');
+    
+    panel.style.maxHeight = '0px';
+    panel.getBoundingClientRect();
+    panel.style.maxHeight = `${panel.scrollHeight}px`;
+    
+    const onEnd = event => {
+      if(event.target !== panel || (event.propertyName && event.propertyName !== 'max-height')) return;
+      panel.style.maxHeight = 'none';
+      panel.removeEventListener('transitionend', onEnd);
+    };
+    panel.addEventListener('transitionend', onEnd);
+  }
+
   function handleClick(e){
     const lessonButton = e.target.closest('.lesson-row--lesson .lesson');
     if(lessonButton){
       toggleLessonBubble(lessonButton);
+      return;
+    }
+
+    const lessonCtaButton = e.target.closest('.lesson-bubble__cta');
+    if(lessonCtaButton && !lessonCtaButton.disabled){
+      const row = lessonCtaButton.closest('.lesson-row');
+      if(row){
+        const lessonBtn = row.querySelector('.lesson');
+        if(lessonBtn){
+          const lessonId = lessonBtn.dataset.lessonId || '';
+          const skillId = lessonBtn.dataset.skillId || '';
+          const levelId = lessonBtn.dataset.levelId || '';
+          const lessonTitle = lessonBtn.getAttribute('aria-label') || 'Lesson';
+          
+          if(lessonId && typeof window.LessonSimulator !== 'undefined' && window.LessonSimulator.open){
+            const defaultExercises = ['translate-to-base', 'match-pairs', 'translate-to-target'];
+            window.LessonSimulator.open({
+              lessonTitle,
+              lessonNumberText: '',
+              sectionTitle: '',
+              unitTitle: '',
+              lessonDetail: null,
+              lessonMeta: { lessonId, skillId, levelId },
+              selectedExercises: defaultExercises,
+              trigger: lessonCtaButton
+            });
+          }
+        }
+      }
       return;
     }
 
@@ -858,7 +963,9 @@
     if(continueBtn){
       const id = continueBtn.dataset.id;
       const sec = sections.find(s=>String(s.number) === String(id));
-      if(sec && sec.status !== 'locked') location.hash = `#/section/${id}`;
+      if(sec && sec.status !== 'locked'){
+        window.location.hash = `#/section/${id}`;
+      }
       return;
     }
 
@@ -866,7 +973,12 @@
     if(overviewCtaBtn){
       const id = overviewCtaBtn.dataset.id || overviewCtaBtn.closest('.section-card')?.getAttribute('data-section-id');
       const sec = sections.find(s=>String(s.number) === String(id));
-      if(sec && sec.status !== 'locked') location.hash = `#/section/${id}`;
+      if(sec && sec.status !== 'locked'){
+        const panel = overviewCtaBtn.closest('.section-overview');
+        collapsePanel(panel, {
+          onComplete: () => expandSectionUnits(id)
+        });
+      }
       return;
     }
 
@@ -1261,7 +1373,12 @@
     setSectionProgress,
     updateCTAForSection,
     getLessonPosition: getLessonPositionMeta,
-    getLessonCounterText
+    getLessonCounterText,
+    renderOverview: renderLearn,
+    renderSection
   };
   window.__LEARN__ = Object.assign(window.__LEARN__ || {}, learnAPI);
+  window.BashaLearn = window.BashaLearn || {};
+  window.BashaLearn.renderOverview = renderLearn;
+  window.BashaLearn.renderSection = renderSection;
 })();

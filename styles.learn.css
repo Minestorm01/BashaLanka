@@ -17,7 +17,8 @@
   --section-card-padding-block: clamp(12px, 2vw, 16px);
   --section-card-padding-inline: clamp(14px, 2.4vw, 18px);
 
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr auto;
   gap: clamp(12px, 2vw, 18px);
   align-items: flex-start;
   background: #0d1420;
@@ -941,5 +942,38 @@
   top: calc(100% + 28px); /* was 12px, now 28px lower */
   transform: translateX(-100px);
 }
+
+/* ============ Section Units Panel ============ */
+.section-units {
+  grid-column: 1 / -1;
+  overflow: hidden;
+  transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  max-height: 0;
+  margin-top: 0;
+}
+
+.section-units.is-open {
+  margin-top: 20px;
+}
+
+.section-units[hidden] {
+  display: block;
+  max-height: 0;
+}
+
+/* Highlight animation for focused section */
+@keyframes section-highlight {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+  }
+  50% {
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.4);
+  }
+}
+
+.section-card.section-highlight {
+  animation: section-highlight 1s ease-out;
+}
+
 @media (max-width: 700px) {
 }

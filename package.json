@@ -1,0 +1,20 @@
+{
+  "name": "bashalanka",
+  "version": "1.0.0",
+  "description": "BashaLanka — Learn Sinhala with quick, game-like lessons",
+  "main": "index.html",
+  "scripts": {
+    "dev": "http-server -p 5000 -a 0.0.0.0 --cors -c-1",
+    "start": "npm run dev"
+  },
+  "keywords": [
+    "sinhala",
+    "language-learning",
+    "education"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "http-server": "^14.1.1"
+  }
+}

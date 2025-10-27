@@ -267,7 +267,7 @@ function initSidebar(){
 
 // Views
 const views = {
-  home:   $('#view-learn'),
+  home:   $('#view-home'),
   learn:  $('#view-learn'),
   characters: $('#view-characters'),
   practice:   $('#view-practice'),
@@ -286,14 +286,52 @@ function show(route){
 // Hash router
 function parseHash(){
   const h = location.hash.replace(/^#\/?/,'').toLowerCase();
+  
+  const sectionMatch = h.match(/^section\/(\d+)/);
+  if(sectionMatch){
+    return { type: 'section', id: sectionMatch[1], view: 'learn' };
+  }
+  
   const route = ROUTES.includes(h) ? h : (h.split('?')[0]||'home');
-  return route;
+  return { type: 'view', route };
 }
 function initRouter(sidebarCtl){
+  function waitForLearnModule(callback, maxAttempts = 20){
+    let attempts = 0;
+    const check = () => {
+      attempts++;
+      if(typeof window.BashaLearn !== 'undefined'){
+        callback();
+      }else if(attempts < maxAttempts){
+        setTimeout(check, 50);
+      }else{
+        console.warn('BashaLearn module did not initialize in time');
+      }
+    };
+    check();
+  }
+  
   function apply(){
-    const r = parseHash();
-    show(r);
-    sidebarCtl.setActive(r);
+    const parsed = parseHash();
+    if(parsed.type === 'section'){
+      show('learn');
+      sidebarCtl.setActive('learn');
+      waitForLearnModule(() => {
+        if(window.BashaLearn.renderSection){
+          window.BashaLearn.renderSection(parsed.id);
+        }
+      });
+    }else{
+      show(parsed.route);
+      sidebarCtl.setActive(parsed.route);
+      if(parsed.route === 'learn'){
+        waitForLearnModule(() => {
+          if(window.BashaLearn.renderOverview){
+            window.BashaLearn.renderOverview();
+          }
+        });
+      }
+    }
   }
   window.addEventListener('hashchange', apply);
   apply();
