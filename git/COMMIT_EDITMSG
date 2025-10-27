@@ -1,8 +1,8 @@
-Improve website navigation and user experience with new features
+Improve exercises to dynamically fetch vocabulary from lessons
 
-Implement deep-linking for section navigation, redesign the characters page with progress tracking, and enhance the home page with visual improvements and animations.
+Refactor PictureChoice, Listening, and Speak exercises to dynamically fetch lesson vocabulary using `fetchLessonVocab`. Implement fallback to `config.json` if vocab fetch fails. Update `replit.md` to reflect changes.
 
 Replit-Commit-Author: Agent
-Replit-Commit-Session-Id: 391f83b3-8006-480b-85d9-2698e7a461aa
+Replit-Commit-Session-Id: 25267cbb-a116-47e6-9f23-73d620d11b76
 Replit-Commit-Checkpoint-Type: full_checkpoint
-Replit-Commit-Screenshot-Url: https://storage.googleapis.com/screenshot-production-us-central1/4609e4e8-3246-4090-8795-a54bc852a159/391f83b3-8006-480b-85d9-2698e7a461aa/SRF6YAv
+Replit-Commit-Screenshot-Url: https://storage.googleapis.com/screenshot-production-us-central1/2435e496-af2f-4a96-9838-9a9661c902b6/25267cbb-a116-47e6-9f23-73d620d11b76/yWzzbv8
