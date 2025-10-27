@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test All Exercises - BashaLanka</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    h1 {
+      color: #333;
+    }
+    .exercise-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 15px;
+      margin-top: 20px;
+    }
+    .exercise-card {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .exercise-card h3 {
+      margin-top: 0;
+      color: #5a3d8a;
+    }
+    .test-btn {
+      background: #5a3d8a;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+      width: 100%;
+      margin-top: 10px;
+    }
+    .test-btn:hover {
+      background: #7a5daa;
+    }
+    .status {
+      margin-top: 10px;
+      padding: 8px;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+    .status.pending {
+      background: #e0e0e0;
+      color: #666;
+    }
+    .status.loading {
+      background: #fff3cd;
+      color: #856404;
+    }
+    .status.success {
+      background: #d4edda;
+      color: #155724;
+    }
+    .status.error {
+      background: #f8d7da;
+      color: #721c24;
+    }
+    #exercise-container {
+      margin-top: 30px;
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      min-height: 400px;
+    }
+  </style>
+</head>
+<body>
+  <h1>🧪 Exercise Module Test Suite</h1>
+  <p>Test all exercise types to verify they load and initialize correctly.</p>
+  
+  <div class="exercise-grid" id="exerciseGrid"></div>
+  
+  <div id="exercise-container"></div>
+
+  <script type="module">
+    const exercises = [
+      { id: 'match-pairs', label: 'Match Pairs', path: 'MatchPairs/index.js' },
+      { id: 'translate-to-base', label: 'Translate to English', path: 'TranslateToBase/index.js' },
+      { id: 'translate-to-target', label: 'Translate to Sinhala', path: 'TranslateToTarget/index.js' },
+      { id: 'picture-choice', label: 'Picture Choice', path: 'PictureChoice/index.js' },
+      { id: 'fill-blank', label: 'Fill in the Blank', path: 'FillBlank/index.js' },
+      { id: 'listening', label: 'Listening', path: 'Listening/index.js' },
+      { id: 'dialogue', label: 'Dialogue', path: 'Dialogue/index.js' },
+      { id: 'speak', label: 'Speaking', path: 'Speak/index.js' },
+      { id: 'wordbank-sinhala', label: 'Word Bank (EN→SI)', path: 'WordBankSinhala/index.js' },
+      { id: 'wordbank-english', label: 'Word Bank (SI→EN)', path: 'WordBankEnglish/index.js' }
+    ];
+
+    // Set up mock lesson context (required for exercises to fetch vocab)
+    window.BashaLanka = {
+      currentLesson: {
+        meta: {
+          lessonId: 'lesson-01',
+          sectionId: 'section-01-introductions',
+          unitId: 'unit-01-pronouns-greetings'
+        },
+        detail: {
+          id: 'lesson-01',
+          lessonId: 'lesson-01',
+          sectionId: 'section-01-introductions',
+          unitId: 'unit-01-pronouns-greetings',
+          title: 'Pronouns and Basic Greetings'
+        }
+      }
+    };
+
+    const grid = document.getElementById('exerciseGrid');
+    const container = document.getElementById('exercise-container');
+
+    exercises.forEach(exercise => {
+      const card = document.createElement('div');
+      card.className = 'exercise-card';
+      card.innerHTML = `
+        <h3>${exercise.label}</h3>
+        <button class="test-btn" data-exercise="${exercise.id}">Test Module</button>
+        <div class="status pending" id="status-${exercise.id}">Not tested</div>
+      `;
+      grid.appendChild(card);
+    });
+
+    grid.addEventListener('click', async (e) => {
+      if (!e.target.classList.contains('test-btn')) return;
+      
+      const exerciseId = e.target.dataset.exercise;
+      const exercise = exercises.find(ex => ex.id === exerciseId);
+      const statusEl = document.getElementById(`status-${exerciseId}`);
+      
+      statusEl.className = 'status loading';
+      statusEl.textContent = 'Loading module...';
+      
+      container.innerHTML = '<p>Loading exercise...</p>';
+      
+      try {
+        const basePath = './assets/Lessons/exercises/';
+        const modulePath = basePath + exercise.path;
+        
+        console.log(`Testing ${exercise.label}: ${modulePath}`);
+        const module = await import(modulePath);
+        
+        statusEl.textContent = 'Module loaded, initializing...';
+        
+        const initFn = module.default || module[`init${exercise.label.replace(/\s/g, '')}Exercise`];
+        if (typeof initFn !== 'function') {
+          throw new Error('Init function not found in module');
+        }
+        
+        container.innerHTML = `<div data-exercise="${exerciseId}"></div>`;
+        const target = container.querySelector(`[data-exercise="${exerciseId}"]`);
+        
+        await initFn({
+          target,
+          onComplete: (result) => {
+            console.log(`${exercise.label} completed:`, result);
+            statusEl.className = 'status success';
+            statusEl.textContent = '✅ Exercise completed!';
+          }
+        });
+        
+        statusEl.className = 'status success';
+        statusEl.textContent = '✅ Loaded successfully';
+        
+      } catch (error) {
+        console.error(`${exercise.label} failed:`, error);
+        statusEl.className = 'status error';
+        statusEl.textContent = `❌ Error: ${error.message}`;
+        container.innerHTML = `<div style="color: red; padding: 20px;">
+          <h3>Error loading ${exercise.label}</h3>
+          <pre>${error.stack || error.message}</pre>
+        </div>`;
+      }
+    });
+    
+    console.log('✅ Test suite ready. Click any "Test Module" button to begin.');
+  </script>
+</body>
+</html>

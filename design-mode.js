@@ -253,6 +253,11 @@ const DATA_KEY_PRIORITY = [
     clearBtn.textContent = 'Clear Local';
     clearBtn.addEventListener('click', clearLocalData);
 
+    const resetCharBtn = document.createElement('button');
+    resetCharBtn.type = 'button';
+    resetCharBtn.textContent = 'Reset Character Progress';
+    resetCharBtn.addEventListener('click', resetCharacterProgress);
+
     const closeBtn = document.createElement('button');
     closeBtn.type = 'button';
     closeBtn.textContent = 'Exit';
@@ -262,7 +267,7 @@ const DATA_KEY_PRIORITY = [
     hint.className = 'hint';
     hint.textContent = 'Drag elements to move. Use handles to resize. Alt = free move.';
 
-    bar.append(exportBtn, clearBtn, closeBtn, hint);
+    bar.append(exportBtn, clearBtn, resetCharBtn, closeBtn, hint);
     document.body.appendChild(bar);
     state.toolbar = bar;
   }
@@ -798,5 +803,25 @@ const rect = state.selected.getBoundingClientRect();
     state.map = { ...state.remoteMap };
     applyPositions();
     if (state.selected) refreshOverlay();
+  }
+
+  function resetCharacterProgress(){
+    if (!confirm('Reset all character progress? This will clear all mastery data and cannot be undone.')) return;
+    
+    // Clear all character progress from localStorage
+    const keysToRemove = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith('char-progress-')) {
+        keysToRemove.push(key);
+      }
+    }
+    
+    keysToRemove.forEach(key => localStorage.removeItem(key));
+    
+    alert(`Reset complete! Cleared ${keysToRemove.length} character progress entries. Refresh the page to see changes.`);
+    
+    // Reload the page to reflect changes
+    window.location.reload();
   }
 })();

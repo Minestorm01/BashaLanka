@@ -1,199 +1,59 @@
 # BashaLanka — Sinhala Learning App
 
 ## Overview
-BashaLanka is a language learning application focused on teaching Sinhala (the primary language of Sri Lanka). The app uses a game-like, interactive approach similar to Duolingo, with various exercise types including matching pairs, translation, listening comprehension, and speaking practice.
-
-## Project Type
-Static HTML/CSS/JavaScript web application (no backend required)
-- Framework-free, accessible, and mobile-first design
-- Progressive Web App (PWA) capabilities with service worker
-- Hash-based client-side routing
-
-## Recent Changes (2025-10-27)
-- **Section Navigation Enhancement**: Implemented proper section deep-linking with race condition fix
-  - Added hash routing support for #/section/{id} URLs
-  - Implemented waitForLearnModule helper to ensure Learn module initialization before rendering
-  - Section view now displays full vertical lesson path (not accordion expansion)
-  - "Start Section" buttons properly navigate to section view
-  - Back button returns to main Learn overview
-  
-- **Characters Page Redesign**: Complete visual and functional overhaul
-  - Added progress header showing Mastered/Learning/New character stats
-  - Implemented filter tabs (All, Vowels, Consonants, Combined Forms)
-  - Enhanced card layout with hover animations and cleaner design
-  - Progress tracking based on localStorage mastery data
-  
-- **Home Page Visual Improvements**: Enhanced landing experience
-  - Multi-layer gradient background with radial overlays
-  - Animated floating logo with glow effect
-  - Gradient text styling for main title
-  - Fade-in animations for all elements with staggered delays
-  - CTA buttons with ripple hover effects
-  - Glass-morphism effect on feature cards
-  
-- **Bug Fixes**:
-  - Fixed PictureChoice exercise module duplicate 'choices' key in buildLayout return
-  
-- **GitHub Import Completed**: Successfully set up BashaLanka in Replit environment
-  - Installed npm dependencies (http-server)
-  - Created .gitignore for Node.js and Replit files
-  - Configured workflow to run on port 5000
-  - Set up deployment configuration for autoscale (static site)
-  - Verified app runs correctly with all features working
-
-## Previous Changes (2025-10-27)
-- **Lesson Access**: All users can now start lessons (previously admin-only)
-- **Characters View**: New view with Sinhala character grid, audio playback, and practice
-- **Practice Builder**: Custom practice session configurator with mode/exercise/duration selection
-- **Quests System**: Daily and weekly challenges with progress tracking and rewards
-- **Landing Page**: Dedicated home view for new users with hero section and feature cards
-- Fixed routing to properly handle home view
-- Removed undefined connectLessons() call that was causing console errors
-
-## Initial Setup (2025-10-26)
-- Initial GitHub import to Replit
-- Set up Node.js development environment
-- Configured http-server for local development on port 5000
-- Added .gitignore for Node.js and Replit files
-- Created workflow for automatic server startup
-
-## Project Architecture
-
-### Technology Stack
-- **Frontend**: Vanilla JavaScript (ES6+), HTML5, CSS3
-- **Routing**: Hash-based client-side routing
-- **PWA**: Service Worker (sw.js) with manifest
-- **Server**: http-server (development) - static file serving only
-- **Module Loading**: Dynamic ES6 imports for exercise modules
-
-### Directory Structure
-```
-/
-├── index.html              # Main app shell
-├── app.js                  # Core app logic, routing, UI controls
-├── app.learn.js            # Learning section functionality
-├── app.characters.js       # Characters view with Sinhala alphabet
-├── app.practice.js         # Custom practice session builder
-├── app.quests.js           # Daily/weekly quest system
-├── app.home.js             # Landing page for new users
-├── design-mode.js          # Debug tools (admin only)
-├── styles.css              # Base styles and CSS tokens
-├── styles.learn.css        # Styles for learning view
-├── styles.features.css     # Styles for new feature views
-├── manifest.webmanifest    # PWA manifest
-├── sw.js                   # Service worker
-├── assets/
-│   ├── Lessons/            # Lesson content and exercises
-│   │   ├── exercises/      # Exercise type modules (JS)
-│   │   └── sections/       # Course content (Markdown)
-│   ├── Sinhala_Audio/      # Audio files for pronunciation
-│   ├── PNG/                # Image assets
-│   ├── SVG/                # Vector graphics
-│   └── data/
-│       └── characters.json # Character data for Characters view
-└── data/                   # JSON data files for lessons/sections
-```
-
-### Key Features
-1. **Multiple Exercise Types**:
-   - Match Pairs
-   - Translation (English ↔ Sinhala)
-   - Picture Choice
-   - Fill in the Blank
-   - Listening Comprehension
-   - Speaking Practice
-   - Word Bank exercises
-   - Dialogue practice
-
-2. **Learning Path**:
-   - Organized into Sections → Units → Lessons
-   - All users can start lessons via "Start Lesson!!" button
-   - Progress tracking via localStorage
-   - Lesson simulator for testing
-   - Debug tools for admins
-
-3. **Characters Study**:
-   - Grid-based character cards (vowels, consonants, common words)
-   - Audio pronunciation for each character
-   - Progress tracking per character
-   - Practice launcher for individual characters
-
-4. **Custom Practice Sessions**:
-   - Multiple practice modes (recent mistakes, weakest skills, random, specific lesson)
-   - Exercise type selection
-   - Configurable session duration
-   - Integrates with existing LessonSimulator
-
-5. **Quest System**:
-   - Daily quests (reset at midnight)
-   - Weekly quests (reset on Sundays)
-   - Progress visualization with bars
-   - Reward display (XP, streaks, badges)
-   - LocalStorage-based tracking
-
-6. **Landing Page**:
-   - Hero section with app branding
-   - Call-to-action buttons
-   - Feature showcase cards
-   - Auto-redirects returning users to Learn view
-
-7. **Accessibility**:
-   - Semantic HTML
-   - ARIA labels and roles
-   - Keyboard navigation
-   - Focus management for modals/drawers
-
-8. **Responsive Design**:
-   - Mobile-first approach
-   - Sidebar drawer for navigation
-   - Theme toggle (light/dark/system)
-
-### Data Flow
-- Course structure defined in `assets/Lessons/course.map.json`
-- Lesson content stored in Markdown files
-- Exercise data in JSON files under `/data/`
-- User progress stored in localStorage
-- Audio files served statically from `assets/Sinhala_Audio/`
-
-## Development Setup
-
-### Running Locally
-The app is configured to run on port 5000 using http-server:
-```bash
-npm run dev
-```
-
-This starts the server on `0.0.0.0:5000` with:
-- CORS enabled for development
-- Cache disabled (`-c-1`) for instant updates
-- Accessible from Replit webview
-
-### Environment
-- **Host**: 0.0.0.0 (required for Replit proxy)
-- **Port**: 5000 (only port exposed in Replit)
-- **Base Path**: Auto-detected based on hosting environment
-  - Localhost/Replit: `./`
-  - GitHub Pages: `/BashaLanka/`
-
-### Configuration
-The app automatically detects its environment and adjusts asset paths:
-- Uses `REPO_BASE_PATH` variable for path resolution
-- Supports both relative (`./`) and absolute (`/`) paths
-- Works on localhost, Replit, and GitHub Pages deployments
-
-## Deployment
-The project is ready for deployment as a static site. Suitable platforms:
-- Replit (current)
-- GitHub Pages
-- Netlify
-- Vercel
-- Any static hosting service
+BashaLanka is a language learning application designed to teach Sinhala using an interactive, game-like approach similar to Duolingo. It features various exercise types, including matching, translation, listening, and speaking practice. The project aims to provide an accessible, mobile-first, and progressive web application (PWA) experience, making Sinhala learning engaging and effective. The application is a static HTML/CSS/JavaScript web application requiring no backend.
 
 ## User Preferences
 None specified yet - this is the initial setup.
 
-## Notes
-- No backend required - all data is client-side
-- Login is mock (localStorage only) with "admin" username for debug access
-- Service worker currently has no caching strategy implemented
-- All audio files are pre-recorded MP3s (fast/slowed versions)
+## Recent Changes
+
+### Exercise System Fix (2025-10-27)
+Fixed 5 non-working exercise types to dynamically pull vocabulary from each lesson:
+- **FillBlank**: Auto-generates from current lesson vocab (no external assets required)
+- **PictureChoice**: Auto-generates from current lesson vocab with dynamic image paths
+- **Listening**: Auto-generates from current lesson vocab with dynamic audio paths
+- **Speaking**: Auto-generates from current lesson vocab (random word selection)
+- **Dialogue**: Uses static config.json (too complex for auto-generation)
+- All exercises now show different words from the selected lesson, just like Translate exercises
+- Config.json files serve as fallbacks when vocab fetch fails
+
+## System Architecture
+
+### UI/UX Decisions
+- **Mobile-first design**: Ensures responsiveness across devices.
+- **PWA capabilities**: Includes a service worker and manifest for installability and offline access.
+- **Hash-based client-side routing**: Manages navigation without server-side requests.
+- **Duolingo-style UI**: Gamified learning experience with mastery systems, interactive character learning, and visual progress tracking.
+- **Theming**: Supports dynamic color transitions (new → learning → mastered) and visual mastery effects with pulse animations.
+- **Accessibility**: Semantic HTML, ARIA labels, keyboard navigation, and focus management.
+- **Home Page**: Features a multi-layer gradient background, animated logo, gradient text, fade-in animations, CTA buttons with ripple effects, and glass-morphism feature cards.
+
+### Technical Implementations
+- **Frontend**: Vanilla JavaScript (ES6+), HTML5, CSS3.
+- **Dynamic Module Loading**: ES6 imports for exercise modules.
+- **Exercise System**: Supports various exercise types (Match Pairs, Translation, Picture Choice, Fill in the Blank, Listening, Speaking, Word Bank, Dialogue). Exercises can auto-generate configurations from lesson vocabulary or load from static JSON files.
+- **Tracing Validation System**: Replaced algorithmic validation with a pixel-perfect overlay comparison, utilizing a dual-canvas architecture, three-zone tolerance system, and specific validation thresholds for character tracing.
+- **Mastery System**: Implements a strength-based progression (0-100 points) requiring multiple successes for mastery, with strength gain/loss for correct/incorrect answers and streak tracking.
+- **Interactive Character Learning System**: Transforms the Characters page into a gamified hub with interactive modals for detailed information, tracing practice with stroke validation, and mini-exercises.
+- **Progress Tracking**: Detailed localStorage stats for mastery, strength, attempts, streaks, and practice activities for both lessons and individual characters.
+- **Section Navigation**: Implements hash routing for deep-linking and a `waitForLearnModule` helper for proper initialization.
+
+### Feature Specifications
+- **Learning Path**: Organized into Sections → Units → Lessons with progress tracking via localStorage.
+- **Characters Study**: Grid-based character cards with audio pronunciation, individual character progress tracking, and practice launchers.
+- **Custom Practice Sessions**: Configurable practice modes (recent mistakes, weakest skills, random, specific lesson), exercise types, and session duration.
+- **Quest System**: Daily and weekly challenges with progress visualization and reward tracking via localStorage.
+- **Landing Page**: Dedicated home view for new users with hero section, feature cards, and automatic redirection for returning users.
+- **Development Setup**: Configured with `http-server` for local development on port 5000, supporting CORS and cache disabling. Auto-detects environment for asset path resolution (localhost, Replit, GitHub Pages).
+
+### System Design Choices
+- **Client-Side Data**: All application data, including user progress and content, is managed client-side using localStorage.
+- **Static Site Deployment**: Designed for deployment on static hosting services (Replit, GitHub Pages, Netlify, Vercel).
+- **No Backend**: The application functions entirely without a server-side component, simplifying deployment and scaling.
+- **Modularity**: Codebase is structured into distinct JavaScript files for core logic, specific views (learn, characters, practice, quests, home), and styling.
+
+## External Dependencies
+- **http-server**: Used for local development and serving static files.
+- **Web Audio API**: For audio playback in lessons and character pronunciation.
+- **localStorage**: For storing user progress, settings, and other client-side data.

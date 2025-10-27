@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PictureChoice Exercise Test — BashaLanka</title>
+  <link rel="stylesheet" href="./styles.css">
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      font-family: 'Noto Sans', 'Helvetica Neue', Arial, sans-serif;
+    }
+    
+    .test-container {
+      width: 100%;
+      min-height: 100vh;
+      background: #1a1a2e;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .test-header {
+      background: #16213e;
+      padding: 1rem 2rem;
+      color: white;
+      border-bottom: 2px solid #0f3460;
+    }
+    
+    .test-header h1 {
+      margin: 0;
+      font-size: 1.5rem;
+    }
+    
+    .test-controls {
+      background: #0f3460;
+      padding: 1rem 2rem;
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    
+    .test-controls button {
+      padding: 0.5rem 1rem;
+      background: #4a9eff;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    
+    .test-controls button:hover {
+      background: #3a8eef;
+    }
+    
+    #exercise-container {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .exercise-info {
+      background: #16213e;
+      padding: 1rem 2rem;
+      color: white;
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="test-container">
+    <div class="test-header">
+      <h1>🖼️ PictureChoice Exercise Test</h1>
+      <p style="margin: 0.5rem 0 0 0; opacity: 0.8;">Testing Lesson 01 vocabulary with lion character images</p>
+    </div>
+    
+    <div class="test-controls">
+      <button onclick="loadExercise(1)">Exercise 1: මම (I)</button>
+      <button onclick="loadExercise(2)">Exercise 2: ඔයා (you)</button>
+      <button onclick="loadExercise(3)">Exercise 3: ඔව් (yes)</button>
+      <button onclick="loadExercise(4)">Exercise 4: නෑ (no)</button>
+      <button onclick="loadExercise(5)">Exercise 5: හොඳයි (fine/good)</button>
+      <button onclick="loadExercise(6)">Exercise 6: ඒයා (they)</button>
+    </div>
+    
+    <div id="exercise-container" data-exercise="picture-choice"></div>
+    
+    <div class="exercise-info" id="info">
+      Click a button above to load an exercise
+    </div>
+  </div>
+  
+  <script type="module">
+    import { initPictureChoiceExercise } from './assets/Lessons/exercises/PictureChoice/index.js';
+    
+    let currentExercise = null;
+    
+    window.loadExercise = async function(num) {
+      const container = document.getElementById('exercise-container');
+      const info = document.getElementById('info');
+      
+      // Clear previous exercise
+      container.innerHTML = '';
+      
+      if (currentExercise && currentExercise.cleanup) {
+        currentExercise.cleanup();
+      }
+      
+      info.textContent = `Loading exercise ${num}...`;
+      
+      try {
+        const config = await fetch(`./data/exercises/lesson-01/picture-choice-0${num}.json`).then(r => r.json());
+        
+        currentExercise = await initPictureChoiceExercise({
+          containerSelector: '#exercise-container',
+          config: config,
+          onComplete: (result) => {
+            info.textContent = `✅ Exercise completed! Result: ${JSON.stringify(result)}`;
+            console.log('Exercise completed:', result);
+          },
+          onError: (error) => {
+            info.textContent = `❌ Error: ${error.message}`;
+            console.error('Exercise error:', error);
+          }
+        });
+        
+        info.textContent = `Loaded: ${config.prompt} — Select the correct image!`;
+      } catch (error) {
+        info.textContent = `❌ Failed to load exercise: ${error.message}`;
+        console.error('Load error:', error);
+      }
+    };
+    
+    // Load first exercise on page load
+    window.addEventListener('DOMContentLoaded', () => {
+      setTimeout(() => loadExercise(1), 500);
+    });
+  </script>
+</body>
+</html>
