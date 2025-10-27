@@ -9,11 +9,178 @@ import {
   normaliseChoiceItem,
   setStatusMessage,
   shuffle,
+  resolveLessonAssetPath,
 } from '../_shared/utils.js';
 import { fetchLessonVocab } from '../TranslateToBase/index.js';
 
 const DEFAULT_CONTAINER_SELECTOR = '[data-exercise="picture-choice"]';
 const STYLESHEET_ID = 'picture-choice-styles';
+
+const MACRON_REPLACEMENTS = [
+  ['ā', 'aa'],
+  ['ē', 'ee'],
+  ['ī', 'ii'],
+  ['ō', 'oo'],
+  ['ū', 'uu'],
+];
+
+const LESSON_IMAGE_OVERRIDES = {
+  'lesson-01': {
+    oya: 'oya',
+    eya: 'eyaa',
+  },
+};
+
+const PLACEHOLDER_IMAGE = resolveLessonAssetPath('./assets/PNG/vocabulary/placeholder.png');
+
+function stripDiacritics(value) {
+  return value.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+}
+
+function expandMacrons(value) {
+  let next = value;
+  for (const [character, replacement] of MACRON_REPLACEMENTS) {
+    next = next.replace(new RegExp(character, 'g'), replacement);
+  }
+  return next;
+}
+
+function toFilenameSlug(value) {
+  if (!value) return '';
+  const stripped = stripDiacritics(value);
+  return stripped.replace(/[^a-z0-9]+/g, '');
+}
+
+function resolveLessonOverrideSlug(lessonId, translit) {
+  if (!lessonId) return null;
+  const overrides = LESSON_IMAGE_OVERRIDES[lessonId];
+  if (!overrides) return null;
+  const key = toFilenameSlug(translit);
+  return overrides[key] || null;
+}
+
+function buildLessonImageSources(lessonId, translit) {
+  const normalised = normaliseText(translit).toLowerCase();
+  if (!normalised) {
+    return [];
+  }
+
+  const sources = new Set();
+  const overrideSlug = resolveLessonOverrideSlug(lessonId, normalised);
+  if (overrideSlug) {
+    sources.add(overrideSlug);
+  }
+
+  const variants = [expandMacrons(normalised), normalised];
+  for (const variant of variants) {
+    const slug = toFilenameSlug(variant);
+    if (slug) {
+      sources.add(slug);
+    }
+  }
+
+  if (!sources.size) {
+    return [];
+  }
+
+  const basePath = `./assets/PNG/vocabulary/${lessonId}/`;
+  return Array.from(sources, (slug) => `${basePath}${slug}.png`);
+}
+
+function extractLessonIdFromPath(path) {
+  if (!path || typeof path !== 'string') {
+    return null;
+  }
+  const match = path.match(/lesson-(\d+)/);
+  return match ? `lesson-${match[1]}` : null;
+}
+
+function buildImageVariants(path) {
+  if (!path || typeof path !== 'string') {
+    return [];
+  }
+
+  const trimmed = normaliseText(path);
+  if (!trimmed) {
+    return [];
+  }
+
+  if (/^(data:|https?:|\/\/)/i.test(trimmed)) {
+    return [trimmed];
+  }
+
+  const variants = new Set([trimmed]);
+
+  const match = trimmed.match(/^(.*\/)?([^/]+)$/);
+  if (!match) {
+    return Array.from(variants);
+  }
+
+  const directory = match[1] || '';
+  const filename = match[2];
+  const extensionIndex = filename.lastIndexOf('.');
+  const basename = extensionIndex >= 0 ? filename.slice(0, extensionIndex) : filename;
+  const extension = extensionIndex >= 0 ? filename.slice(extensionIndex) : '';
+  const lessonId = extractLessonIdFromPath(directory);
+
+  if (lessonId) {
+    const slugCandidates = buildLessonImageSources(lessonId, basename);
+    for (const candidate of slugCandidates) {
+      const resolved = candidate.startsWith('./') ? candidate : `${directory}${candidate}`;
+      variants.add(resolved);
+    }
+  }
+
+  const localBase = normaliseText(basename).toLowerCase();
+  if (localBase) {
+    const localCandidates = new Set([toFilenameSlug(expandMacrons(localBase)), toFilenameSlug(localBase)]);
+    for (const candidate of localCandidates) {
+      if (!candidate) continue;
+      const resolved = `${directory}${candidate}${extension}`;
+      variants.add(resolved);
+    }
+  }
+
+  return Array.from(variants);
+}
+
+function resolveImageSources(image, fallbackList = []) {
+  const queue = [];
+
+  const pushCandidate = (candidate) => {
+    if (!candidate || typeof candidate !== 'string') return;
+    const trimmed = candidate.trim();
+    if (!trimmed) return;
+    const resolved = resolveLessonAssetPath(trimmed);
+    if (!resolved) return;
+    if (!queue.includes(resolved)) {
+      queue.push(resolved);
+    }
+  };
+
+  const initialSources = [];
+  if (typeof image === 'string') {
+    initialSources.push(image);
+  }
+  const extraFallbacks = Array.isArray(fallbackList)
+    ? fallbackList
+    : typeof fallbackList === 'string'
+    ? [fallbackList]
+    : [];
+  initialSources.push(...extraFallbacks);
+
+  for (const source of initialSources) {
+    const variants = buildImageVariants(source);
+    if (!variants.length) {
+      pushCandidate(source);
+      continue;
+    }
+    variants.forEach(pushCandidate);
+  }
+
+  const [primary, ...fallbacks] = queue;
+  return { primary, fallbacks };
+}
 
 function getLessonId() {
   if (typeof window === 'undefined') return 'lesson-01';
@@ -46,21 +213,29 @@ function buildPictureChoiceConfig(vocabEntries) {
   const correctItem = shuffled[0];
   const wrongItems = shuffled.slice(1, 4);
 
-  const choices = shuffle([
-    {
-      image: `./assets/PNG/vocabulary/${lessonId}/${correctItem.translit.toLowerCase()}.png`,
-      label: correctItem.en,
-      value: correctItem.translit,
-      isCorrect: true,
-      alt: `Image for ${correctItem.en}`,
-    },
-    ...wrongItems.map((item) => ({
-      image: `./assets/PNG/vocabulary/${lessonId}/${item.translit.toLowerCase()}.png`,
+  const buildChoice = (item, isCorrect) => {
+    const candidates = buildLessonImageSources(lessonId, item.translit);
+    if (!candidates.length) {
+      const fallbackSlug = toFilenameSlug(normaliseText(item.translit).toLowerCase());
+      if (fallbackSlug) {
+        candidates.push(`./assets/PNG/vocabulary/${lessonId}/${fallbackSlug}.png`);
+      }
+    }
+    const resolved = resolveImageSources(candidates[0], candidates.slice(1));
+    const image = resolved.primary || candidates[0];
+    return {
+      image,
+      imageFallbacks: resolved.fallbacks,
       label: item.en,
       value: item.translit,
-      isCorrect: false,
+      isCorrect,
       alt: `Image for ${item.en}`,
-    })),
+    };
+  };
+
+  const choices = shuffle([
+    buildChoice(correctItem, true),
+    ...wrongItems.map((item) => buildChoice(item, false)),
   ]);
 
   return {
@@ -121,12 +296,28 @@ function createPictureButton(option, onClick) {
   image.className = 'picture-choice__image';
   image.src = option.image;
   image.alt = option.alt || option.label || '';
-  
+
+  const fallbackQueue = Array.isArray(option.imageFallbacks)
+    ? option.imageFallbacks.slice()
+    : [];
+  let attemptedPlaceholder = false;
+
   image.addEventListener('error', () => {
-    image.src = './assets/PNG/vocabulary/placeholder.png';
-    image.alt = 'Image not available';
+    while (fallbackQueue.length) {
+      const nextSrc = fallbackQueue.shift();
+      if (nextSrc && nextSrc !== image.src) {
+        image.src = nextSrc;
+        return;
+      }
+    }
+
+    if (!attemptedPlaceholder) {
+      attemptedPlaceholder = true;
+      image.src = PLACEHOLDER_IMAGE;
+      image.alt = 'Image not available';
+    }
   });
-  
+
   button.appendChild(image);
 
   const label = document.createElement('span');
@@ -152,10 +343,7 @@ function prepareConfig(rawConfig) {
   const answersLookup = createAnswerLookup(rawConfig.answers);
   const rawChoices = Array.isArray(rawConfig.choices) ? rawConfig.choices : [];
   const choices = rawChoices
-    .map((choice) =>
-      normaliseChoiceItem(choice, {
-        fallbackLabelKeys: ['value', 'text'],
-        fallbackValueKeys: ['value', 'label'],
+@@ -159,55 +350,58 @@ function prepareConfig(rawConfig) {
         allowString: false,
       })
     )
@@ -181,11 +369,14 @@ function prepareConfig(rawConfig) {
       choice.isCorrect ||
       answerLookupHas(answersLookup, value) ||
       answerLookupHas(answersLookup, choice.label);
+    const imageInfo = resolveImageSources(choice.image, choice.imageFallbacks || choice.fallbackImages);
     return {
       ...choice,
       label: choice.label,
       value,
       isCorrect,
+      image: imageInfo.primary || choice.image,
+      imageFallbacks: imageInfo.fallbacks,
     };
   });
 
